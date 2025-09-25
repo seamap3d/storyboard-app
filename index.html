@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gritty Storyboard – Single‑File App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root { --frame-aspect: calc(9/16); }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .frame { aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); }
+    .grain::after { content:""; position:absolute; inset:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); mix-blend-mode:overlay; opacity:.6; pointer-events:none; }
+    .ellipsis { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .handle { cursor: grab; }
+    .handle:active { cursor: grabbing; }
+    .kbd {@apply px-2 py-0.5 rounded bg-slate-800 text-slate-100 text-xs border border-slate-700;}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <header class="flex items-center justify-between gap-3 mb-4">
+      <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 Gritty Storyboard</h1>
+      <div class="flex items-center gap-2">
+        <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+        <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+        <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+        <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+      </div>
+    </header>
+
+    <!-- Project / Characters Panel -->
+    <section class="grid md:grid-cols-2 gap-4 mb-6">
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+        <h2 class="font-semibold mb-3">Project</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Title</span>
+            <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="After Life (working title)">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Look</span>
+            <select id="look" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+              <option selected>gritty film</option>
+              <option>noir</option>
+              <option>documentary</option>
+              <option>Marvel comics</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Aspect</span>
+            <select id="aspect" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+              <option value="16:9" selected>16:9</option>
+              <option value="2.39:1">2.39:1</option>
+              <option value="4:3">4:3</option>
+            </select>
+          </label>
+        </div>
+        <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+      </div>
+
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+        <h2 class="font-semibold mb-3">Character Bible (consistency)</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="col-span-1">
+            <span class="text-sm text-slate-300">Roger (40s)</span>
+            <textarea id="charRoger" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="40s, corporate suit, short dark hair, light stubble, cautious eyes."></textarea>
+          </label>
+          <label class="col-span-1">
+            <span class="text-sm text-slate-300">Gwendryth (late 20s)</span>
+            <textarea id="charGwen" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Late 20s, rugged post‑apocalyptic outfit, braided hair, woollen gloves and scarf, determined gaze."></textarea>
+          </label>
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Other / Notes</span>
+            <textarea id="charOther" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Child: 12, feverish; Detective Holmes; Partner, etc."></textarea>
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Script breakdown -->
+    <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">Script → Shots (auto breakdown)</h2>
+        <div class="flex gap-2">
+          <button id="btnParse" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Auto‑Breakdown</button>
+          <button id="btnLoadAfterLife" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Load ‘After Life’ sample</button>
+        </div>
+      </div>
+      <textarea id="scriptInput" rows="6" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Paste script here. Scene headings like ‘EXT. RURAL GAS STATION – NIGHT’ will be detected."></textarea>
+      <p class="text-xs text-slate-400 mt-2">We detect scene headings (INT./EXT.), create initial shots, and carry forward characters seen in the scene. You can refine each shot afterward.</p>
+    </section>
+
+    <!-- Shot list -->
+    <section>
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="font-semibold">Shots</h2>
+        <div class="text-xs text-slate-400">Drag the handle to reorder shots.</div>
+      </div>
+      <ol id="shotList" class="space-y-4"></ol>
+    </section>
+  </div>
+
+  <template id="shotTmpl">
+    <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow">
+      <div class="flex items-start gap-4">
+        <div class="handle shrink-0 select-none text-slate-400 hover:text-slate-100">≡</div>
+        <div class="w-full space-y-3">
+          <div class="grid md:grid-cols-12 gap-3">
+            <div class="md:col-span-5 relative">
+              <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400">
+                <div class="text-center px-4">
+                  <div class="font-semibold">Frame Preview</div>
+                  <div class="text-xs">16:9 placeholder with film grain</div>
+                </div>
+              </div>
+            </div>
+            <div class="md:col-span-7 space-y-3">
+              <div class="grid grid-cols-2 gap-3">
+                <label>
+                  <span class="text-sm text-slate-300">Scene</span>
+                  <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="EXT. RURAL GAS STATION – NIGHT">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Shot #</span>
+                  <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="1">
+                </label>
+              </div>
+              <div class="grid grid-cols-3 gap-3">
+                <label>
+                  <span class="text-sm text-slate-300">Shot Type</span>
+                  <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                    <option>Wide</option>
+                    <option>Establishing</option>
+                    <option>Medium</option>
+                    <option>Close‑Up</option>
+                    <option>Extreme CU</option>
+                    <option>Over‑the‑Shoulder</option>
+                    <option>POV</option>
+                    <option>Drone</option>
+                    <option>Insert</option>
+                  </select>
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Lens</span>
+                  <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                    <option>24mm</option>
+                    <option selected>35mm</option>
+                    <option>50mm</option>
+                    <option>85mm</option>
+                    <option>105mm</option>
+                  </select>
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Move</span>
+                  <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                    <option>Locked</option>
+                    <option>Pan</option>
+                    <option>Tilt</option>
+                    <option>Dolly</option>
+                    <option>Handheld</option>
+                    <option>Crane</option>
+                    <option>Drone</option>
+                  </select>
+                </label>
+              </div>
+              <label>
+                <span class="text-sm text-slate-300">Action / Composition</span>
+                <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Gwen guards Roger at the self‑service pump; CCTV angle, sodium lamps, rain beading on windscreen."></textarea>
+              </label>
+              <div class="grid grid-cols-2 gap-3">
+                <label>
+                  <span class="text-sm text-slate-300">Characters</span>
+                  <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Gwendryth, Roger, Child">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Notes</span>
+                  <input class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="rain FX, CCTV overlay, low‑sodium light">
+                </label>
+              </div>
+              <div>
+                <span class="text-sm text-slate-300">Image Prompt (auto‑generated, editable)</span>
+                <textarea class="prompt mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="…"></textarea>
+                <div class="flex items-center gap-2 mt-2">
+                  <button class="btnGen px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">Generate Prompt</button>
+                  <button class="btnDup px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Duplicate</button>
+                  <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <input type="file" id="fileInput" accept="application/json" class="hidden" />
+
+  <script>
+  // --- State ---
+  const state = {
+    shots: [],
+  };
+
+  // --- Elements ---
+  const shotList = document.getElementById('shotList');
+  const tmpl = document.getElementById('shotTmpl');
+  const btnNew = document.getElementById('btnNew');
+  const btnExport = document.getElementById('btnExport');
+  const btnImport = document.getElementById('btnImport');
+  const btnPrint = document.getElementById('btnPrint');
+  const fileInput = document.getElementById('fileInput');
+  const projTitle = document.getElementById('projTitle');
+  const look = document.getElementById('look');
+  const aspect = document.getElementById('aspect');
+  const charRoger = document.getElementById('charRoger');
+  const charGwen = document.getElementById('charGwen');
+  const charOther = document.getElementById('charOther');
+  const scriptInput = document.getElementById('scriptInput');
+  const btnParse = document.getElementById('btnParse');
+  const btnLoadAfterLife = document.getElementById('btnLoadAfterLife');
+
+  // --- Helpers ---
+  const uid = () => Math.random().toString(36).slice(2,9);
+
+  function saveLocal() {
+    const data = collectData();
+    localStorage.setItem('grittyStoryboard', JSON.stringify(data));
+  }
+
+  function loadLocal() {
+    const raw = localStorage.getItem('grittyStoryboard');
+    if (!raw) return;
+    try { hydrate(JSON.parse(raw)); } catch {}
+  }
+
+  function collectData() {
+    return {
+      meta: {
+        title: projTitle.value.trim(),
+        look: look.value,
+        aspect: aspect.value,
+      },
+      characters: {
+        roger: charRoger.value.trim(),
+        gwen: charGwen.value.trim(),
+        other: charOther.value.trim(),
+      },
+      shots: state.shots.map(s => ({...s}))
+    };
+  }
+
+  function hydrate(data) {
+    projTitle.value = data?.meta?.title || '';
+    look.value = data?.meta?.look || 'gritty film';
+    aspect.value = data?.meta?.aspect || '16:9';
+    charRoger.value = data?.characters?.roger || '';
+    charGwen.value = data?.characters?.gwen || '';
+    charOther.value = data?.characters?.other || '';
+    state.shots = [];
+    shotList.innerHTML = '';
+    (data?.shots || []).forEach(addShotFromData);
+  }
+
+  function addShotFromData(s) {
+    const li = tmpl.content.firstElementChild.cloneNode(true);
+    li.dataset.id = s.id || (s.id = uid());
+    li.querySelector('.scene').value = s.scene || '';
+    li.querySelector('.shotnum').value = s.number || state.shots.length + 1;
+    li.querySelector('.type').value = s.type || 'Wide';
+    li.querySelector('.lens').value = s.lens || '35mm';
+    li.querySelector('.move').value = s.move || 'Locked';
+    li.querySelector('.desc').value = s.desc || '';
+    li.querySelector('.chars').value = s.chars || '';
+    li.querySelector('.notes').value = s.notes || '';
+    li.querySelector('.prompt').value = s.prompt || '';
+
+    // Bind buttons
+    li.querySelector('.btnGen').addEventListener('click', () => {
+      li.querySelector('.prompt').value = buildPrompt({
+        scene: li.querySelector('.scene').value,
+        type: li.querySelector('.type').value,
+        desc: li.querySelector('.desc').value,
+        chars: li.querySelector('.chars').value,
+      });
+      persistFromDOM();
+    });
+
+    li.querySelector('.btnDup').addEventListener('click', () => {
+      const clone = JSON.parse(JSON.stringify(s));
+      clone.id = uid();
+      state.shots.splice(indexOfShot(s.id)+1, 0, clone);
+      renderAll();
+      saveLocal();
+    });
+
+    li.querySelector('.btnDelete').addEventListener('click', () => {
+      state.shots = state.shots.filter(x => x.id !== s.id);
+      li.remove();
+      renumber();
+      saveLocal();
+    });
+
+    // Track changes
+    li.querySelectorAll('.inp, .prompt').forEach(el => {
+      el.addEventListener('input', () => {
+        persistFromDOM();
+      });
+    });
+
+    shotList.appendChild(li);
+    state.shots.push({ id: s.id, ...readShotFromLI(li) });
+  }
+
+  function readShotFromLI(li) {
+    return {
+      scene: li.querySelector('.scene').value,
+      number: li.querySelector('.shotnum').value,
+      type: li.querySelector('.type').value,
+      lens: li.querySelector('.lens').value,
+      move: li.querySelector('.move').value,
+      desc: li.querySelector('.desc').value,
+      chars: li.querySelector('.chars').value,
+      notes: li.querySelector('.notes').value,
+      prompt: li.querySelector('.prompt').value,
+    };
+  }
+
+  function persistFromDOM() {
+    // Walk DOM list order to persist state
+    state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
+    renumber();
+    saveLocal();
+  }
+
+  function renumber() {
+    Array.from(shotList.children).forEach((li, i) => {
+      li.querySelector('.shotnum').value = i + 1;
+      const idx = indexOfShot(li.dataset.id);
+      if (idx > -1) state.shots[idx].number = i + 1;
+    });
+  }
+
+  function indexOfShot(id) { return state.shots.findIndex(s => s.id === id); }
+
+  function renderAll() {
+    shotList.innerHTML = '';
+    const existing = [...state.shots];
+    state.shots = [];
+    existing.forEach(addShotFromData);
+  }
+
+  function buildPrompt({ scene, type, desc, chars }) {
+    const lookVal = look.value || 'gritty film';
+    const aspectVal = aspect.value || '16:9';
+    const roger = (charRoger.value || 'Roger: 40s, suit, short dark hair, stubble');
+    const gwen  = (charGwen.value  || 'Gwendryth: late 20s, rugged post‑apocalyptic, braided hair, woollen gloves & scarf');
+    const other = (charOther.value || '').trim();
+    const charBits = [roger, gwen, other].filter(Boolean).join(' | ');
+
+    return [
+      `${lookVal}, cinematic, ${aspectVal}`,
+      scene ? scene : '',
+      `${type} of ${chars || '—'} — maintain character continuity`,
+      desc || '',
+      `Character bible: ${charBits}`,
+      `Lighting: moody, practicals, motivated contrast — film grain, shallow depth of field`,
+      `Color: muted, cool shadows, sodium highlights`,
+    ].filter(Boolean).join('\n');
+  }
+
+  function newShot(preset={}) {
+    addShotFromData({
+      id: uid(),
+      scene: preset.scene || '',
+      type: preset.type || 'Wide',
+      lens: preset.lens || '35mm',
+      move: preset.move || 'Locked',
+      desc: preset.desc || '',
+      chars: preset.chars || 'Gwendryth, Roger',
+      notes: preset.notes || '',
+      prompt: '',
+    });
+    saveLocal();
+  }
+
+  // --- Drag to reorder ---
+  let dragSrcEl = null;
+  let ghost;
+
+  function addDragHandlers(li) {
+    const h = li.querySelector('.handle');
+    h.addEventListener('pointerdown', (e) => {
+      dragSrcEl = li;
+      ghost = li.cloneNode(true);
+      ghost.classList.add('opacity-50');
+      ghost.style.pointerEvents = 'none';
+      li.parentNode.insertBefore(ghost, li.nextSibling);
+      li.classList.add('ring-2','ring-emerald-500');
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp, { once: true });
+    });
+  }
+
+  function onMove(e) {
+    const y = e.clientY;
+    const items = Array.from(shotList.children).filter(el => el !== dragSrcEl);
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      const before = y < rect.top + rect.height / 2;
+      if (before) { shotList.insertBefore(ghost, item); break; }
+      if (item === items[items.length-1]) { shotList.appendChild(ghost); }
+    }
+  }
+
+  function onUp() {
+    dragSrcEl.classList.remove('ring-2','ring-emerald-500');
+    shotList.insertBefore(dragSrcEl, ghost);
+    ghost.remove();
+    ghost = null;
+    dragSrcEl = null;
+    persistFromDOM();
+    document.removeEventListener('pointermove', onMove);
+  }
+
+  // Observe list for new items to wire drag
+  const mo = new MutationObserver(() => {
+    Array.from(shotList.children).forEach(addDragHandlers);
+  });
+  mo.observe(shotList, { childList: true });
+
+  // --- Import/Export ---
+  btnExport.addEventListener('click', () => {
+    const data = collectData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (data.meta.title || 'storyboard') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  btnImport.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => { try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
+    reader.readAsText(f);
+    fileInput.value = '';
+  });
+
+  btnPrint.addEventListener('click', () => {
+    window.print();
+  });
+
+  // --- New shot ---
+  btnNew.addEventListener('click', () => newShot());
+
+  // --- Keyboard shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
+    if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
+    if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
+  });
+
+  // --- Script breakdown ---
+  btnParse.addEventListener('click', () => {
+    const text = scriptInput.value; if (!text.trim()) { alert('Paste a script first.'); return; }
+    const lines = text.split(/\r?\n/);
+    const scenes = [];
+    let current = null;
+    for (const line of lines) {
+      const l = line.trim();
+      const isHead = /^(INT\.|EXT\.)/i.test(l);
+      if (isHead) {
+        if (current) scenes.push(current);
+        current = { heading: l, body: [] };
+      } else if (current) {
+        current.body.push(l);
+      }
+    }
+    if (current) scenes.push(current);
+
+    // Create one default shot per scene
+    scenes.forEach(sc => {
+      newShot({
+        scene: sc.heading,
+        type: /ESTABLISH|EXT\./i.test(sc.heading) ? 'Establishing' : 'Medium',
+        desc: (sc.body.find(b => b) || '').slice(0, 140),
+        chars: guessChars(sc.body.join(' ')),
+      });
+    });
+  });
+
+  function guessChars(block) {
+    const names = [];
+    if (/GWENDRYTH/i.test(block)) names.push('Gwendryth');
+    if (/ROGER/i.test(block)) names.push('Roger');
+    if (/(GIRL|CHILD)/i.test(block)) names.push('Child');
+    if (/HOLMES/i.test(block)) names.push('Holmes');
+    if (/PARTNER/i.test(block)) names.push('Partner');
+    return names.length ? names.join(', ') : 'Gwendryth, Roger';
+  }
+
+  // Sample: small excerpt from ‘After Life’ (safe, minimal)
+  const sampleAfterLife = `EXT. RURAL GAS STATION – NIGHT\nCCTV footage: Gwen steps out of the car while pointing the gun at ROGER. He fuels the car while she guards him.\nINT. COMPUTER ROOM POLICE STATION – NIGHT\nOfficer HOLMES and his PARTNER are looking at CCTV footage.\nEXT. OLD HOSPITAL – NIGHT\nThe truck is parked in front of the entrance to an old hospital building. Everything is dark except for the headlights.`;
+  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleAfterLife; });
+
+  // --- Init ---
+  loadLocal();
+  if (!projTitle.value) projTitle.value = 'After Life (working title)';
+  if (!charRoger.value) charRoger.value = '40s, corporate suit, short dark hair, light stubble, cautious eyes';
+  if (!charGwen.value)  charGwen.value  = 'Late 20s, rugged post‑apocalyptic outfit, braided hair, woollen gloves and scarf, determined gaze';
+
+  // Persist meta/character edits
+  [projTitle, look, aspect, charRoger, charGwen, charOther].forEach(el => el.addEventListener('input', saveLocal));
+  </script>
+
+  <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
+    Built as a single HTML file – host on GitHub Pages or Netlify. © You.
+  </footer>
+</body>
+</html>
