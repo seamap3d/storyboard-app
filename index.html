@@ -38,7 +38,7 @@
         <div class="grid grid-cols-2 gap-3">
           <label class="col-span-2">
             <span class="text-sm text-slate-300">Title</span>
-            <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="After Life (working title)">
+            <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
           </label>
           <label>
             <span class="text-sm text-slate-300">Look</span>
@@ -65,12 +65,12 @@
         <h2 class="font-semibold mb-3">Character Bible (consistency)</h2>
         <div class="grid grid-cols-2 gap-3">
           <label class="col-span-1">
-            <span class="text-sm text-slate-300">Roger (40s)</span>
-            <textarea id="charRoger" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="40s, corporate suit, short dark hair, light stubble, cautious eyes."></textarea>
+            <span class="text-sm text-slate-300">Character A</span>
+            <textarea id="charRoger" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character description: age, appearance, clothing, demeanor."></textarea>
           </label>
           <label class="col-span-1">
-            <span class="text-sm text-slate-300">Gwendryth (late 20s)</span>
-            <textarea id="charGwen" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Late 20s, rugged post‑apocalyptic outfit, braided hair, woollen gloves and scarf, determined gaze."></textarea>
+            <span class="text-sm text-slate-300">Character B</span>
+            <textarea id="charGwen" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character description: age, appearance, clothing, demeanor."></textarea>
           </label>
           <label class="col-span-2">
             <span class="text-sm text-slate-300">Other / Notes</span>
@@ -110,11 +110,17 @@
         <div class="w-full space-y-3">
           <div class="grid md:grid-cols-12 gap-3">
             <div class="md:col-span-5 relative">
-              <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400">
-                <div class="text-center px-4">
+              <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400 relative group">
+                <img class="frame-image absolute inset-0 w-full h-full object-cover rounded-xl hidden" alt="Shot reference">
+                <div class="text-center px-4 frame-placeholder">
                   <div class="font-semibold">Frame Preview</div>
-                  <div class="text-xs">16:9 placeholder with film grain</div>
+                  <div class="text-xs mb-3">16:9 placeholder with film grain</div>
+                  <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-sm font-medium">
+                    Upload Image
+                    <input type="file" accept="image/*" class="image-upload hidden">
+                  </label>
                 </div>
+                <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
               </div>
             </div>
             <div class="md:col-span-7 space-y-3">
@@ -277,6 +283,60 @@
     li.querySelector('.notes').value = s.notes || '';
     li.querySelector('.prompt').value = s.prompt || '';
 
+    // Handle image display
+    const frameImg = li.querySelector('.frame-image');
+    const framePlaceholder = li.querySelector('.frame-placeholder');
+    const removeBtn = li.querySelector('.remove-image');
+    
+    if (s.imageData) {
+      frameImg.src = s.imageData;
+      frameImg.classList.remove('hidden');
+      framePlaceholder.classList.add('hidden');
+      removeBtn.classList.remove('hidden');
+      removeBtn.classList.add('flex');
+    }
+
+    // Image upload handler
+    li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          frameImg.src = event.target.result;
+          frameImg.classList.remove('hidden');
+          framePlaceholder.classList.add('hidden');
+          removeBtn.classList.remove('hidden');
+          removeBtn.classList.add('flex');
+          
+          // Update state
+          const shotId = li.dataset.id;
+          const shotIndex = indexOfShot(shotId);
+          if (shotIndex > -1) {
+            state.shots[shotIndex].imageData = event.target.result;
+            saveLocal();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Remove image handler
+    removeBtn.addEventListener('click', () => {
+      frameImg.src = '';
+      frameImg.classList.add('hidden');
+      framePlaceholder.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+      removeBtn.classList.remove('flex');
+      
+      // Update state
+      const shotId = li.dataset.id;
+      const shotIndex = indexOfShot(shotId);
+      if (shotIndex > -1) {
+        delete state.shots[shotIndex].imageData;
+        saveLocal();
+      }
+    });
+
     // Bind buttons
     li.querySelector('.btnGen').addEventListener('click', () => {
       li.querySelector('.prompt').value = buildPrompt({
@@ -315,7 +375,8 @@
   }
 
   function readShotFromLI(li) {
-    return {
+    const frameImg = li.querySelector('.frame-image');
+    const data = {
       scene: li.querySelector('.scene').value,
       number: li.querySelector('.shotnum').value,
       type: li.querySelector('.type').value,
@@ -326,6 +387,12 @@
       notes: li.querySelector('.notes').value,
       prompt: li.querySelector('.prompt').value,
     };
+    
+    if (frameImg.src && !frameImg.classList.contains('hidden')) {
+      data.imageData = frameImg.src;
+    }
+    
+    return data;
   }
 
   function persistFromDOM() {
