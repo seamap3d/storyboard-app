@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- PDF.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
   <title>ApeOnAWhale Storyboard</title>
   <script s        // Sample: generic script excerpt for demonstration
   const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
@@ -107,7 +109,7 @@
         <h2 class="font-semibold">Shots</h2>
         <div class="text-xs text-slate-400">Drag the handle to reorder shots.</div>
       </div>
-      <ol id="shotList" class="space-y-4"></ol>
+      <div id="shotList" class="space-y-4"></div>
     </section>
   </div>
 
@@ -213,6 +215,57 @@
   <input type="file" id="fileInput" accept="application/json" class="hidden" />
 
   <script>
+    // PDF-to-text extraction and auto-breakdown logic
+    document.getElementById('btnUploadPDF').addEventListener('click', async () => {
+      const input = document.getElementById('pdfInput');
+      if (!input.files || !input.files[0]) {
+        alert('Please select a PDF file.');
+        return;
+      }
+      const file = input.files[0];
+      const reader = new FileReader();
+      reader.onload = async function() {
+        const typedarray = new Uint8Array(reader.result);
+        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+        let text = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        // Run auto-breakdown
+        const shots = autoBreakdown(text);
+        renderShots(shots);
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // Simple auto-breakdown: split by scene headings (EXT./INT.)
+    function autoBreakdown(text) {
+      const scenes = text.split(/(?=\b(?:EXT\.|INT\.)\b)/);
+      return scenes
+        .map(s => s.trim())
+        .filter(s => s.length > 0)
+        .map((scene, idx) => ({
+          id: idx + 1,
+          text: scene
+        }));
+    }
+
+    // Render shot cards with editable fields
+    function renderShots(shots) {
+      const shotList = document.getElementById('shotList');
+      shotList.innerHTML = '';
+      shots.forEach(shot => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-800 rounded-xl p-4 shadow flex flex-col gap-2';
+        card.innerHTML = `
+          <div class="font-semibold text-indigo-300 mb-1">Shot ${shot.id}</div>
+          <textarea class="w-full p-2 rounded bg-slate-900 border border-slate-700 text-slate-100" rows="4">${shot.text}</textarea>
+        `;
+        shotList.appendChild(card);
+      });
+    }
   // --- State ---
   const state = {
     shots: [],
