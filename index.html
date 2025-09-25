@@ -4,7 +4,15 @@
   <meta charset="utf-8" />
   <meta name="viewpor         <textarea id="scriptInput" rows="6" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Paste script here. Scene headings like 'EXT. LOCATION – TIME' will be detected."></textarea>      <button id="btnLoadAfterLife" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Load Sample Script</button>" content="width=device-width, initial-scale=1" />
   <title>Gritty Storyboard – Single‑File App</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script s        // Sample: generic script excerpt for demonstration
+  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
+  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
+  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
+  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
+  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
+  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
+  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
+  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });"https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -80,18 +88,17 @@
       </div>
     </section>
 
-    <!-- Script breakdown -->
-    <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold">Script → Shots (auto breakdown)</h2>
-        <div class="flex gap-2">
-          <button id="btnParse" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Auto‑Breakdown</button>
-          <button id="btnLoadAfterLife" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Load ‘After Life’ sample</button>
+      <!-- PDF Script Upload -->
+      <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Upload PDF Script</h2>
         </div>
-      </div>
-      <textarea id="scriptInput" rows="6" class="w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Paste script here. Scene headings like ‘EXT. RURAL GAS STATION – NIGHT’ will be detected."></textarea>
-      <p class="text-xs text-slate-400 mt-2">We detect scene headings (INT./EXT.), create initial shots, and carry forward characters seen in the scene. You can refine each shot afterward.</p>
-    </section>
+        <input type="file" id="pdfInput" accept="application/pdf" class="mb-2" />
+        <button id="btnUploadPDF" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
+        <p class="text-xs text-slate-400 mt-2">Upload a PDF script. The text will be extracted and auto-breakdown will run automatically.</p>
+      </section>
+
+    <!-- PDF Script Upload section will be added here -->
 
     <!-- Shot list -->
     <section>
@@ -174,16 +181,16 @@
               </div>
               <label>
                 <span class="text-sm text-slate-300">Action / Composition</span>
-                <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Gwen guards Roger at the self‑service pump; CCTV angle, sodium lamps, rain beading on windscreen."></textarea>
+                <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
               </label>
               <div class="grid grid-cols-2 gap-3">
                 <label>
                   <span class="text-sm text-slate-300">Characters</span>
-                  <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Gwendryth, Roger, Child">
+                  <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
                 </label>
                 <label>
                   <span class="text-sm text-slate-300">Notes</span>
-                  <input class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="rain FX, CCTV overlay, low‑sodium light">
+                  <input class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="technical notes, lighting, FX">
                 </label>
               </div>
               <div>
@@ -422,10 +429,10 @@
   function buildPrompt({ scene, type, desc, chars }) {
     const lookVal = look.value || 'gritty film';
     const aspectVal = aspect.value || '16:9';
-    const roger = (charRoger.value || 'Roger: 40s, suit, short dark hair, stubble');
-    const gwen  = (charGwen.value  || 'Gwendryth: late 20s, rugged post‑apocalyptic, braided hair, woollen gloves & scarf');
+    const charA = (charRoger.value || 'Character A: description');
+    const charB = (charGwen.value  || 'Character B: description');
     const other = (charOther.value || '').trim();
-    const charBits = [roger, gwen, other].filter(Boolean).join(' | ');
+    const charBits = [charA, charB, other].filter(Boolean).join(' | ');
 
     return [
       `${lookVal}, cinematic, ${aspectVal}`,
@@ -434,7 +441,7 @@
       desc || '',
       `Character bible: ${charBits}`,
       `Lighting: moody, practicals, motivated contrast — film grain, shallow depth of field`,
-      `Color: muted, cool shadows, sodium highlights`,
+      `Color: muted, cool shadows, warm highlights`,
     ].filter(Boolean).join('\n');
   }
 
@@ -446,7 +453,7 @@
       lens: preset.lens || '35mm',
       move: preset.move || 'Locked',
       desc: preset.desc || '',
-      chars: preset.chars || 'Gwendryth, Roger',
+      chars: preset.chars || 'Character A, Character B',
       notes: preset.notes || '',
       prompt: '',
     });
@@ -564,12 +571,12 @@
 
   function guessChars(block) {
     const names = [];
-    if (/GWENDRYTH/i.test(block)) names.push('Gwendryth');
-    if (/ROGER/i.test(block)) names.push('Roger');
-    if (/(GIRL|CHILD)/i.test(block)) names.push('Child');
-    if (/HOLMES/i.test(block)) names.push('Holmes');
-    if (/PARTNER/i.test(block)) names.push('Partner');
-    return names.length ? names.join(', ') : 'Gwendryth, Roger';
+    if (/CHARACTER\s*A/i.test(block)) names.push('Character A');
+    if (/CHARACTER\s*B/i.test(block)) names.push('Character B');
+    if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
+    if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
+    if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
+    return names.length ? names.join(', ') : 'Character A, Character B';
   }
 
   // Sample: small excerpt from ‘After Life’ (safe, minimal)
@@ -578,9 +585,9 @@
 
   // --- Init ---
   loadLocal();
-  if (!projTitle.value) projTitle.value = 'After Life (working title)';
-  if (!charRoger.value) charRoger.value = '40s, corporate suit, short dark hair, light stubble, cautious eyes';
-  if (!charGwen.value)  charGwen.value  = 'Late 20s, rugged post‑apocalyptic outfit, braided hair, woollen gloves and scarf, determined gaze';
+  if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+  if (!charRoger.value) charRoger.value = 'Character description: age, appearance, clothing, demeanor';
+  if (!charGwen.value)  charGwen.value  = 'Character description: age, appearance, clothing, demeanor';
 
   // Persist meta/character edits
   [projTitle, look, aspect, charRoger, charGwen, charOther].forEach(el => el.addEventListener('input', saveLocal));
