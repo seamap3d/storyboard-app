@@ -3,31 +3,33 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="styles.css" />
-  <!-- PDF.js CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
-  <title>ApeOnAWhale Storyboard</title>
-  <script s        // Sample: generic script excerpt for demonstration
-  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
-  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
-  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
-  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
-  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
-  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });Sample: generic script excerpt for demonstration
-  const sampleScript = `EXT. LOCATION A – NIGHT\nCharacter A steps out of the vehicle while watching Character B. Character B completes their task while being observed.\nINT. OFFICE BUILDING – NIGHT\nOfficer and Partner are reviewing security footage on monitors.\nEXT. ABANDONED BUILDING – NIGHT\nThe vehicle is parked in front of the entrance. Everything is dark except for the headlights.`;
-  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleScript; });"https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <title>ApeOnAWhale Storyboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
   <style>
     :root { --frame-aspect: calc(9/16); }
     body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
     .frame { aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); }
     .grain::after { content:""; position:absolute; inset:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); mix-blend-mode:overlay; opacity:.6; pointer-events:none; }
-    .ellipsis { display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .ellipsis { display:-webkit-box; -webkit-line-clamp:2; line-clamp: 2; -webkit-box-orient:vertical; overflow:hidden; }
     .handle { cursor: grab; }
     .handle:active { cursor: grabbing; }
-    .kbd {@apply px-2 py-0.5 rounded bg-slate-800 text-slate-100 text-xs border border-slate-700;}
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 0.75rem;
+      border: 1px solid #334155;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100">
@@ -100,16 +102,13 @@
         <button id="btnUploadPDF" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
         <p class="text-xs text-slate-400 mt-2">Upload a PDF script. The text will be extracted and auto-breakdown will run automatically.</p>
       </section>
-
-    <!-- PDF Script Upload section will be added here -->
-
     <!-- Shot list -->
     <section>
       <div class="flex items-center justify-between mb-2">
         <h2 class="font-semibold">Shots</h2>
         <div class="text-xs text-slate-400">Drag the handle to reorder shots.</div>
       </div>
-      <div id="shotList" class="space-y-4"></div>
+  <ol id="shotList" class="space-y-4"></ol>
     </section>
   </div>
 
@@ -215,58 +214,74 @@
   <input type="file" id="fileInput" accept="application/json" class="hidden" />
 
   <script>
-    // PDF-to-text extraction and auto-breakdown logic
-    document.getElementById('btnUploadPDF').addEventListener('click', async () => {
-      const input = document.getElementById('pdfInput');
-      if (!input.files || !input.files[0]) {
-        alert('Please select a PDF file.');
+    async function extractTextFromPDF(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const typedArray = new Uint8Array(arrayBuffer);
+      const pdf = await pdfjsLib.getDocument(typedArray).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const strings = content.items.map(item => item.str);
+        text += strings.join(' ') + '\n';
+      }
+      return text;
+    }
+
+    function extractScenes(rawText) {
+      const lines = rawText.split(/\r?\n/);
+      const scenes = [];
+      let current = null;
+      for (const sourceLine of lines) {
+        const line = sourceLine.trim();
+        if (!line) continue;
+        if (/^(INT\.|EXT\.)/i.test(line)) {
+          if (current) scenes.push(current);
+          current = { heading: line, body: [] };
+        } else if (current) {
+          current.body.push(line);
+        }
+      }
+      if (current) scenes.push(current);
+      return scenes;
+    }
+
+    function guessChars(block) {
+      const names = [];
+      if (/CHARACTER\s*A/i.test(block)) names.push('Character A');
+      if (/CHARACTER\s*B/i.test(block)) names.push('Character B');
+      if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
+      if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
+      if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
+      return names.length ? names.join(', ') : 'Character A, Character B';
+    }
+
+    function buildShotPreset(scene) {
+      const bodyCopy = [...scene.body];
+      const summary = (bodyCopy.find(Boolean) || '').slice(0, 200);
+      return {
+        scene: scene.heading,
+        type: /ESTABLISH|EXT\./i.test(scene.heading) ? 'Establishing' : 'Medium',
+        desc: summary,
+        chars: guessChars(bodyCopy.join(' ')),
+      };
+    }
+
+    function applyBreakdown(text) {
+      const scenes = extractScenes(text);
+      if (!scenes.length) {
+        alert('No scene headings (INT. / EXT.) were detected in the uploaded PDF.');
         return;
       }
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = async function() {
-        const typedarray = new Uint8Array(reader.result);
-        const pdf = await pdfjsLib.getDocument(typedarray).promise;
-        let text = '';
-        for (let i = 1; i <= pdf.numPages; i++) {
-          const page = await pdf.getPage(i);
-          const content = await page.getTextContent();
-          text += content.items.map(item => item.str).join(' ') + '\n';
-        }
-        // Run auto-breakdown
-        const shots = autoBreakdown(text);
-        renderShots(shots);
-      };
-      reader.readAsArrayBuffer(file);
-    });
-
-    // Simple auto-breakdown: split by scene headings (EXT./INT.)
-    function autoBreakdown(text) {
-      const scenes = text.split(/(?=\b(?:EXT\.|INT\.)\b)/);
-      return scenes
-        .map(s => s.trim())
-        .filter(s => s.length > 0)
-        .map((scene, idx) => ({
-          id: idx + 1,
-          text: scene
-        }));
-    }
-
-    // Render shot cards with editable fields
-    function renderShots(shots) {
-      const shotList = document.getElementById('shotList');
-      shotList.innerHTML = '';
-      shots.forEach(shot => {
-        const card = document.createElement('div');
-        card.className = 'bg-slate-800 rounded-xl p-4 shadow flex flex-col gap-2';
-        card.innerHTML = `
-          <div class="font-semibold text-indigo-300 mb-1">Shot ${shot.id}</div>
-          <textarea class="w-full p-2 rounded bg-slate-900 border border-slate-700 text-slate-100" rows="4">${shot.text}</textarea>
-        `;
-        shotList.appendChild(card);
-      });
+      resetShots();
+      scenes.forEach(scene => addShotFromData(buildShotPreset(scene)));
+      renumber();
+      saveLocal();
     }
   // --- State ---
+  const STORAGE_KEY = 'apeOnAWhaleStoryboard';
+  const LEGACY_STORAGE_KEY = 'grittyStoryboard';
+
   const state = {
     shots: [],
   };
@@ -278,6 +293,8 @@
   const btnExport = document.getElementById('btnExport');
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
+  const pdfInput = document.getElementById('pdfInput');
+  const btnUploadPDF = document.getElementById('btnUploadPDF');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const look = document.getElementById('look');
@@ -285,20 +302,38 @@
   const charRoger = document.getElementById('charRoger');
   const charGwen = document.getElementById('charGwen');
   const charOther = document.getElementById('charOther');
-  const scriptInput = document.getElementById('scriptInput');
-  const btnParse = document.getElementById('btnParse');
-  const btnLoadAfterLife = document.getElementById('btnLoadAfterLife');
+  btnUploadPDF.addEventListener('click', async () => {
+    if (!pdfInput.files || !pdfInput.files[0]) {
+      alert('Please select a PDF file.');
+      return;
+    }
+    try {
+      const text = await extractTextFromPDF(pdfInput.files[0]);
+      applyBreakdown(text);
+      pdfInput.value = '';
+    } catch (error) {
+      console.error('PDF parsing failed', error);
+      alert('We couldn’t read that PDF. Please try another file.');
+    }
+  });
 
   // --- Helpers ---
   const uid = () => Math.random().toString(36).slice(2,9);
 
   function saveLocal() {
     const data = collectData();
-    localStorage.setItem('grittyStoryboard', JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }
 
   function loadLocal() {
-    const raw = localStorage.getItem('grittyStoryboard');
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
     if (!raw) return;
     try { hydrate(JSON.parse(raw)); } catch {}
   }
@@ -326,9 +361,13 @@
     charRoger.value = data?.characters?.roger || '';
     charGwen.value = data?.characters?.gwen || '';
     charOther.value = data?.characters?.other || '';
+    resetShots();
+    (data?.shots || []).forEach(addShotFromData);
+  }
+
+  function resetShots() {
     state.shots = [];
     shotList.innerHTML = '';
-    (data?.shots || []).forEach(addShotFromData);
   }
 
   function addShotFromData(s) {
@@ -593,49 +632,6 @@
     if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
   });
-
-  // --- Script breakdown ---
-  btnParse.addEventListener('click', () => {
-    const text = scriptInput.value; if (!text.trim()) { alert('Paste a script first.'); return; }
-    const lines = text.split(/\r?\n/);
-    const scenes = [];
-    let current = null;
-    for (const line of lines) {
-      const l = line.trim();
-      const isHead = /^(INT\.|EXT\.)/i.test(l);
-      if (isHead) {
-        if (current) scenes.push(current);
-        current = { heading: l, body: [] };
-      } else if (current) {
-        current.body.push(l);
-      }
-    }
-    if (current) scenes.push(current);
-
-    // Create one default shot per scene
-    scenes.forEach(sc => {
-      newShot({
-        scene: sc.heading,
-        type: /ESTABLISH|EXT\./i.test(sc.heading) ? 'Establishing' : 'Medium',
-        desc: (sc.body.find(b => b) || '').slice(0, 140),
-        chars: guessChars(sc.body.join(' ')),
-      });
-    });
-  });
-
-  function guessChars(block) {
-    const names = [];
-    if (/CHARACTER\s*A/i.test(block)) names.push('Character A');
-    if (/CHARACTER\s*B/i.test(block)) names.push('Character B');
-    if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
-    if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
-    if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
-    return names.length ? names.join(', ') : 'Character A, Character B';
-  }
-
-  // Sample: small excerpt from ‘After Life’ (safe, minimal)
-  const sampleAfterLife = `EXT. RURAL GAS STATION – NIGHT\nCCTV footage: Gwen steps out of the car while pointing the gun at ROGER. He fuels the car while she guards him.\nINT. COMPUTER ROOM POLICE STATION – NIGHT\nOfficer HOLMES and his PARTNER are looking at CCTV footage.\nEXT. OLD HOSPITAL – NIGHT\nThe truck is parked in front of the entrance to an old hospital building. Everything is dark except for the headlights.`;
-  btnLoadAfterLife.addEventListener('click', () => { scriptInput.value = sampleAfterLife; });
 
   // --- Init ---
   loadLocal();
