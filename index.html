@@ -75,21 +75,11 @@
       </div>
 
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
-        <h2 class="font-semibold mb-3">Character Bible (consistency)</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="col-span-1">
-            <span class="text-sm text-slate-300">Character A</span>
-            <textarea id="charRoger" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character description: age, appearance, clothing, demeanor."></textarea>
-          </label>
-          <label class="col-span-1">
-            <span class="text-sm text-slate-300">Character B</span>
-            <textarea id="charGwen" rows="4" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character description: age, appearance, clothing, demeanor."></textarea>
-          </label>
-          <label class="col-span-2">
-            <span class="text-sm text-slate-300">Other / Notes</span>
-            <textarea id="charOther" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Additional characters, notes, or other details."></textarea>
-          </label>
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h2 class="font-semibold">Character Library</h2>
+          <button type="button" id="btnAddCharacter" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-medium">Add Character</button>
         </div>
+        <div id="characterList" class="space-y-3"></div>
       </div>
     </section>
 
@@ -111,6 +101,24 @@
   <ol id="shotList" class="space-y-4"></ol>
     </section>
   </div>
+
+  <template id="characterTmpl">
+    <div class="character-entry p-3 rounded-xl bg-slate-900 border border-slate-800 shadow flex flex-col gap-3">
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="flex flex-col gap-1">
+          <span class="text-sm text-slate-300">Name</span>
+          <input class="char-name mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., Protagonist" />
+        </label>
+        <label class="flex flex-col gap-1 md:col-span-2">
+          <span class="text-sm text-slate-300">Description</span>
+          <textarea class="char-desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Age, appearance, clothing, demeanor, motivations..."></textarea>
+        </label>
+      </div>
+      <div class="flex justify-end">
+        <button type="button" class="btn-remove-character px-3 py-1.5 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white text-sm">Remove</button>
+      </div>
+    </div>
+  </template>
 
   <template id="shotTmpl">
     <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow">
@@ -253,7 +261,7 @@
       if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
       if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
       if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
-      return names.length ? names.join(', ') : 'Character A, Character B';
+      return names.length ? names.join(', ') : defaultCharacterList();
     }
 
     function buildShotPreset(scene) {
@@ -281,27 +289,29 @@
   // --- State ---
   const STORAGE_KEY = 'apeOnAWhaleStoryboard';
   const LEGACY_STORAGE_KEY = 'grittyStoryboard';
+  let isHydrating = false;
 
   const state = {
     shots: [],
+    characters: [],
   };
 
   // --- Elements ---
   const shotList = document.getElementById('shotList');
   const tmpl = document.getElementById('shotTmpl');
+  const charTmpl = document.getElementById('characterTmpl');
   const btnNew = document.getElementById('btnNew');
   const btnExport = document.getElementById('btnExport');
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
   const pdfInput = document.getElementById('pdfInput');
   const btnUploadPDF = document.getElementById('btnUploadPDF');
+  const characterList = document.getElementById('characterList');
+  const btnAddCharacter = document.getElementById('btnAddCharacter');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const look = document.getElementById('look');
   const aspect = document.getElementById('aspect');
-  const charRoger = document.getElementById('charRoger');
-  const charGwen = document.getElementById('charGwen');
-  const charOther = document.getElementById('charOther');
   btnUploadPDF.addEventListener('click', async () => {
     if (!pdfInput.files || !pdfInput.files[0]) {
       alert('Please select a PDF file.');
@@ -316,6 +326,8 @@
       alert('We couldn’t read that PDF. Please try another file.');
     }
   });
+
+  btnAddCharacter.addEventListener('click', () => addCharacter());
 
   // --- Helpers ---
   const uid = () => Math.random().toString(36).slice(2,9);
@@ -345,29 +357,124 @@
         look: look.value,
         aspect: aspect.value,
       },
-      characters: {
-        roger: charRoger.value.trim(),
-        gwen: charGwen.value.trim(),
-        other: charOther.value.trim(),
-      },
+      characters: state.characters.map(c => ({ ...c })),
       shots: state.shots.map(s => ({...s}))
     };
   }
 
   function hydrate(data) {
+    isHydrating = true;
     projTitle.value = data?.meta?.title || '';
     look.value = data?.meta?.look || 'gritty film';
     aspect.value = data?.meta?.aspect || '16:9';
-    charRoger.value = data?.characters?.roger || '';
-    charGwen.value = data?.characters?.gwen || '';
-    charOther.value = data?.characters?.other || '';
+    const characterData = normalizeCharacters(data?.characters);
+    resetCharacters();
+    if (characterData.length) {
+      characterData.forEach(addCharacter);
+    } else {
+      addCharacter();
+    }
     resetShots();
     (data?.shots || []).forEach(addShotFromData);
+    isHydrating = false;
+  }
+
+  function normalizeCharacters(characters) {
+    if (Array.isArray(characters)) {
+      return characters.map((c, idx) => ({
+        id: c?.id || uid(),
+        name: c?.name || '',
+        description: c?.description || c?.desc || '',
+      }));
+    }
+    if (characters && typeof characters === 'object') {
+      const legacy = [];
+      if (characters.roger) legacy.push({ name: 'Character A', description: characters.roger });
+      if (characters.gwen) legacy.push({ name: 'Character B', description: characters.gwen });
+      if (characters.other) legacy.push({ name: 'Notes', description: characters.other });
+      return legacy;
+    }
+    return [];
+  }
+
+  function resetCharacters() {
+    state.characters = [];
+    characterList.innerHTML = '';
+    syncCharacterRemoveStates();
   }
 
   function resetShots() {
     state.shots = [];
     shotList.innerHTML = '';
+  }
+
+  function addCharacter(data = {}) {
+    const entry = charTmpl.content.firstElementChild.cloneNode(true);
+    const id = data.id || uid();
+    entry.dataset.id = id;
+    const nameInput = entry.querySelector('.char-name');
+    const descInput = entry.querySelector('.char-desc');
+    const removeBtn = entry.querySelector('.btn-remove-character');
+    nameInput.value = data.name || '';
+    descInput.value = data.description || '';
+
+    const handleInput = () => persistCharacters();
+    nameInput.addEventListener('input', handleInput);
+    descInput.addEventListener('input', handleInput);
+
+    removeBtn.addEventListener('click', () => {
+      if (characterList.children.length <= 1) {
+        nameInput.value = '';
+        descInput.value = '';
+        persistCharacters();
+        return;
+      }
+      entry.remove();
+      persistCharacters();
+    });
+
+    characterList.appendChild(entry);
+    persistCharacters();
+  }
+
+  function persistCharacters() {
+    state.characters = Array.from(characterList.children).map(entry => {
+      let id = entry.dataset.id;
+      if (!id) {
+        id = uid();
+        entry.dataset.id = id;
+      }
+      const nameInput = entry.querySelector('.char-name');
+      const descInput = entry.querySelector('.char-desc');
+      return {
+        id,
+        name: nameInput.value.trim(),
+        description: descInput.value.trim(),
+      };
+    });
+    syncCharacterRemoveStates();
+    if (!isHydrating) saveLocal();
+  }
+
+  function syncCharacterRemoveStates() {
+    const allowRemove = characterList.children.length > 1;
+    Array.from(characterList.children).forEach(entry => {
+      const btn = entry.querySelector('.btn-remove-character');
+      if (!btn) return;
+      btn.disabled = !allowRemove;
+      btn.classList.toggle('opacity-40', !allowRemove);
+      btn.classList.toggle('cursor-not-allowed', !allowRemove);
+      btn.setAttribute('aria-disabled', String(!allowRemove));
+    });
+  }
+
+  function defaultCharacterList() {
+    if (!state.characters.length) return 'Characters TBD';
+    return state.characters
+      .filter((c) => (c.name || c.description))
+      .slice(0, 2)
+      .map(c => c.name || 'Character')
+      .join(', ') || 'Characters TBD';
   }
 
   function addShotFromData(s) {
@@ -522,10 +629,20 @@
   function buildPrompt({ scene, type, desc, chars }) {
     const lookVal = look.value || 'gritty film';
     const aspectVal = aspect.value || '16:9';
-    const charA = (charRoger.value || 'Character A: description');
-    const charB = (charGwen.value  || 'Character B: description');
-    const other = (charOther.value || '').trim();
-    const charBits = [charA, charB, other].filter(Boolean).join(' | ');
+    let charBits = '';
+    if (state.characters.length) {
+      charBits = state.characters
+        .map(c => {
+          const name = (c.name || '').trim();
+          const descText = (c.description || '').trim();
+          if (!name && !descText) return null;
+          if (name && descText) return `${name}: ${descText}`;
+          return name || descText;
+        })
+        .filter(Boolean)
+        .join(' | ');
+    }
+    if (!charBits) charBits = 'Character bible pending';
 
     return [
       `${lookVal}, cinematic, ${aspectVal}`,
@@ -546,7 +663,7 @@
       lens: preset.lens || '35mm',
       move: preset.move || 'Locked',
       desc: preset.desc || '',
-      chars: preset.chars || 'Character A, Character B',
+      chars: preset.chars || defaultCharacterList(),
       notes: preset.notes || '',
       prompt: '',
     });
@@ -636,11 +753,14 @@
   // --- Init ---
   loadLocal();
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
-  if (!charRoger.value) charRoger.value = 'Character description: age, appearance, clothing, demeanor';
-  if (!charGwen.value)  charGwen.value  = 'Character description: age, appearance, clothing, demeanor';
+  if (!characterList.children.length) {
+    isHydrating = true;
+    addCharacter();
+    isHydrating = false;
+  }
 
-  // Persist meta/character edits
-  [projTitle, look, aspect, charRoger, charGwen, charOther].forEach(el => el.addEventListener('input', saveLocal));
+  // Persist meta edits
+  [projTitle, look, aspect].forEach(el => el.addEventListener('input', saveLocal));
   </script>
 
   <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
