@@ -1,12 +1,12 @@
-# Gritty Storyboard App
+# ApeOnAWhale Storyboard (alpha01)
 
-A single-file HTML storyboard application for filmmakers and visual storytellers. Create, organize, and visualize your shots with image uploads, character consistency tracking, and script breakdown features.
+A single-file HTML storyboard application for filmmakers and visual storytellers. Create, organize, and visualize your shots with image uploads, character consistency tracking, and automated PDF script breakdowns.
 
 ## ✨ Features
 
 - **Visual Storyboarding**: Upload images for each shot with 16:9 aspect ratio frames
 - **Character Bible**: Maintain character consistency across shots
-- **Script Breakdown**: Auto-parse scripts to create initial shot list
+- **PDF Script Breakdown**: Upload screenplays as PDFs and generate shot cards automatically
 - **Drag & Drop Reordering**: Easily reorganize your shots
 - **Image Management**: Upload, display, and remove reference images for each shot
 - **Export/Import**: Save and load projects as JSON files (including images)
@@ -59,9 +59,9 @@ The app includes a `_headers` file with basic authentication:
 - Helps maintain visual consistency across shots
 
 ### Script Breakdown
-1. Paste your script in the "Script → Shots" section
-2. Click "Auto-Breakdown" to parse scene headings
-3. Initial shots are created automatically
+1. Select a PDF in the "Upload PDF Script" panel
+2. Click "Upload & Auto-Breakdown" to parse scene headings (`INT.` / `EXT.`)
+3. Shot cards are created automatically with editable fields populated from the script
 4. Refine each shot with specific details
 
 ### Project Management
@@ -71,8 +71,8 @@ The app includes a `_headers` file with basic authentication:
 
 ## 🔧 Technical Details
 
-- **Single File**: Everything contained in `index.html`
-- **No Dependencies**: Uses only CDN resources (Tailwind CSS, Google Fonts)
+- **Single File App**: Core logic in `index.html` with a companion `styles.css`
+- **CDN-Powered**: Tailwind CSS, Google Fonts, and PDF.js loaded via CDN
 - **Client-Side**: No server or database required
 - **Responsive**: Works on desktop and mobile devices
 - **Browser Storage**: Auto-saves to localStorage
@@ -82,6 +82,7 @@ The app includes a `_headers` file with basic authentication:
 ```
 storyboard-app/
 ├── index.html          # Main application
+├── styles.css         # Custom global styles
 ├── _headers           # Netlify authentication
 ├── images/            # Static image assets
 └── README.md         # This file
@@ -97,3 +98,7 @@ The basic authentication in `_headers` provides minimal security. For sensitive 
 ---
 
 Built as a single HTML file for easy hosting on GitHub Pages, Netlify, or any static hosting service.
+
+## 🧭 Release Notes
+
+- **alpha01** (current): Adds PDF screenplay upload and automated shot card generation, refreshed ApeOnAWhale branding, and persistent storage migration.
