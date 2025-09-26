@@ -9,6 +9,7 @@ A single-file HTML storyboard application for filmmakers and visual storytellers
 - **PDF Script Breakdown**: Upload screenplays as PDFs and generate shot cards automatically
 - **Drag & Drop Reordering**: Easily reorganize your shots
 - **Image Management**: Upload, display, and remove reference images for each shot
+- **Production Metadata**: Track location, shoot dates, equipment, and props per shot for call sheets and catalogues
 - **Export/Import**: Save and load projects as JSON files (including images)
 - **Print/PDF Ready**: Print your storyboard for production use
 - **Password Protection**: Basic authentication for deployed sites
@@ -101,4 +102,4 @@ Built as a single HTML file for easy hosting on GitHub Pages, Netlify, or any st
 
 ## 🧭 Release Notes
 
-- **alpha01** (current): Adds PDF screenplay upload and automated shot card generation, refreshed ApeOnAWhale branding, and persistent storage migration.
+- **alpha01** (current): Adds PDF screenplay upload and automated shot card generation, refreshed ApeOnAWhale branding, persistent storage migration, and production metadata fields for downstream catalogues.

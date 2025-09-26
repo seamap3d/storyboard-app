@@ -168,12 +168,32 @@
               </label>
               <div class="grid grid-cols-2 gap-3">
                 <label>
-                  <span class="text-sm text-slate-300">Characters</span>
+                  <span class="text-sm text-slate-300">Cast / Characters</span>
                   <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
                 </label>
                 <label>
-                  <span class="text-sm text-slate-300">Notes</span>
-                  <input class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="technical notes, lighting, FX">
+                  <span class="text-sm text-slate-300">Location</span>
+                  <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Set or shooting location">
+                </label>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <label>
+                  <span class="text-sm text-slate-300">Shooting Date</span>
+                  <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Equipment</span>
+                  <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+                </label>
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <label>
+                  <span class="text-sm text-slate-300">Props</span>
+                  <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Production Notes</span>
+                  <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
                 </label>
               </div>
                 <div class="flex items-center gap-2 mt-2">
@@ -222,6 +242,12 @@
     return names.length ? names.join(', ') : 'Characters TBD';
   }
 
+  function deriveLocationFromHeading(heading) {
+    const withoutPrefix = heading.replace(/^(INT\.|EXT\.)\s*/i, '');
+    const locationPart = withoutPrefix.split(/[\-–—]/)[0] || '';
+    return locationPart.trim();
+  }
+
   function buildShotPreset(scene) {
     const bodyText = scene.body.join('\n').trim();
     const summary = bodyText ? bodyText.slice(0, 600) : '';
@@ -230,6 +256,11 @@
       type: /ESTABLISH|EXT\./i.test(scene.heading) ? 'Establishing' : 'Medium',
       desc: summary,
       chars: guessChars(bodyText),
+      location: deriveLocationFromHeading(scene.heading),
+      shootDate: '',
+      equipment: '',
+      props: '',
+      notes: '',
     };
   }
 
@@ -343,6 +374,10 @@
     li.querySelector('.move').value = s.move || 'Locked';
     li.querySelector('.desc').value = s.desc || '';
     li.querySelector('.chars').value = s.chars || '';
+    li.querySelector('.location').value = s.location || '';
+    li.querySelector('.shootdate').value = s.shootDate || s.shootingDate || '';
+    li.querySelector('.equipment').value = s.equipment || '';
+    li.querySelector('.props').value = s.props || '';
     li.querySelector('.notes').value = s.notes || '';
 
     // Handle image display
@@ -436,6 +471,10 @@
       move: li.querySelector('.move').value,
       desc: li.querySelector('.desc').value,
       chars: li.querySelector('.chars').value,
+      location: li.querySelector('.location').value,
+      shootDate: li.querySelector('.shootdate').value,
+      equipment: li.querySelector('.equipment').value,
+      props: li.querySelector('.props').value,
       notes: li.querySelector('.notes').value,
     };
     
@@ -479,6 +518,10 @@
       move: preset.move || 'Locked',
       desc: preset.desc || '',
       chars: preset.chars || '',
+      location: preset.location || '',
+      shootDate: preset.shootDate || '',
+      equipment: preset.equipment || '',
+      props: preset.props || '',
       notes: preset.notes || '',
     });
     saveLocal();
