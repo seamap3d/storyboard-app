@@ -40,6 +40,7 @@
         <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
         <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
         <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+        <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
       </div>
     </header>
 
@@ -298,6 +299,7 @@
   const btnExport = document.getElementById('btnExport');
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
+  const btnReset = document.getElementById('btnReset');
   const scriptInput = document.getElementById('scriptInput');
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
@@ -613,6 +615,24 @@
 
   btnPrint.addEventListener('click', () => {
     window.print();
+  });
+
+  btnReset.addEventListener('click', () => {
+    const confirmed = confirm('This will delete all shots and production data for this storyboard. Continue?');
+    if (!confirmed) return;
+
+    // Clear meta fields
+    projTitle.value = '';
+    director.value = '';
+    productionCompany.value = '';
+    dop.value = '';
+    producer.value = '';
+    shootSchedule.value = '';
+    projNotes.value = '';
+
+    // Clear shots and state
+    resetShots();
+    saveLocal();
   });
 
   // --- New shot ---
