@@ -93,121 +93,135 @@
       </section>
     <!-- Shot list -->
     <section>
-      <div class="flex items-center justify-between mb-2">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
         <h2 class="font-semibold">Shots</h2>
-        <div class="text-xs text-slate-400">Drag the handle to reorder shots.</div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-400 mr-2">Drag the handle to reorder shots.</span>
+          <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+          <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+          <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+        </div>
       </div>
   <ol id="shotList" class="space-y-4"></ol>
     </section>
   </div>
 
   <template id="shotTmpl">
-    <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow">
+  <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent">
       <div class="flex items-start gap-4">
-        <div class="handle shrink-0 select-none text-slate-400 hover:text-slate-100">≡</div>
+        <div class="flex flex-col items-center gap-3 pt-1">
+          <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
+          <div class="handle shrink-0 select-none text-slate-400 hover:text-slate-100 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
         <div class="w-full space-y-3">
-          <div class="grid md:grid-cols-12 gap-3">
-            <div class="md:col-span-5 relative">
-              <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400 relative group">
-                <img class="frame-image absolute inset-0 w-full h-full object-cover rounded-xl hidden" alt="Shot reference">
-                <div class="text-center px-4 frame-placeholder">
-                  <div class="font-semibold">Frame Preview</div>
-                  <div class="text-xs mb-3">16:9 placeholder with film grain</div>
-                  <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-sm font-medium">
-                    Upload Image
-                    <input type="file" accept="image/*" class="image-upload hidden">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-200">Shot</div>
+            <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Fold</button>
+          </div>
+          <div class="shot-body space-y-3">
+            <div class="grid md:grid-cols-12 gap-3">
+              <div class="md:col-span-5 relative">
+                <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400 relative group">
+                  <img class="frame-image absolute inset-0 w-full h-full object-cover rounded-xl hidden" alt="Shot reference">
+                  <div class="text-center px-4 frame-placeholder">
+                    <div class="font-semibold">Frame Preview</div>
+                    <div class="text-xs mb-3">16:9 placeholder with film grain</div>
+                    <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-sm font-medium">
+                      Upload Image
+                      <input type="file" accept="image/*" class="image-upload hidden">
+                    </label>
+                  </div>
+                  <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+                </div>
+              </div>
+              <div class="md:col-span-7 space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Scene</span>
+                    <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="EXT. LOCATION – TIME">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Shot #</span>
+                    <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="1">
                   </label>
                 </div>
-                <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
-              </div>
-            </div>
-            <div class="md:col-span-7 space-y-3">
-              <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Shot Type</span>
+                    <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>Wide</option>
+                      <option>Establishing</option>
+                      <option>Medium</option>
+                      <option>Close‑Up</option>
+                      <option>Extreme CU</option>
+                      <option>Over‑the‑Shoulder</option>
+                      <option>POV</option>
+                      <option>Drone</option>
+                      <option>Insert</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Lens</span>
+                    <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>24mm</option>
+                      <option selected>35mm</option>
+                      <option>50mm</option>
+                      <option>85mm</option>
+                      <option>105mm</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Move</span>
+                    <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>Locked</option>
+                      <option>Pan</option>
+                      <option>Tilt</option>
+                      <option>Dolly</option>
+                      <option>Handheld</option>
+                      <option>Crane</option>
+                      <option>Drone</option>
+                    </select>
+                  </label>
+                </div>
                 <label>
-                  <span class="text-sm text-slate-300">Scene</span>
-                  <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="EXT. LOCATION – TIME">
+                  <span class="text-sm text-slate-300">Action / Composition</span>
+                  <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
                 </label>
-                <label>
-                  <span class="text-sm text-slate-300">Shot #</span>
-                  <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="1">
-                </label>
-              </div>
-              <div class="grid grid-cols-3 gap-3">
-                <label>
-                  <span class="text-sm text-slate-300">Shot Type</span>
-                  <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                    <option>Wide</option>
-                    <option>Establishing</option>
-                    <option>Medium</option>
-                    <option>Close‑Up</option>
-                    <option>Extreme CU</option>
-                    <option>Over‑the‑Shoulder</option>
-                    <option>POV</option>
-                    <option>Drone</option>
-                    <option>Insert</option>
-                  </select>
-                </label>
-                <label>
-                  <span class="text-sm text-slate-300">Lens</span>
-                  <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                    <option>24mm</option>
-                    <option selected>35mm</option>
-                    <option>50mm</option>
-                    <option>85mm</option>
-                    <option>105mm</option>
-                  </select>
-                </label>
-                <label>
-                  <span class="text-sm text-slate-300">Move</span>
-                  <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                    <option>Locked</option>
-                    <option>Pan</option>
-                    <option>Tilt</option>
-                    <option>Dolly</option>
-                    <option>Handheld</option>
-                    <option>Crane</option>
-                    <option>Drone</option>
-                  </select>
-                </label>
-              </div>
-              <label>
-                <span class="text-sm text-slate-300">Action / Composition</span>
-                <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
-              </label>
-              <div class="grid grid-cols-2 gap-3">
-                <label>
-                  <span class="text-sm text-slate-300">Cast / Characters</span>
-                  <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
-                </label>
-                <label>
-                  <span class="text-sm text-slate-300">Location</span>
-                  <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Set or shooting location">
-                </label>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <label>
-                  <span class="text-sm text-slate-300">Shooting Date</span>
-                  <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                </label>
-                <label>
-                  <span class="text-sm text-slate-300">Equipment</span>
-                  <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
-                </label>
-              </div>
-              <div class="grid grid-cols-2 gap-3">
-                <label>
-                  <span class="text-sm text-slate-300">Props</span>
-                  <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
-                </label>
-                <label>
-                  <span class="text-sm text-slate-300">Production Notes</span>
-                  <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
-                </label>
-              </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Cast / Characters</span>
+                    <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Location</span>
+                    <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Set or shooting location">
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Shooting Date</span>
+                    <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Equipment</span>
+                    <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Props</span>
+                    <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Production Notes</span>
+                    <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+                  </label>
+                </div>
                 <div class="flex items-center gap-2 mt-2">
                   <button class="btnDup px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Duplicate</button>
                   <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -269,6 +283,7 @@
       equipment: '',
       props: '',
       notes: '',
+      folded: false,
     };
   }
 
@@ -300,6 +315,9 @@
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
   const btnReset = document.getElementById('btnReset');
+  const btnFoldSelected = document.getElementById('btnFoldSelected');
+  const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
+  const btnClearSelection = document.getElementById('btnClearSelection');
   const scriptInput = document.getElementById('scriptInput');
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
@@ -332,6 +350,52 @@
 
   // --- Helpers ---
   const uid = () => Math.random().toString(36).slice(2,9);
+
+  function updateShotTitle(li) {
+    const titleEl = li.querySelector('.shot-title');
+    if (!titleEl) return;
+    const sceneVal = li.querySelector('.scene')?.value.trim() || '';
+    const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
+    let label = sceneVal;
+    if (!label) {
+      const index = Array.from(shotList.children).indexOf(li);
+      const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
+      label = fallbackNumber ? `Shot ${fallbackNumber}` : 'Shot';
+    }
+    titleEl.textContent = label;
+  }
+
+  function setShotFolded(li, folded) {
+    const isFolded = Boolean(folded);
+    const body = li.querySelector('.shot-body');
+    const toggle = li.querySelector('.btnToggleFold');
+    li.dataset.folded = isFolded ? 'true' : 'false';
+    if (body) body.classList.toggle('hidden', isFolded);
+    if (toggle) {
+      toggle.textContent = isFolded ? 'Unfold' : 'Fold';
+      toggle.setAttribute('aria-expanded', (!isFolded).toString());
+      toggle.setAttribute('aria-label', isFolded ? 'Unfold shot details' : 'Fold shot details');
+    }
+    li.classList.toggle('opacity-60', isFolded);
+  }
+
+  function updateShotSelectionVisual(li, selected) {
+    if (!li) return;
+    li.classList.toggle('ring-2', selected);
+    li.classList.toggle('ring-emerald-400', selected);
+    li.classList.toggle('ring-opacity-60', selected);
+  }
+
+  function getSelectedShotLis() {
+    return Array.from(shotList.querySelectorAll('.select-shot:checked')).map(cb => cb.closest('li')).filter(Boolean);
+  }
+
+  function clearShotSelection() {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = false;
+      updateShotSelectionVisual(cb.closest('li'), false);
+    });
+  }
 
   function saveLocal() {
     const data = collectData();
@@ -381,6 +445,7 @@
   }
 
   function resetShots() {
+    clearShotSelection();
     state.shots = [];
     shotList.innerHTML = '';
   }
@@ -388,18 +453,53 @@
   function addShotFromData(s) {
     const li = tmpl.content.firstElementChild.cloneNode(true);
     li.dataset.id = s.id || (s.id = uid());
-    li.querySelector('.scene').value = s.scene || '';
-    li.querySelector('.shotnum').value = s.number || state.shots.length + 1;
-    li.querySelector('.type').value = s.type || 'Wide';
-    li.querySelector('.lens').value = s.lens || '35mm';
-    li.querySelector('.move').value = s.move || 'Locked';
-    li.querySelector('.desc').value = s.desc || '';
-    li.querySelector('.chars').value = s.chars || '';
-    li.querySelector('.location').value = s.location || '';
-    li.querySelector('.shootdate').value = s.shootDate || s.shootingDate || '';
-    li.querySelector('.equipment').value = s.equipment || '';
-    li.querySelector('.props').value = s.props || '';
-    li.querySelector('.notes').value = s.notes || '';
+    const sceneInput = li.querySelector('.scene');
+    const shotNumInput = li.querySelector('.shotnum');
+    const typeInput = li.querySelector('.type');
+    const lensInput = li.querySelector('.lens');
+    const moveInput = li.querySelector('.move');
+    const descInput = li.querySelector('.desc');
+    const charsInput = li.querySelector('.chars');
+    const locationInput = li.querySelector('.location');
+    const shootDateInput = li.querySelector('.shootdate');
+    const equipmentInput = li.querySelector('.equipment');
+    const propsInput = li.querySelector('.props');
+    const notesInput = li.querySelector('.notes');
+    const selectShot = li.querySelector('.select-shot');
+    const toggleFoldBtn = li.querySelector('.btnToggleFold');
+
+    sceneInput.value = s.scene || '';
+    shotNumInput.value = s.number || state.shots.length + 1;
+    typeInput.value = s.type || 'Wide';
+    lensInput.value = s.lens || '35mm';
+    moveInput.value = s.move || 'Locked';
+    descInput.value = s.desc || '';
+    charsInput.value = s.chars || '';
+    locationInput.value = s.location || '';
+    shootDateInput.value = s.shootDate || s.shootingDate || '';
+    equipmentInput.value = s.equipment || '';
+    propsInput.value = s.props || '';
+    notesInput.value = s.notes || '';
+
+    updateShotTitle(li);
+
+    if (selectShot) {
+      selectShot.checked = false;
+      updateShotSelectionVisual(li, false);
+      selectShot.addEventListener('change', () => {
+        updateShotSelectionVisual(li, selectShot.checked);
+      });
+    }
+
+    setShotFolded(li, s.folded);
+
+    if (toggleFoldBtn) {
+      toggleFoldBtn.addEventListener('click', () => {
+        const next = li.dataset.folded !== 'true';
+        setShotFolded(li, next);
+        persistFromDOM();
+      });
+    }
 
     // Handle image display
     const frameImg = li.querySelector('.frame-image');
@@ -474,11 +574,15 @@
     // Track changes
     li.querySelectorAll('.inp').forEach(el => {
       el.addEventListener('input', () => {
+        if (el.classList.contains('scene') || el.classList.contains('shotnum')) {
+          updateShotTitle(li);
+        }
         persistFromDOM();
       });
     });
 
     shotList.appendChild(li);
+    updateShotTitle(li);
     state.shots.push({ id: s.id, ...readShotFromLI(li) });
   }
 
@@ -497,6 +601,7 @@
       equipment: li.querySelector('.equipment').value,
       props: li.querySelector('.props').value,
       notes: li.querySelector('.notes').value,
+      folded: li.dataset.folded === 'true',
     };
     
     if (frameImg.src && !frameImg.classList.contains('hidden')) {
@@ -507,6 +612,7 @@
   }
 
   function persistFromDOM() {
+    if (isHydrating) return;
     // Walk DOM list order to persist state
     state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
     renumber();
@@ -516,6 +622,7 @@
   function renumber() {
     Array.from(shotList.children).forEach((li, i) => {
       li.querySelector('.shotnum').value = i + 1;
+      updateShotTitle(li);
       const idx = indexOfShot(li.dataset.id);
       if (idx > -1) state.shots[idx].number = i + 1;
     });
@@ -544,6 +651,7 @@
       equipment: preset.equipment || '',
       props: preset.props || '',
       notes: preset.notes || '',
+      folded: preset.folded || false,
     });
     saveLocal();
   }
@@ -578,12 +686,19 @@
   }
 
   function onUp() {
-    dragSrcEl.classList.remove('ring-2','ring-emerald-500');
-    shotList.insertBefore(dragSrcEl, ghost);
-    ghost.remove();
+    const moved = dragSrcEl;
+    if (moved) {
+      moved.classList.remove('ring-2','ring-emerald-500');
+      shotList.insertBefore(moved, ghost);
+    }
+    if (ghost) ghost.remove();
     ghost = null;
     dragSrcEl = null;
     persistFromDOM();
+    if (moved) {
+      const cb = moved.querySelector('.select-shot');
+      if (cb) updateShotSelectionVisual(moved, cb.checked);
+    }
     document.removeEventListener('pointermove', onMove);
   }
 
@@ -632,8 +747,41 @@
 
     // Clear shots and state
     resetShots();
+    clearShotSelection();
     saveLocal();
   });
+
+  if (btnFoldSelected) {
+    btnFoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to fold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, true));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnUnfoldSelected) {
+    btnUnfoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to unfold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, false));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnClearSelection) {
+    btnClearSelection.addEventListener('click', () => {
+      clearShotSelection();
+    });
+  }
 
   // --- New shot ---
   btnNew.addEventListener('click', () => newShot());
