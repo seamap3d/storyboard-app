@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="styles.css" />
   <title>ApeOnAWhale Storyboard</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
   <style>
     :root { --frame-aspect: calc(9/16); }
     body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
@@ -75,14 +74,14 @@
       </div>
     </section>
 
-      <!-- PDF Script Upload -->
+      <!-- Script Upload -->
       <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
         <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Upload PDF Script</h2>
+          <h2 class="font-semibold">Upload Script (.txt)</h2>
         </div>
-        <input type="file" id="pdfInput" accept="application/pdf" class="mb-2" />
-        <button id="btnUploadPDF" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
-        <p class="text-xs text-slate-400 mt-2">Upload a PDF script. The text will be extracted and auto-breakdown will run automatically.</p>
+        <input type="file" id="scriptInput" accept="text/plain" class="mb-2" />
+        <button id="btnUploadScript" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
+        <p class="text-xs text-slate-400 mt-2">Upload a plain text script (INT./EXT. headings on separate lines). The auto-breakdown will run automatically.</p>
       </section>
     <!-- Shot list -->
     <section>
@@ -191,18 +190,8 @@
   <input type="file" id="fileInput" accept="application/json" class="hidden" />
 
   <script>
-    async function extractTextFromPDF(file) {
-      const arrayBuffer = await file.arrayBuffer();
-      const typedArray = new Uint8Array(arrayBuffer);
-      const pdf = await pdfjsLib.getDocument(typedArray).promise;
-      let text = '';
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const strings = content.items.map(item => item.str);
-        text += strings.join(' ') + '\n';
-      }
-      return text;
+    async function readTextFromFile(file) {
+      return await file.text();
     }
 
     function extractScenes(rawText) {
@@ -271,24 +260,29 @@
   const btnExport = document.getElementById('btnExport');
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
-  const pdfInput = document.getElementById('pdfInput');
-  const btnUploadPDF = document.getElementById('btnUploadPDF');
+  const scriptInput = document.getElementById('scriptInput');
+  const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const look = document.getElementById('look');
   const aspect = document.getElementById('aspect');
-  btnUploadPDF.addEventListener('click', async () => {
-    if (!pdfInput.files || !pdfInput.files[0]) {
-      alert('Please select a PDF file.');
+  btnUploadScript.addEventListener('click', async () => {
+    const file = scriptInput.files && scriptInput.files[0];
+    if (!file) {
+      alert('Please select a text file.');
       return;
     }
+    if (file.type && file.type !== 'text/plain') {
+      const proceed = confirm('This file is not marked as plain text. Try to import it anyway?');
+      if (!proceed) return;
+    }
     try {
-      const text = await extractTextFromPDF(pdfInput.files[0]);
+      const text = await readTextFromFile(file);
       applyBreakdown(text);
-      pdfInput.value = '';
+      scriptInput.value = '';
     } catch (error) {
-      console.error('PDF parsing failed', error);
-      alert('We couldn’t read that PDF. Please try another file.');
+      console.error('Text parsing failed', error);
+      alert('We couldn’t read that text file. Please try another file.');
     }
   });
 
