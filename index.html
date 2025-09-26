@@ -53,21 +53,28 @@
             <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
           </label>
           <label>
-            <span class="text-sm text-slate-300">Look</span>
-            <select id="look" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-              <option selected>gritty film</option>
-              <option>noir</option>
-              <option>documentary</option>
-              <option>Marvel comics</option>
-            </select>
+            <span class="text-sm text-slate-300">Director</span>
+            <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
           </label>
           <label>
-            <span class="text-sm text-slate-300">Aspect</span>
-            <select id="aspect" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-              <option value="16:9" selected>16:9</option>
-              <option value="2.39:1">2.39:1</option>
-              <option value="4:3">4:3</option>
-            </select>
+            <span class="text-sm text-slate-300">Production Company</span>
+            <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Director of Photography</span>
+            <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Producer</span>
+            <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+          </label>
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Shooting Schedule</span>
+            <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+          </label>
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Production Notes</span>
+            <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
           </label>
         </div>
         <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
@@ -295,8 +302,12 @@
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
-  const look = document.getElementById('look');
-  const aspect = document.getElementById('aspect');
+  const director = document.getElementById('director');
+  const productionCompany = document.getElementById('productionCompany');
+  const dop = document.getElementById('dop');
+  const producer = document.getElementById('producer');
+  const shootSchedule = document.getElementById('shootSchedule');
+  const projNotes = document.getElementById('projNotes');
   btnUploadScript.addEventListener('click', async () => {
     const file = scriptInput.files && scriptInput.files[0];
     if (!file) {
@@ -341,9 +352,13 @@
   function collectData() {
     return {
       meta: {
-        title: projTitle.value.trim(),
-        look: look.value,
-        aspect: aspect.value,
+  title: projTitle.value.trim(),
+  director: director.value.trim(),
+  productionCompany: productionCompany.value.trim(),
+  dop: dop.value.trim(),
+  producer: producer.value.trim(),
+  shootSchedule: shootSchedule.value.trim(),
+  notes: projNotes.value.trim(),
       },
       shots: state.shots.map(s => ({...s}))
     };
@@ -351,9 +366,13 @@
 
   function hydrate(data) {
     isHydrating = true;
-    projTitle.value = data?.meta?.title || '';
-    look.value = data?.meta?.look || 'gritty film';
-    aspect.value = data?.meta?.aspect || '16:9';
+  projTitle.value = data?.meta?.title || '';
+  director.value = data?.meta?.director || '';
+  productionCompany.value = data?.meta?.productionCompany || '';
+  dop.value = data?.meta?.dop || '';
+  producer.value = data?.meta?.producer || '';
+  shootSchedule.value = data?.meta?.shootSchedule || '';
+  projNotes.value = data?.meta?.notes || '';
     resetShots();
     (data?.shots || []).forEach(addShotFromData);
     isHydrating = false;
@@ -612,7 +631,7 @@
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
   // Persist meta edits
-  [projTitle, look, aspect].forEach(el => el.addEventListener('input', saveLocal));
+  [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));
   </script>
 
   <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
