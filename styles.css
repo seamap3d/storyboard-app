@@ -49,3 +49,28 @@ h1, h2, h3 {
   background: #475569;
   border-radius: 4px;
 }
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  header,
+  section {
+    background: transparent;
+    box-shadow: none;
+  }
+
+  #shotList > li.shot {
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  #shotList > li.shot:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+}
