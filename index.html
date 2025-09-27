@@ -32,7 +32,7 @@
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100">
-  <div class="max-w-7xl mx-auto p-4 md:p-6">
+  <div class="w-full px-4 md:px-6 py-4">
     <header class="flex items-center justify-between gap-3 mb-4">
   <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
       <div class="flex items-center gap-2">
@@ -81,15 +81,10 @@
         <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
       </div>
     </section>
-
-      <!-- Script Upload -->
       <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-semibold">Upload Script (.txt)</h2>
-        </div>
-        <input type="file" id="scriptInput" accept="text/plain" class="mb-2" />
-        <button id="btnUploadScript" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
-        <p class="text-xs text-slate-400 mt-2">Upload a plain text script (INT./EXT. headings on separate lines). The auto-breakdown will run automatically.</p>
+        <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
+        <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
+        <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
       </section>
     <!-- Shot list -->
     <section>
@@ -143,17 +138,17 @@
         <div class="grid grid-cols-2 gap-3">
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Scene</span>
-            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="EXT. LOCATION – TIME">
+            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="EXT. LOCATION – TIME">
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Shot #</span>
-            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="1">
+            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="1">
           </label>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Shot Type</span>
-            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
               <option>Wide</option>
               <option>Establishing</option>
               <option>Medium</option>
@@ -167,7 +162,7 @@
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Lens</span>
-            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
               <option>24mm</option>
               <option selected>35mm</option>
               <option>50mm</option>
@@ -177,7 +172,7 @@
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Move</span>
-            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
               <option>Locked</option>
               <option>Pan</option>
               <option>Tilt</option>
@@ -190,36 +185,36 @@
         </div>
         <label>
           <span class="text-xs uppercase tracking-wide text-slate-700">Action / Composition</span>
-          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
         </label>
         <div class="grid grid-cols-2 gap-3">
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Cast / Characters</span>
-            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="Character A, Character B">
+            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Character A, Character B">
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Location</span>
-            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="Set or shooting location">
+            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Set or shooting location">
           </label>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Shooting Date</span>
-            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Equipment</span>
-            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
           </label>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Props</span>
-            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
           </label>
           <label>
             <span class="text-xs uppercase tracking-wide text-slate-700">Production Notes</span>
-            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
           </label>
         </div>
         <div class="flex items-center gap-2 pt-1">
@@ -231,74 +226,7 @@
   </template>
 
   <input type="file" id="fileInput" accept="application/json" class="hidden" />
-
   <script>
-    async function readTextFromFile(file) {
-      return await file.text();
-    }
-
-    function extractScenes(rawText) {
-      const lines = rawText.split(/\r?\n/);
-      const scenes = [];
-      let current = null;
-      for (const sourceLine of lines) {
-        const line = sourceLine.trim();
-        if (!line) continue;
-        if (/^(INT\.|EXT\.)/i.test(line)) {
-          if (current) scenes.push(current);
-          current = { heading: line, body: [] };
-        } else if (current) {
-          current.body.push(line);
-        }
-      }
-      if (current) scenes.push(current);
-      return scenes;
-    }
-
-  function guessChars(block) {
-    const names = [];
-    if (/CHARACTER\s*A/i.test(block)) names.push('Character A');
-    if (/CHARACTER\s*B/i.test(block)) names.push('Character B');
-    if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
-    if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
-    if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
-    return names.length ? names.join(', ') : 'Characters TBD';
-  }
-
-  function deriveLocationFromHeading(heading) {
-    const withoutPrefix = heading.replace(/^(INT\.|EXT\.)\s*/i, '');
-    const locationPart = withoutPrefix.split(/[\-–—]/)[0] || '';
-    return locationPart.trim();
-  }
-
-  function buildShotPreset(scene) {
-    const bodyText = scene.body.join('\n').trim();
-    const summary = bodyText ? bodyText.slice(0, 600) : '';
-    return {
-      scene: scene.heading,
-      type: /ESTABLISH|EXT\./i.test(scene.heading) ? 'Establishing' : 'Medium',
-      desc: summary,
-      chars: guessChars(bodyText),
-      location: deriveLocationFromHeading(scene.heading),
-      shootDate: '',
-      equipment: '',
-      props: '',
-      notes: '',
-      folded: false,
-    };
-  }
-
-    function applyBreakdown(text) {
-      const scenes = extractScenes(text);
-      if (!scenes.length) {
-    alert('No scene headings (INT. / EXT.) were detected in the uploaded script.');
-        return;
-      }
-      resetShots();
-      scenes.forEach(scene => addShotFromData(buildShotPreset(scene)));
-      renumber();
-      saveLocal();
-    }
   // --- State ---
   const STORAGE_KEY = 'apeOnAWhaleStoryboard';
   const LEGACY_STORAGE_KEY = 'grittyStoryboard';
@@ -323,8 +251,6 @@
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
   const layoutSelect = document.getElementById('layoutSelect');
-  const scriptInput = document.getElementById('scriptInput');
-  const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const director = document.getElementById('director');
@@ -333,26 +259,6 @@
   const producer = document.getElementById('producer');
   const shootSchedule = document.getElementById('shootSchedule');
   const projNotes = document.getElementById('projNotes');
-  btnUploadScript.addEventListener('click', async () => {
-    const file = scriptInput.files && scriptInput.files[0];
-    if (!file) {
-      alert('Please select a text file.');
-      return;
-    }
-    if (file.type && file.type !== 'text/plain') {
-      const proceed = confirm('This file is not marked as plain text. Try to import it anyway?');
-      if (!proceed) return;
-    }
-    try {
-      const text = await readTextFromFile(file);
-      applyBreakdown(text);
-      scriptInput.value = '';
-    } catch (error) {
-      console.error('Text parsing failed', error);
-      alert('We couldn’t read that text file. Please try another file.');
-    }
-  });
-
   // --- Helpers ---
   const uid = () => Math.random().toString(36).slice(2,9);
 
