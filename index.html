@@ -115,123 +115,115 @@
   </div>
 
   <template id="shotTmpl">
-  <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent">
-      <div class="flex items-start gap-4">
-        <div class="flex flex-col items-center gap-3 pt-1">
+    <li class="shot group p-4 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent text-[0.8rem]">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
           <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
-          <div class="handle shrink-0 select-none text-slate-400 hover:text-slate-100 cursor-grab active:cursor-grabbing">≡</div>
+          <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80">Shot</div>
         </div>
-        <div class="w-full space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-200">Shot</div>
-            <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Fold</button>
-          </div>
-          <div class="shot-body space-y-3">
-            <div class="grid md:grid-cols-12 gap-3">
-              <div class="md:col-span-5 relative">
-                <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400 relative group">
-                  <img class="frame-image absolute inset-0 w-full h-full object-cover rounded-xl hidden" alt="Shot reference">
-                  <div class="text-center px-4 frame-placeholder">
-                    <div class="font-semibold">Frame Preview</div>
-                    <div class="text-xs mb-3">16:9 placeholder with film grain</div>
-                    <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-sm font-medium">
-                      Upload Image
-                      <input type="file" accept="image/*" class="image-upload hidden">
-                    </label>
-                  </div>
-                  <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
-                </div>
-              </div>
-              <div class="md:col-span-7 space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                  <label>
-                    <span class="text-sm text-slate-300">Scene</span>
-                    <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="EXT. LOCATION – TIME">
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Shot #</span>
-                    <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="1">
-                  </label>
-                </div>
-                <div class="grid grid-cols-3 gap-3">
-                  <label>
-                    <span class="text-sm text-slate-300">Shot Type</span>
-                    <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                      <option>Wide</option>
-                      <option>Establishing</option>
-                      <option>Medium</option>
-                      <option>Close‑Up</option>
-                      <option>Extreme CU</option>
-                      <option>Over‑the‑Shoulder</option>
-                      <option>POV</option>
-                      <option>Drone</option>
-                      <option>Insert</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Lens</span>
-                    <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                      <option>24mm</option>
-                      <option selected>35mm</option>
-                      <option>50mm</option>
-                      <option>85mm</option>
-                      <option>105mm</option>
-                    </select>
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Move</span>
-                    <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                      <option>Locked</option>
-                      <option>Pan</option>
-                      <option>Tilt</option>
-                      <option>Dolly</option>
-                      <option>Handheld</option>
-                      <option>Crane</option>
-                      <option>Drone</option>
-                    </select>
-                  </label>
-                </div>
-                <label>
-                  <span class="text-sm text-slate-300">Action / Composition</span>
-                  <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
-                </label>
-                <div class="grid grid-cols-2 gap-3">
-                  <label>
-                    <span class="text-sm text-slate-300">Cast / Characters</span>
-                    <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Location</span>
-                    <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Set or shooting location">
-                  </label>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <label>
-                    <span class="text-sm text-slate-300">Shooting Date</span>
-                    <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Equipment</span>
-                    <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
-                  </label>
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                  <label>
-                    <span class="text-sm text-slate-300">Props</span>
-                    <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
-                  </label>
-                  <label>
-                    <span class="text-sm text-slate-300">Production Notes</span>
-                    <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
-                  </label>
-                </div>
-                <div class="flex items-center gap-2 mt-2">
-                  <button class="btnDup px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Duplicate</button>
-                  <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div class="flex items-center gap-2">
+          <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-900/30 text-slate-900/70 hover:bg-slate-900/10">Fold</button>
+          <div class="handle shrink-0 select-none text-slate-700 hover:text-slate-900 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
+      </div>
+      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video">
+        <img class="frame-image absolute inset-0 w-full h-full object-cover hidden" alt="Shot reference">
+        <div class="text-center px-4 frame-placeholder space-y-2">
+          <div class="font-semibold text-slate-600">Frame Preview</div>
+          <div class="text-xs text-slate-500">16:9 placeholder with film grain</div>
+          <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-xs font-medium">
+            Upload Image
+            <input type="file" accept="image/*" class="image-upload hidden">
+          </label>
+        </div>
+        <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+      </div>
+      <div class="shot-body space-y-3 mt-4 text-[0.85em]">
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Scene</span>
+            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="EXT. LOCATION – TIME">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot #</span>
+            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="1">
+          </label>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot Type</span>
+            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+              <option>Wide</option>
+              <option>Establishing</option>
+              <option>Medium</option>
+              <option>Close‑Up</option>
+              <option>Extreme CU</option>
+              <option>Over‑the‑Shoulder</option>
+              <option>POV</option>
+              <option>Drone</option>
+              <option>Insert</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Lens</span>
+            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+              <option>24mm</option>
+              <option selected>35mm</option>
+              <option>50mm</option>
+              <option>85mm</option>
+              <option>105mm</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Move</span>
+            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+              <option>Locked</option>
+              <option>Pan</option>
+              <option>Tilt</option>
+              <option>Dolly</option>
+              <option>Handheld</option>
+              <option>Crane</option>
+              <option>Drone</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span class="text-xs uppercase tracking-wide text-slate-700">Action / Composition</span>
+          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Cast / Characters</span>
+            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="Character A, Character B">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Location</span>
+            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" placeholder="Set or shooting location">
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shooting Date</span>
+            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Equipment</span>
+            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Props</span>
+            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Production Notes</span>
+            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white/70 border border-slate-900/20" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+          </label>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button class="btnDup px-3 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-slate-900/10 text-slate-800">Duplicate</button>
+          <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
         </div>
       </div>
     </li>
@@ -314,6 +306,7 @@
   const state = {
     shots: [],
     layoutColumns: 1,
+    sceneColors: {},
   };
 
   // --- Elements ---
@@ -421,6 +414,39 @@
     }
   }
 
+  const pastelPalette = [
+    '#FDE2E4', '#E2F0CB', '#FFF5BA', '#CCE2F1', '#E5D9F2', '#FADDE1', '#D8F3DC', '#FFE0AC', '#E0E7FF', '#F8EDEB',
+  ];
+
+  function normalizeSceneKey(scene) {
+    return (scene || '').replace(/\s+/g, ' ').trim().toUpperCase();
+  }
+
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  function ensureSceneColor(scene) {
+    const key = normalizeSceneKey(scene);
+    if (!key) return null;
+    if (!state.sceneColors[key]) {
+      const idx = hashString(key) % pastelPalette.length;
+      state.sceneColors[key] = pastelPalette[idx];
+    }
+    return state.sceneColors[key];
+  }
+
+  function applySceneColor(li, scene) {
+    const color = ensureSceneColor(scene) || 'rgba(241, 245, 249, 0.9)';
+    li.style.backgroundColor = color;
+    li.style.setProperty('--scene-color', color);
+  }
+
   function saveLocal() {
     const data = collectData();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -453,6 +479,7 @@
       layout: {
         columns: state.layoutColumns,
       },
+      sceneColors: { ...state.sceneColors },
       shots: state.shots.map(s => ({...s}))
     };
   }
@@ -466,14 +493,18 @@
   producer.value = data?.meta?.producer || '';
   shootSchedule.value = data?.meta?.shootSchedule || '';
   projNotes.value = data?.meta?.notes || '';
+    state.sceneColors = { ...(data?.sceneColors || {}) };
     applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
-    resetShots();
+    resetShots({ preserveSceneColors: true });
     (data?.shots || []).forEach(addShotFromData);
     isHydrating = false;
   }
 
-  function resetShots() {
+  function resetShots(options = {}) {
     clearShotSelection();
+    if (!options.preserveSceneColors) {
+      state.sceneColors = {};
+    }
     state.shots = [];
     shotList.innerHTML = '';
   }
@@ -510,6 +541,7 @@
     notesInput.value = s.notes || '';
 
     updateShotTitle(li);
+    applySceneColor(li, sceneInput.value);
 
     if (selectShot) {
       selectShot.checked = false;
@@ -604,6 +636,9 @@
       el.addEventListener('input', () => {
         if (el.classList.contains('scene') || el.classList.contains('shotnum')) {
           updateShotTitle(li);
+        }
+        if (el.classList.contains('scene')) {
+          applySceneColor(li, el.value);
         }
         persistFromDOM();
       });
