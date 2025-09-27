@@ -105,6 +105,7 @@
             </select>
           </label>
           <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
+          <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
           <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
           <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
           <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
@@ -317,6 +318,7 @@
   const btnImport = document.getElementById('btnImport');
   const btnPrint = document.getElementById('btnPrint');
   const btnReset = document.getElementById('btnReset');
+  const btnSelectAll = document.getElementById('btnSelectAll');
   const btnFoldSelected = document.getElementById('btnFoldSelected');
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
@@ -397,6 +399,13 @@
     shotList.querySelectorAll('.select-shot').forEach(cb => {
       cb.checked = false;
       updateShotSelectionVisual(cb.closest('li'), false);
+    });
+  }
+
+  function selectAllShots() {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = true;
+      updateShotSelectionVisual(cb.closest('li'), true);
     });
   }
 
@@ -813,6 +822,16 @@
     clearShotSelection();
     saveLocal();
   });
+
+  if (btnSelectAll) {
+    btnSelectAll.addEventListener('click', () => {
+      if (!shotList.children.length) {
+        alert('No shots are available to select yet.');
+        return;
+      }
+      selectAllShots();
+    });
+  }
 
   if (btnFoldSelected) {
     btnFoldSelected.addEventListener('click', () => {
