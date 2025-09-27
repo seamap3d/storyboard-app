@@ -560,6 +560,7 @@
     });
 
     shotList.appendChild(li);
+    addDragHandlers(li);
     updateShotTitle(li);
     state.shots.push({ id: s.id, ...readShotFromLI(li) });
   }
@@ -637,11 +638,22 @@
   // --- Drag to reorder ---
   let dragSrcEl = null;
   let ghost;
+  let activePointerId = null;
 
   function addDragHandlers(li) {
+    if (li.dataset.dragWired === 'true') return;
     const h = li.querySelector('.handle');
+    if (!h) return;
+    li.dataset.dragWired = 'true';
+    h.style.touchAction = 'none';
     h.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
       dragSrcEl = li;
+      activePointerId = e.pointerId;
+      if (h.setPointerCapture) {
+        try { h.setPointerCapture(e.pointerId); } catch {}
+      }
       ghost = li.cloneNode(true);
       ghost.classList.add('opacity-50');
       ghost.style.pointerEvents = 'none';
@@ -649,17 +661,30 @@
       li.classList.add('ring-2','ring-emerald-500');
       document.addEventListener('pointermove', onMove);
       document.addEventListener('pointerup', onUp, { once: true });
+      document.addEventListener('pointercancel', onUp, { once: true });
     });
   }
 
   function onMove(e) {
+    if (!ghost || !dragSrcEl || (activePointerId !== null && e.pointerId !== activePointerId)) return;
     const y = e.clientY;
-    const items = Array.from(shotList.children).filter(el => el !== dragSrcEl);
-    for (const item of items) {
-      const rect = item.getBoundingClientRect();
-      const before = y < rect.top + rect.height / 2;
-      if (before) { shotList.insertBefore(ghost, item); break; }
-      if (item === items[items.length-1]) { shotList.appendChild(ghost); }
+    const x = e.clientX;
+    const elem = document.elementFromPoint(x, y);
+    if (!elem) return;
+    const target = elem.closest('li.shot');
+    if (!target || target === ghost || target === dragSrcEl) return;
+    const rect = target.getBoundingClientRect();
+    let before;
+    const withinVertical = y >= rect.top && y <= rect.bottom;
+    if (withinVertical) {
+      before = x < rect.left + rect.width / 2;
+    } else {
+      before = y < rect.top + rect.height / 2;
+    }
+    if (before) {
+      shotList.insertBefore(ghost, target);
+    } else {
+      shotList.insertBefore(ghost, target.nextSibling);
     }
   }
 
@@ -668,9 +693,14 @@
     if (moved) {
       moved.classList.remove('ring-2','ring-emerald-500');
       shotList.insertBefore(moved, ghost);
+      const handle = moved.querySelector('.handle');
+      if (handle && activePointerId !== null && handle.releasePointerCapture) {
+        try { handle.releasePointerCapture(activePointerId); } catch {}
+      }
     }
     if (ghost) ghost.remove();
     ghost = null;
+    activePointerId = null;
     dragSrcEl = null;
     persistFromDOM();
     if (moved) {
@@ -678,6 +708,7 @@
       if (cb) updateShotSelectionVisual(moved, cb.checked);
     }
     document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointercancel', onUp);
   }
 
   // Observe list for new items to wire drag
