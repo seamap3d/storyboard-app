@@ -95,14 +95,22 @@
     <section>
       <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
         <h2 class="font-semibold">Shots</h2>
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs text-slate-400 mr-2">Drag the handle to reorder shots.</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="flex items-center gap-2 text-xs text-slate-400">
+            <span>Layout</span>
+            <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
+              <option value="1">1 per row</option>
+              <option value="2">2 per row</option>
+              <option value="3">3 per row</option>
+            </select>
+          </label>
+          <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
           <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
           <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
           <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
         </div>
       </div>
-  <ol id="shotList" class="space-y-4"></ol>
+    <ol id="shotList" class="grid gap-4 list-none"></ol>
     </section>
   </div>
 
@@ -305,6 +313,7 @@
 
   const state = {
     shots: [],
+    layoutColumns: 1,
   };
 
   // --- Elements ---
@@ -318,6 +327,7 @@
   const btnFoldSelected = document.getElementById('btnFoldSelected');
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
+  const layoutSelect = document.getElementById('layoutSelect');
   const scriptInput = document.getElementById('scriptInput');
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
@@ -397,6 +407,20 @@
     });
   }
 
+  function applyLayoutColumns(count, { updateControl = true } = {}) {
+    let cols = parseInt(count, 10);
+    if (Number.isNaN(cols)) cols = state.layoutColumns || 1;
+    cols = Math.min(3, Math.max(1, cols));
+    shotList.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    state.layoutColumns = cols;
+    if (updateControl && layoutSelect) {
+      const desiredValue = String(cols);
+      if (layoutSelect.value !== desiredValue) {
+        layoutSelect.value = desiredValue;
+      }
+    }
+  }
+
   function saveLocal() {
     const data = collectData();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -426,6 +450,9 @@
   shootSchedule: shootSchedule.value.trim(),
   notes: projNotes.value.trim(),
       },
+      layout: {
+        columns: state.layoutColumns,
+      },
       shots: state.shots.map(s => ({...s}))
     };
   }
@@ -439,6 +466,7 @@
   producer.value = data?.meta?.producer || '';
   shootSchedule.value = data?.meta?.shootSchedule || '';
   projNotes.value = data?.meta?.notes || '';
+    applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
     resetShots();
     (data?.shots || []).forEach(addShotFromData);
     isHydrating = false;
@@ -783,6 +811,13 @@
     });
   }
 
+  if (layoutSelect) {
+    layoutSelect.addEventListener('change', (e) => {
+      applyLayoutColumns(e.target.value);
+      if (!isHydrating) saveLocal();
+    });
+  }
+
   // --- New shot ---
   btnNew.addEventListener('click', () => newShot());
 
@@ -796,6 +831,7 @@
 
   // --- Init ---
   loadLocal();
+  applyLayoutColumns(state.layoutColumns, { updateControl: true });
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
   // Persist meta edits
