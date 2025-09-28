@@ -29,6 +29,31 @@
       border: 1px solid #334155;
       font-weight: 500;
     }
+    .shot {
+      transition: transform 150ms ease, box-shadow 150ms ease;
+      position: relative;
+    }
+    .shot.dragging {
+      transform: scale(1.02);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+      z-index: 20;
+    }
+    .drag-placeholder {
+      border: 2px dashed rgba(30, 41, 59, 0.4) !important;
+      background-color: rgba(148, 163, 184, 0.18);
+      min-height: 120px;
+      border-radius: 1rem;
+      filter: grayscale(0.2);
+    }
+    .frame:focus-visible,
+    .frame-placeholder:focus-visible {
+      outline: 2px dashed rgba(14, 165, 233, 0.6);
+      outline-offset: 4px;
+    }
+    body.is-dragging {
+      user-select: none;
+      cursor: grabbing !important;
+    }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100">
@@ -122,11 +147,11 @@
           <div class="handle shrink-0 select-none text-slate-700 hover:text-slate-900 cursor-grab active:cursor-grabbing">≡</div>
         </div>
       </div>
-      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video">
+      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video" tabindex="0">
         <img class="frame-image absolute inset-0 w-full h-full object-cover hidden" alt="Shot reference">
-        <div class="text-center px-4 frame-placeholder space-y-2">
+        <div class="text-center px-4 frame-placeholder space-y-2" tabindex="0">
           <div class="font-semibold text-slate-600">Frame Preview</div>
-          <div class="text-xs text-slate-500">16:9 placeholder with film grain</div>
+          <div class="text-xs text-slate-500">Paste (Ctrl+V) or upload an image</div>
           <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-xs font-medium">
             Upload Image
             <input type="file" accept="image/*" class="image-upload hidden">
@@ -468,66 +493,88 @@
 
     setShotFolded(li, s.folded);
 
-    if (toggleFoldBtn) {
-      toggleFoldBtn.addEventListener('click', () => {
-        const next = li.dataset.folded !== 'true';
-        setShotFolded(li, next);
-        persistFromDOM();
-      });
-    }
-
-    // Handle image display
     const frameImg = li.querySelector('.frame-image');
     const framePlaceholder = li.querySelector('.frame-placeholder');
     const removeBtn = li.querySelector('.remove-image');
-    
-    if (s.imageData) {
-      frameImg.src = s.imageData;
+
+    function applyImageData(dataUrl) {
+      if (!dataUrl) return;
+      frameImg.src = dataUrl;
       frameImg.classList.remove('hidden');
       framePlaceholder.classList.add('hidden');
       removeBtn.classList.remove('hidden');
       removeBtn.classList.add('flex');
+      const shotId = li.dataset.id;
+      const shotIndex = indexOfShot(shotId);
+      if (shotIndex > -1) {
+        state.shots[shotIndex].imageData = dataUrl;
+        saveLocal();
+      }
     }
 
-    // Image upload handler
-    li.querySelector('.image-upload').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          frameImg.src = event.target.result;
-          frameImg.classList.remove('hidden');
-          framePlaceholder.classList.add('hidden');
-          removeBtn.classList.remove('hidden');
-          removeBtn.classList.add('flex');
-          
-          // Update state
-          const shotId = li.dataset.id;
-          const shotIndex = indexOfShot(shotId);
-          if (shotIndex > -1) {
-            state.shots[shotIndex].imageData = event.target.result;
-            saveLocal();
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+    if (s.imageData) {
+      applyImageData(s.imageData);
+    }
 
-    // Remove image handler
-    removeBtn.addEventListener('click', () => {
+    function clearImageData() {
       frameImg.src = '';
       frameImg.classList.add('hidden');
       framePlaceholder.classList.remove('hidden');
       removeBtn.classList.add('hidden');
       removeBtn.classList.remove('flex');
-      
-      // Update state
       const shotId = li.dataset.id;
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
         saveLocal();
       }
+    }
+
+    // Image upload handler
+    li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleImagePaste(file);
+      }
+    });
+
+    function handleImagePaste(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        applyImageData(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+  const pasteTargets = [li, li.querySelector('.frame'), frameImg, framePlaceholder];
+    pasteTargets.forEach(target => {
+      if (!target) return;
+      target.addEventListener('paste', (event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            handleImagePaste(item.getAsFile());
+            break;
+          }
+        }
+      });
+    });
+
+    li.addEventListener('click', (event) => {
+      if (event.target.closest('button, input, textarea, select, label, a')) return;
+      const frame = li.querySelector('.frame');
+      if (frame && typeof frame.focus === 'function') {
+        try { frame.focus({ preventScroll: true }); }
+        catch { frame.focus(); }
+      }
+    });
+
+    // Remove image handler
+    removeBtn.addEventListener('click', () => {
+      clearImageData();
     });
 
     // Bind buttons
@@ -639,6 +686,10 @@
   let dragSrcEl = null;
   let ghost;
   let activePointerId = null;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let dragStartRect = null;
+  let lastDropTarget = null;
 
   function addDragHandlers(li) {
     if (li.dataset.dragWired === 'true') return;
@@ -651,14 +702,33 @@
       e.preventDefault();
       dragSrcEl = li;
       activePointerId = e.pointerId;
+      dragStartRect = li.getBoundingClientRect();
+      dragOffsetX = e.clientX - dragStartRect.left;
+      dragOffsetY = e.clientY - dragStartRect.top;
       if (h.setPointerCapture) {
         try { h.setPointerCapture(e.pointerId); } catch {}
       }
       ghost = li.cloneNode(true);
-      ghost.classList.add('opacity-50');
+      ghost.classList.add('opacity-50','drag-placeholder');
+  ghost.classList.remove('dragging','ring-2','ring-emerald-500','ring-transparent');
+      ghost.style.pointerEvents = 'none';
+      ghost.style.transition = 'none';
+      ghost.style.height = `${dragStartRect.height}px`;
+      ghost.style.width = `${dragStartRect.width}px`;
+      ghost.querySelectorAll('input, textarea, select, button').forEach(el => {
+        el.setAttribute('disabled', 'true');
+      });
       ghost.style.pointerEvents = 'none';
       li.parentNode.insertBefore(ghost, li.nextSibling);
-      li.classList.add('ring-2','ring-emerald-500');
+      li.classList.add('ring-2','ring-emerald-500','dragging');
+      li.style.width = `${dragStartRect.width}px`;
+      li.style.height = `${dragStartRect.height}px`;
+      li.style.position = 'fixed';
+      li.style.pointerEvents = 'none';
+      li.style.left = `${dragStartRect.left}px`;
+      li.style.top = `${dragStartRect.top}px`;
+      li.style.zIndex = '50';
+      document.body.classList.add('is-dragging');
       document.addEventListener('pointermove', onMove);
       document.addEventListener('pointerup', onUp, { once: true });
       document.addEventListener('pointercancel', onUp, { once: true });
@@ -667,12 +737,25 @@
 
   function onMove(e) {
     if (!ghost || !dragSrcEl || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+    dragSrcEl.style.left = `${e.clientX - dragOffsetX}px`;
+    dragSrcEl.style.top = `${e.clientY - dragOffsetY}px`;
     const y = e.clientY;
     const x = e.clientX;
     const elem = document.elementFromPoint(x, y);
     if (!elem) return;
     const target = elem.closest('li.shot');
-    if (!target || target === ghost || target === dragSrcEl) return;
+    if (!target || target === ghost || target === dragSrcEl) {
+      if (lastDropTarget) {
+        lastDropTarget.classList.remove('drop-target');
+        lastDropTarget = null;
+      }
+      return;
+    }
+    if (lastDropTarget && lastDropTarget !== target) {
+      lastDropTarget.classList.remove('drop-target');
+    }
+    target.classList.add('drop-target');
+    lastDropTarget = target;
     const rect = target.getBoundingClientRect();
     let before;
     const withinVertical = y >= rect.top && y <= rect.bottom;
@@ -697,11 +780,24 @@
       if (handle && activePointerId !== null && handle.releasePointerCapture) {
         try { handle.releasePointerCapture(activePointerId); } catch {}
       }
+      moved.classList.remove('dragging');
+      moved.style.position = '';
+      moved.style.width = '';
+      moved.style.height = '';
+      moved.style.left = '';
+      moved.style.top = '';
+      moved.style.pointerEvents = '';
+      moved.style.zIndex = '';
     }
     if (ghost) ghost.remove();
     ghost = null;
+    dragStartRect = null;
     activePointerId = null;
     dragSrcEl = null;
+    if (lastDropTarget) {
+      lastDropTarget.classList.remove('drop-target');
+      lastDropTarget = null;
+    }
     persistFromDOM();
     if (moved) {
       const cb = moved.querySelector('.select-shot');
@@ -709,6 +805,7 @@
     }
     document.removeEventListener('pointermove', onMove);
     document.removeEventListener('pointercancel', onUp);
+    document.body.classList.remove('is-dragging');
   }
 
   // Observe list for new items to wire drag
