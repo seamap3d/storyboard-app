@@ -1,3 +1,9 @@
+  // --- Tab switching ---
+  tabLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      setActiveTab(link.dataset.tab);
+    });
+  });
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -57,82 +63,305 @@
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100">
-  <div class="w-full px-4 md:px-6 py-4">
-    <header class="flex items-center justify-between gap-3 mb-4">
-  <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
-      <div class="flex items-center gap-2">
-        <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
-        <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
-        <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
-        <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
-        <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
-      </div>
-    </header>
+  <div class="w-full px-4 md:px-6 py-4 min-h-screen">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <aside class="lg:w-60 shrink-0">
+        <nav class="sticky top-4 space-y-2">
+          <div class="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">Workspace</div>
+          <button type="button" data-tab="storyboard" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2 font-medium">
+            <span>Storyboard</span>
+            <span class="text-xs text-emerald-400">Live</span>
+          </button>
+          <button type="button" data-tab="schedule" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Production Schedule</span>
+            <span class="text-xs text-slate-500">Plan</span>
+          </button>
+          <button type="button" data-tab="props" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Prop List</span>
+            <span class="text-xs text-slate-500">Inventory</span>
+          </button>
+          <button type="button" data-tab="callsheets" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Call Sheets</span>
+            <span class="text-xs text-slate-500">Daily</span>
+          </button>
+        </nav>
+      </aside>
+      <main class="flex-1 space-y-6">
+        <section data-pane="storyboard" class="tab-pane space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
+            <div class="flex items-center gap-2">
+              <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+              <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+              <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+              <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+              <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+            </div>
+          </header>
 
-  <!-- Project Panel -->
-    <section class="mb-6">
-      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
-        <h2 class="font-semibold mb-3">Project</h2>
-        <div class="grid grid-cols-2 gap-3">
-          <label class="col-span-2">
-            <span class="text-sm text-slate-300">Title</span>
-            <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
-          </label>
-          <label>
-            <span class="text-sm text-slate-300">Director</span>
-            <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
-          </label>
-          <label>
-            <span class="text-sm text-slate-300">Production Company</span>
-            <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
-          </label>
-          <label>
-            <span class="text-sm text-slate-300">Director of Photography</span>
-            <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
-          </label>
-          <label>
-            <span class="text-sm text-slate-300">Producer</span>
-            <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
-          </label>
-          <label class="col-span-2">
-            <span class="text-sm text-slate-300">Shooting Schedule</span>
-            <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
-          </label>
-          <label class="col-span-2">
-            <span class="text-sm text-slate-300">Production Notes</span>
-            <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
-          </label>
-        </div>
-        <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
-      </div>
-    </section>
-      <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
-        <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
-        <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
-        <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
-      </section>
-    <!-- Shot list -->
-    <section>
-      <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
-        <h2 class="font-semibold">Shots</h2>
-        <div class="flex flex-wrap items-center gap-3">
-          <label class="flex items-center gap-2 text-xs text-slate-400">
-            <span>Layout</span>
-            <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
-              <option value="1">1 per row</option>
-              <option value="2">2 per row</option>
-              <option value="3">3 per row</option>
-            </select>
-          </label>
-          <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
-          <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
-          <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
-          <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
-          <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
-        </div>
-      </div>
-    <ol id="shotList" class="grid gap-4 list-none"></ol>
-    </section>
+          <!-- Project Panel -->
+          <section class="mb-6">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+              <h2 class="font-semibold mb-3">Project</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Title</span>
+                  <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director</span>
+                  <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Production Company</span>
+                  <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director of Photography</span>
+                  <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Producer</span>
+                  <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Shooting Schedule</span>
+                  <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Production Notes</span>
+                  <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
+                </label>
+              </div>
+              <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+            </div>
+          </section>
+
+          <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+            <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
+            <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
+            <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
+          </section>
+
+          <!-- Shot list -->
+          <section>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="font-semibold">Shots</h2>
+              <div class="flex flex-wrap items-center gap-3">
+                <label class="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Layout</span>
+                  <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
+                    <option value="1">1 per row</option>
+                    <option value="2">2 per row</option>
+                    <option value="3">3 per row</option>
+                    <option value="4">4 per row</option>
+                    <option value="5">5 per row</option>
+                  </select>
+                </label>
+                <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
+                <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
+                <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+                <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+                <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+              </div>
+            </div>
+            <ol id="shotList" class="grid gap-4 list-none"></ol>
+          </section>
+        </section>
+
+        <section data-pane="schedule" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
+              <p class="text-sm text-slate-300 mt-1">Map out key beats, locations, and responsibilities for each shoot day.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Schedule</button>
+          </header>
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <div class="flex items-center justify-between">
+                <h2 class="font-semibold">Upcoming Milestones</h2>
+                <span class="text-xs text-emerald-300">Stay on target</span>
+              </div>
+              <ul class="space-y-2 text-sm text-slate-300">
+                <li class="flex items-start gap-3">
+                  <span class="mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span>
+                  <div>
+                    <div class="font-medium">Storyboard lock</div>
+                    <div class="text-xs text-slate-400">Finalize shot list and share with department heads.</div>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="mt-0.5 h-2 w-2 rounded-full bg-sky-400"></span>
+                  <div>
+                    <div class="font-medium">Tech scout</div>
+                    <div class="text-xs text-slate-400">Walk locations with DP, Gaffer, and AD to confirm logistics.</div>
+                  </div>
+                </li>
+                <li class="flex items-start gap-3">
+                  <span class="mt-0.5 h-2 w-2 rounded-full bg-amber-400"></span>
+                  <div>
+                    <div class="font-medium">Table read</div>
+                    <div class="text-xs text-slate-400">Host cast read-through and note performance adjustments.</div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Day-By-Day Plan</h2>
+              <table class="w-full text-sm text-left text-slate-300 border-separate border-spacing-y-2">
+                <thead class="text-xs uppercase tracking-wider text-slate-400">
+                  <tr>
+                    <th class="px-3 py-2 rounded-l-lg bg-slate-900/70 border border-slate-800">Day</th>
+                    <th class="px-3 py-2 bg-slate-900/70 border border-slate-800">Focus</th>
+                    <th class="px-3 py-2 rounded-r-lg bg-slate-900/70 border border-slate-800">Notes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 1</td>
+                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Opening montage</td>
+                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Golden hour exteriors, drone shots.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 2</td>
+                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Dialogue &amp; interiors</td>
+                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Sound-heavy scenes, plan for boom + lavs.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 3</td>
+                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Stunts &amp; pickups</td>
+                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Safety briefing + VFX plate coverage.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+            <h2 class="font-semibold mb-2">Scratch Pad</h2>
+            <p class="text-xs text-slate-400 mb-3">Capture rough timing, crew requirements, or anything else you need to remember.</p>
+            <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="Add key beats, notes, or to-dos for the schedule."></textarea>
+          </div>
+        </section>
+
+        <section data-pane="props" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎭 Prop &amp; Wardrobe Tracker</h1>
+              <p class="text-sm text-slate-300 mt-1">Track every item needed on set and who owns the follow-through.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Prop List</button>
+          </header>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex flex-wrap gap-3 items-center">
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Prop Name</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="e.g., Antique compass">
+              </label>
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Scene / Shot</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Scene 3, Shot 12">
+              </label>
+              <label class="w-40">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Status</span>
+                <select class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm">
+                  <option>Needed</option>
+                  <option>Ordered</option>
+                  <option>Secured</option>
+                  <option>On Set</option>
+                </select>
+              </label>
+              <button class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Add Item</button>
+            </div>
+
+            <div class="border border-dashed border-slate-700/80 rounded-xl px-4 py-6 text-center text-sm text-slate-400">
+              Build your prop inventory here. Start logging items above and paste reference images right into the storyboard cards.
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Hero Props</span>
+                  <span class="text-emerald-300">3 tracked</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Prototype gadget — Scene 5</li>
+                  <li>• Wardrobe: Lead jacket — Scene 2</li>
+                  <li>• Vintage car keys — Scene 7</li>
+                </ul>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Department Notes</span>
+                  <span class="text-amber-300">Action needed</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Confirm stunt harness sizing (Stunts)</li>
+                  <li>• Prep aging on set dressing (Art)</li>
+                  <li>• Double wardrobe for rain cover (Costumes)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section data-pane="callsheets" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">📄 Call Sheets</h1>
+              <p class="text-sm text-slate-300 mt-1">Draft and share daily call sheets with your cast and crew.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Download Template</button>
+          </header>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Call Sheet Overview</h2>
+              <div class="space-y-2 text-sm text-slate-300">
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Production Day</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Day 1 - Monday">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Crew Call</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="07:00">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Location</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Main Warehouse Lot">
+                </label>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Agenda Notes</h2>
+              <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="List key scenes, department calls, safety notes, or transportation details."></textarea>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+            <h2 class="font-semibold mb-2">Distribution List</h2>
+            <p class="text-xs text-slate-400 mb-3">Note who receives this call sheet and confirm delivery per department.</p>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Department</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Camera">
+              </label>
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Contact</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Jordan Blake">
+              </label>
+              <label class="block md:col-span-2">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Notes</span>
+                <textarea class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" rows="2" placeholder="Share call sheet via email + Slack group."></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
   </div>
 
   <template id="shotTmpl">
@@ -261,6 +490,7 @@
     shots: [],
     layoutColumns: 1,
     sceneColors: {},
+    activeTab: 'storyboard',
   };
 
   // --- Elements ---
@@ -276,6 +506,8 @@
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
   const layoutSelect = document.getElementById('layoutSelect');
+  const tabLinks = document.querySelectorAll('.tab-link');
+  const tabPanes = document.querySelectorAll('.tab-pane');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const director = document.getElementById('director');
@@ -343,7 +575,7 @@
   function applyLayoutColumns(count, { updateControl = true } = {}) {
     let cols = parseInt(count, 10);
     if (Number.isNaN(cols)) cols = state.layoutColumns || 1;
-    cols = Math.min(3, Math.max(1, cols));
+  cols = Math.min(5, Math.max(1, cols));
     shotList.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
     state.layoutColumns = cols;
     if (updateControl && layoutSelect) {
@@ -352,6 +584,35 @@
         layoutSelect.value = desiredValue;
       }
     }
+  }
+
+  function setActiveTab(tab, { save = true } = {}) {
+    const target = tab || 'storyboard';
+    state.activeTab = target;
+
+    tabPanes.forEach(pane => {
+      const isActive = pane.dataset.pane === target;
+      pane.classList.toggle('hidden', !isActive);
+    });
+
+    const activeClasses = ['bg-slate-800/60', 'border-slate-700', 'text-slate-100', 'shadow-lg'];
+    const inactiveClasses = ['bg-slate-900/30', 'border-slate-800/50', 'text-slate-300'];
+
+    tabLinks.forEach(link => {
+      const isActive = link.dataset.tab === target;
+      activeClasses.forEach(cls => link.classList.toggle(cls, isActive));
+      inactiveClasses.forEach(cls => link.classList.toggle(cls, !isActive));
+      link.setAttribute('data-active', isActive ? 'true' : 'false');
+      if (isActive) {
+        link.classList.add('translate-x-0.5');
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.classList.remove('translate-x-0.5');
+        link.removeAttribute('aria-current');
+      }
+    });
+
+    if (save && !isHydrating) saveLocal();
   }
 
   const pastelPalette = [
@@ -419,6 +680,7 @@
       layout: {
         columns: state.layoutColumns,
       },
+      activeTab: state.activeTab,
       sceneColors: { ...state.sceneColors },
       shots: state.shots.map(s => ({...s}))
     };
@@ -433,6 +695,8 @@
   producer.value = data?.meta?.producer || '';
   shootSchedule.value = data?.meta?.shootSchedule || '';
   projNotes.value = data?.meta?.notes || '';
+    state.activeTab = data?.activeTab || 'storyboard';
+    setActiveTab(state.activeTab, { save: false });
     state.sceneColors = { ...(data?.sceneColors || {}) };
     applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
     resetShots({ preserveSceneColors: true });
@@ -919,6 +1183,7 @@
 
   // --- Init ---
   loadLocal();
+  setActiveTab(state.activeTab, { save: false });
   applyLayoutColumns(state.layoutColumns, { updateControl: true });
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
