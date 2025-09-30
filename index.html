@@ -66,6 +66,10 @@
             <span>Storyboard</span>
             <span class="text-xs text-emerald-400">Live</span>
           </button>
+          <button type="button" data-tab="shotlist" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Shot List</span>
+            <span class="text-xs text-slate-500">Spreadsheet</span>
+          </button>
           <button type="button" data-tab="schedule" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
             <span>Production Schedule</span>
             <span class="text-xs text-slate-500">Plan</span>
@@ -81,17 +85,25 @@
         </nav>
       </aside>
       <main class="flex-1 space-y-6">
-        <section data-pane="storyboard" class="tab-pane space-y-6">
-          <header class="flex items-center justify-between gap-3">
+        <header class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-4 shadow">
+          <div class="space-y-1">
             <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
-            <div class="flex items-center gap-2">
-              <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
-              <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
-              <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
-              <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
-              <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
-            </div>
-          </header>
+            <p class="text-sm text-slate-400 max-w-xl">Switch between the storyboard, spreadsheet-style shot list, and production planning tools without losing your data.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+            <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+            <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+            <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+            <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+          </div>
+        </header>
+
+        <section data-pane="storyboard" class="tab-pane space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold">Storyboard Workspace</h2>
+            <p class="text-sm text-slate-400">Build and reorder visual beats, paste or upload frames, and capture production notes for every shot.</p>
+          </div>
 
           <!-- Project Panel -->
           <section class="mb-6">
@@ -161,6 +173,40 @@
             </div>
             <ol id="shotList" class="grid gap-4 list-none"></ol>
           </section>
+        </section>
+
+        <section data-pane="shotlist" class="tab-pane hidden space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-2xl md:text-3xl font-semibold">Shot List Spreadsheet</h2>
+            <p class="text-sm text-slate-300">Review every shot in a compact table. Edits here sync instantly with the storyboard cards and saved JSON.</p>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow">
+            <table class="min-w-[1024px] w-full text-sm text-left">
+              <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="px-3 py-3 font-medium">Order</th>
+                  <th class="px-3 py-3 font-medium">Shot #</th>
+                  <th class="px-3 py-3 font-medium">Scene</th>
+                  <th class="px-3 py-3 font-medium">Type</th>
+                  <th class="px-3 py-3 font-medium">Lens</th>
+                  <th class="px-3 py-3 font-medium">Move</th>
+                  <th class="px-3 py-3 font-medium">Description</th>
+                  <th class="px-3 py-3 font-medium">Cast / Characters</th>
+                  <th class="px-3 py-3 font-medium">Location</th>
+                  <th class="px-3 py-3 font-medium">Shoot Date</th>
+                  <th class="px-3 py-3 font-medium">Equipment</th>
+                  <th class="px-3 py-3 font-medium">Props</th>
+                  <th class="px-3 py-3 font-medium">Production Notes</th>
+                  <th class="px-3 py-3 font-medium">Folded</th>
+                  <th class="px-3 py-3 font-medium">Image</th>
+                </tr>
+              </thead>
+              <tbody id="shotTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+
+          <p class="text-xs text-slate-400">Tip: Use Tab or Shift+Tab to move between cells. Updates are saved automatically and reflected across all tabs.</p>
         </section>
 
         <section data-pane="schedule" class="tab-pane hidden space-y-6">
@@ -487,6 +533,10 @@
     activeTab: 'storyboard',
   };
 
+  const SHOT_TYPE_OPTIONS = ['Wide', 'Establishing', 'Medium', 'Close‑Up', 'Extreme CU', 'Over‑the‑Shoulder', 'POV', 'Drone', 'Insert'];
+  const LENS_OPTIONS = ['24mm', '35mm', '50mm', '85mm', '105mm'];
+  const MOVE_OPTIONS = ['Locked', 'Pan', 'Tilt', 'Dolly', 'Handheld', 'Crane', 'Drone'];
+
   // --- Elements ---
   const shotList = document.getElementById('shotList');
   const tmpl = document.getElementById('shotTmpl');
@@ -502,6 +552,7 @@
   const layoutSelect = document.getElementById('layoutSelect');
   const tabLinks = document.querySelectorAll('.tab-link');
   const tabPanes = document.querySelectorAll('.tab-pane');
+  const shotTableBody = document.getElementById('shotTableBody');
   const fileInput = document.getElementById('fileInput');
   const projTitle = document.getElementById('projTitle');
   const director = document.getElementById('director');
@@ -592,6 +643,254 @@
     const activeClasses = ['bg-slate-800/60', 'border-slate-700', 'text-slate-100', 'shadow-lg'];
     const inactiveClasses = ['bg-slate-900/30', 'border-slate-800/50', 'text-slate-300'];
 
+
+  function updateShotFieldFromTable(shotId, key, value) {
+    const idx = indexOfShot(shotId);
+    if (idx === -1) return;
+    const targetShot = state.shots[idx];
+    if (!targetShot) return;
+
+    switch (key) {
+      case 'folded':
+        targetShot.folded = Boolean(value);
+        break;
+      case 'number':
+        targetShot.number = value === '' ? '' : String(value);
+        break;
+      case 'shootDate':
+        targetShot.shootDate = value || '';
+        break;
+      default:
+        targetShot[key] = typeof value === 'string' ? value : (value ?? '');
+    }
+
+    renderAll();
+    saveLocal();
+  }
+
+  function attachShotlistInput(element, shotId, key, { parser, eventType = 'change' } = {}) {
+    const parseValue = parser || ((el) => {
+      if (el.type === 'checkbox') return el.checked;
+      if (el.type === 'number') {
+        const trimmed = el.value.trim();
+        return trimmed;
+      }
+      return el.value.trim();
+    });
+
+    const commit = () => {
+      updateShotFieldFromTable(shotId, key, parseValue(element));
+    };
+
+    if (eventType === 'blur') {
+      element.addEventListener('blur', commit);
+      if (element.tagName !== 'TEXTAREA') {
+        element.addEventListener('keydown', (evt) => {
+          if (evt.key === 'Enter' && !evt.shiftKey) {
+            evt.preventDefault();
+            element.blur();
+          }
+        });
+      }
+    } else {
+      element.addEventListener(eventType, commit);
+    }
+  }
+
+  function populateSelectOptions(selectEl, options, currentValue) {
+    selectEl.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '—';
+    selectEl.appendChild(placeholder);
+
+    options.forEach(optionValue => {
+      const optionEl = document.createElement('option');
+      optionEl.value = optionValue;
+      optionEl.textContent = optionValue;
+      selectEl.appendChild(optionEl);
+    });
+
+    if (currentValue && !options.includes(currentValue)) {
+      const customOption = document.createElement('option');
+      customOption.value = currentValue;
+      customOption.textContent = currentValue;
+      selectEl.appendChild(customOption);
+    }
+
+    selectEl.value = currentValue || '';
+  }
+
+  function renderShotListTable() {
+    if (!shotTableBody) return;
+
+    shotTableBody.innerHTML = '';
+
+    if (!state.shots.length) {
+      const emptyRow = document.createElement('tr');
+      const emptyCell = document.createElement('td');
+      emptyCell.colSpan = 15;
+      emptyCell.className = 'px-3 py-6 text-center text-sm text-slate-400';
+      emptyCell.textContent = 'No shots yet. Add a shot from the Storyboard tab to populate this table.';
+      emptyRow.appendChild(emptyCell);
+      shotTableBody.appendChild(emptyRow);
+      return;
+    }
+
+    state.shots.forEach((shot, index) => {
+      const tr = document.createElement('tr');
+      tr.dataset.shotId = shot.id;
+      tr.className = index % 2 === 0 ? 'border-b border-slate-800/60 bg-slate-950/40 hover:bg-slate-950/60 transition' : 'border-b border-slate-800/60 hover:bg-slate-950/60 transition';
+
+      const orderCell = document.createElement('td');
+      orderCell.className = 'px-3 py-3 text-xs text-slate-500 align-top whitespace-nowrap';
+      orderCell.textContent = index + 1;
+      tr.appendChild(orderCell);
+
+      const numberCell = document.createElement('td');
+      numberCell.className = 'px-3 py-2 align-top';
+      const numberInput = document.createElement('input');
+      numberInput.type = 'number';
+      numberInput.min = '1';
+      numberInput.inputMode = 'numeric';
+      numberInput.value = shot.number ?? index + 1;
+      numberInput.className = 'w-24 rounded-lg border border-slate-800 bg-slate-950/60 px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(numberInput, shot.id, 'number', { eventType: 'blur' });
+      numberCell.appendChild(numberInput);
+      tr.appendChild(numberCell);
+
+      const sceneCell = document.createElement('td');
+      sceneCell.className = 'px-3 py-2 align-top min-w-[160px]';
+      const sceneInput = document.createElement('input');
+      sceneInput.type = 'text';
+      sceneInput.value = shot.scene || '';
+      sceneInput.placeholder = 'INT. LOCATION – DAY';
+      sceneInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(sceneInput, shot.id, 'scene', { eventType: 'blur' });
+      sceneCell.appendChild(sceneInput);
+      tr.appendChild(sceneCell);
+
+      const typeCell = document.createElement('td');
+      typeCell.className = 'px-3 py-2 align-top';
+      const typeSelect = document.createElement('select');
+      typeSelect.className = 'w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(typeSelect, SHOT_TYPE_OPTIONS, shot.type || '');
+      attachShotlistInput(typeSelect, shot.id, 'type');
+      typeCell.appendChild(typeSelect);
+      tr.appendChild(typeCell);
+
+      const lensCell = document.createElement('td');
+      lensCell.className = 'px-3 py-2 align-top';
+      const lensSelect = document.createElement('select');
+      lensSelect.className = 'w-28 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(lensSelect, LENS_OPTIONS, shot.lens || '');
+      attachShotlistInput(lensSelect, shot.id, 'lens');
+      lensCell.appendChild(lensSelect);
+      tr.appendChild(lensCell);
+
+      const moveCell = document.createElement('td');
+      moveCell.className = 'px-3 py-2 align-top';
+      const moveSelect = document.createElement('select');
+      moveSelect.className = 'w-32 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(moveSelect, MOVE_OPTIONS, shot.move || '');
+      attachShotlistInput(moveSelect, shot.id, 'move');
+      moveCell.appendChild(moveSelect);
+      tr.appendChild(moveCell);
+
+      const descCell = document.createElement('td');
+      descCell.className = 'px-3 py-2 align-top min-w-[220px]';
+      const descArea = document.createElement('textarea');
+      descArea.value = shot.desc || '';
+      descArea.rows = 3;
+      descArea.placeholder = 'Describe action, framing, and mood.';
+      descArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[96px]';
+      attachShotlistInput(descArea, shot.id, 'desc', { eventType: 'blur' });
+      descCell.appendChild(descArea);
+      tr.appendChild(descCell);
+
+      const charsCell = document.createElement('td');
+      charsCell.className = 'px-3 py-2 align-top min-w-[180px]';
+      const charsInput = document.createElement('textarea');
+      charsInput.value = shot.chars || '';
+      charsInput.rows = 2;
+      charsInput.placeholder = 'Characters in frame';
+      charsInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(charsInput, shot.id, 'chars', { eventType: 'blur' });
+      charsCell.appendChild(charsInput);
+      tr.appendChild(charsCell);
+
+      const locationCell = document.createElement('td');
+      locationCell.className = 'px-3 py-2 align-top min-w-[160px]';
+      const locationInput = document.createElement('input');
+      locationInput.type = 'text';
+      locationInput.value = shot.location || '';
+      locationInput.placeholder = 'Set or location';
+      locationInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(locationInput, shot.id, 'location', { eventType: 'blur' });
+      locationCell.appendChild(locationInput);
+      tr.appendChild(locationCell);
+
+      const dateCell = document.createElement('td');
+      dateCell.className = 'px-3 py-2 align-top';
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.value = shot.shootDate || '';
+      dateInput.className = 'w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(dateInput, shot.id, 'shootDate');
+      dateCell.appendChild(dateInput);
+      tr.appendChild(dateCell);
+
+      const equipmentCell = document.createElement('td');
+      equipmentCell.className = 'px-3 py-2 align-top min-w-[200px]';
+      const equipmentArea = document.createElement('textarea');
+      equipmentArea.value = shot.equipment || '';
+      equipmentArea.rows = 2;
+      equipmentArea.placeholder = 'Gear, rigs, audio notes';
+      equipmentArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(equipmentArea, shot.id, 'equipment', { eventType: 'blur' });
+      equipmentCell.appendChild(equipmentArea);
+      tr.appendChild(equipmentCell);
+
+      const propsCell = document.createElement('td');
+      propsCell.className = 'px-3 py-2 align-top min-w-[200px]';
+      const propsArea = document.createElement('textarea');
+      propsArea.value = shot.props || '';
+      propsArea.rows = 2;
+      propsArea.placeholder = 'Key props, wardrobe, set dressing';
+      propsArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(propsArea, shot.id, 'props', { eventType: 'blur' });
+      propsCell.appendChild(propsArea);
+      tr.appendChild(propsCell);
+
+      const notesCell = document.createElement('td');
+      notesCell.className = 'px-3 py-2 align-top min-w-[220px]';
+      const notesArea = document.createElement('textarea');
+      notesArea.value = shot.notes || '';
+      notesArea.rows = 2;
+      notesArea.placeholder = 'Production notes, call times, logistics';
+      notesArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(notesArea, shot.id, 'notes', { eventType: 'blur' });
+      notesCell.appendChild(notesArea);
+      tr.appendChild(notesCell);
+
+      const foldedCell = document.createElement('td');
+      foldedCell.className = 'px-3 py-2 align-top text-center';
+      const foldedToggle = document.createElement('input');
+      foldedToggle.type = 'checkbox';
+      foldedToggle.checked = shot.folded === true;
+      foldedToggle.className = 'h-5 w-5 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500/50';
+      attachShotlistInput(foldedToggle, shot.id, 'folded');
+      foldedCell.appendChild(foldedToggle);
+      tr.appendChild(foldedCell);
+
+      const imageCell = document.createElement('td');
+      imageCell.className = 'px-3 py-2 align-top text-center text-xs text-slate-300';
+      imageCell.textContent = shot.imageData ? 'Has image' : '—';
+      tr.appendChild(imageCell);
+
+      shotTableBody.appendChild(tr);
+    });
+  }
     tabLinks.forEach(link => {
       const isActive = link.dataset.tab === target;
       activeClasses.forEach(cls => link.classList.toggle(cls, isActive));
@@ -695,6 +994,7 @@
     applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
     resetShots({ preserveSceneColors: true });
     (data?.shots || []).forEach(addShotFromData);
+    renderShotListTable();
     isHydrating = false;
   }
 
@@ -705,6 +1005,7 @@
     }
     state.shots = [];
     shotList.innerHTML = '';
+    renderShotListTable();
   }
 
   function addShotFromData(s) {
@@ -766,6 +1067,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         state.shots[shotIndex].imageData = dataUrl;
+        renderShotListTable();
         saveLocal();
       }
     }
@@ -784,6 +1086,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
+        renderShotListTable();
         saveLocal();
       }
     }
@@ -848,6 +1151,7 @@
       state.shots = state.shots.filter(x => x.id !== s.id);
       li.remove();
       renumber();
+      renderShotListTable();
       saveLocal();
     });
 
@@ -900,6 +1204,7 @@
     // Walk DOM list order to persist state
     state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
     renumber();
+    renderShotListTable();
     saveLocal();
   }
 
@@ -919,6 +1224,7 @@
     const existing = [...state.shots];
     state.shots = [];
     existing.forEach(addShotFromData);
+    renderShotListTable();
   }
 
   function newShot(preset={}) {
@@ -937,6 +1243,7 @@
       notes: preset.notes || '',
       folded: preset.folded || false,
     });
+    renderShotListTable();
     saveLocal();
   }
 
@@ -1179,6 +1486,7 @@
   loadLocal();
   setActiveTab(state.activeTab, { save: false });
   applyLayoutColumns(state.layoutColumns, { updateControl: true });
+  renderShotListTable();
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
   // Persist meta edits
