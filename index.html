@@ -632,7 +632,8 @@
   }
 
   function setActiveTab(tab, { save = true } = {}) {
-    const target = tab || 'storyboard';
+    const availableTabs = new Set(Array.from(tabPanes).map(pane => pane.dataset.pane));
+    const target = availableTabs.has(tab) ? tab : 'storyboard';
     state.activeTab = target;
 
     tabPanes.forEach(pane => {
@@ -906,6 +907,126 @@
     });
 
     if (save && !isHydrating) saveLocal();
+
+    if (target === 'shotlist') {
+      renderShotListTable();
+    }
+  }
+
+  function clampColumns(value) {
+    const fallback = state.layoutColumns || 1;
+    if (value == null || value === '') return Math.min(5, Math.max(1, fallback));
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      const parsed = parseInt(value, 10);
+      if (Number.isNaN(parsed)) return Math.min(5, Math.max(1, fallback));
+      return Math.min(5, Math.max(1, parsed));
+    }
+    return Math.min(5, Math.max(1, Math.round(num)));
+  }
+
+  function coerceString(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return value.trim();
+    return String(value).trim();
+  }
+
+  function sanitizeShot(rawShot = {}, index = 0) {
+    const heading = coerceString(rawShot.scene || rawShot.Heading || rawShot.heading || rawShot['Scene'] || rawShot['Heading'] || rawShot.title);
+    const descriptions = [rawShot.desc, rawShot.description, rawShot.Description, rawShot['Summary (first action line)'], rawShot['Summary'], rawShot.summary, rawShot.synopsis, rawShot['Synopsis']];
+    const descText = coerceString(descriptions.find(val => typeof val === 'string' && val.trim().length));
+    const characters = coerceString(rawShot.chars || rawShot.Characters || rawShot.characters);
+    const location = coerceString(rawShot.location || rawShot.Location || rawShot['Location']);
+    const equipment = coerceString(rawShot.equipment || rawShot.Equipment);
+    const props = coerceString(rawShot.props || rawShot.Props);
+    const baseNotes = coerceString(rawShot.notes || rawShot.Notes || rawShot['Key dialogue'] || rawShot.keyDialogue || rawShot.dialogue || rawShot['Dialogue']);
+    const intExt = coerceString(rawShot['INT/EXT'] || rawShot['Int/Ext'] || rawShot.intExt || rawShot.int_ext);
+    const timeOfDay = coerceString(rawShot['Time of Day'] || rawShot.timeOfDay || rawShot['Day/Night'] || rawShot.dayNight);
+    const extraNotes = coerceString(rawShot.extraNotes || rawShot['Extra Notes']);
+
+    const notesParts = [];
+    if (baseNotes) notesParts.push(baseNotes);
+    const envParts = [intExt, timeOfDay].filter(Boolean);
+    if (envParts.length) notesParts.push(`Environment: ${envParts.join(' • ')}`);
+    if (extraNotes) notesParts.push(extraNotes);
+
+    const numberValue = rawShot.number ?? rawShot['Scene #'] ?? rawShot['Shot #'] ?? rawShot.sceneNumber ?? rawShot['Scene'] ?? rawShot.index ?? (index + 1);
+
+    return {
+      id: coerceString(rawShot.id) || uid(),
+      scene: heading || `Scene ${index + 1}`,
+      number: coerceString(numberValue) || String(index + 1),
+      type: coerceString(rawShot.type || rawShot['Shot Type'] || rawShot.shotType) || 'Wide',
+      lens: coerceString(rawShot.lens || rawShot.Lens) || '35mm',
+      move: coerceString(rawShot.move || rawShot.Move) || 'Locked',
+      desc: descText,
+      chars: characters,
+      location,
+      shootDate: coerceString(rawShot.shootDate || rawShot.shootingDate || rawShot['Shoot Date'] || rawShot.date),
+      equipment,
+      props,
+      notes: notesParts.join('\n\n'),
+      folded: rawShot.folded === true || rawShot.folded === 'true' || rawShot.folded === 1,
+      imageData: rawShot.imageData ? String(rawShot.imageData) : undefined,
+    };
+  }
+
+  function ensureShotsArray(candidate) {
+    if (!Array.isArray(candidate)) return [];
+    return candidate.map((shot, index) => sanitizeShot(shot, index));
+  }
+
+  function normalizeImportedData(raw) {
+    const defaultMeta = {
+      title: '',
+      director: '',
+      productionCompany: '',
+      dop: '',
+      producer: '',
+      shootSchedule: '',
+      notes: '',
+    };
+
+    if (Array.isArray(raw)) {
+      return {
+        meta: { ...defaultMeta },
+        layout: { columns: clampColumns(state.layoutColumns || 1) },
+        activeTab: 'storyboard',
+        sceneColors: {},
+        shots: ensureShotsArray(raw),
+      };
+    }
+
+    if (raw && typeof raw === 'object') {
+      const metaSource = raw.meta || raw.project || {};
+      const meta = { ...defaultMeta };
+      Object.keys(meta).forEach(key => {
+        if (metaSource[key] != null) {
+          meta[key] = coerceString(metaSource[key]);
+        }
+      });
+      if (!meta.title) meta.title = coerceString(raw.title || raw.projectTitle || raw.name || raw.heading);
+      if (!meta.director && raw.director) meta.director = coerceString(raw.director);
+
+      const columnCandidate = raw.layout?.columns ?? raw.columns ?? raw.layoutColumns ?? raw.columnCount;
+      const activeTab = typeof raw.activeTab === 'string' ? raw.activeTab : 'storyboard';
+      const sceneColors = { ...(raw.sceneColors || raw.scenePalette || {}) };
+      const shotsSource = raw.shots || raw.scenes || raw.storyboard || raw.entries || [];
+      let shots = ensureShotsArray(shotsSource);
+      if (!shots.length && raw.scenes && Array.isArray(raw.scenes.list)) {
+        shots = ensureShotsArray(raw.scenes.list);
+      }
+
+      return {
+        meta,
+        layout: { columns: clampColumns(columnCandidate) },
+        activeTab,
+        sceneColors,
+        shots,
+      };
+    }
+
+    throw new Error('Unsupported JSON structure');
   }
 
   const pastelPalette = [
@@ -956,7 +1077,13 @@
       }
     }
     if (!raw) return;
-    try { hydrate(JSON.parse(raw)); } catch {}
+    try {
+      const parsed = JSON.parse(raw);
+      const normalized = normalizeImportedData(parsed);
+      hydrate(normalized);
+    } catch (error) {
+      console.error('Failed to load storyboard data from storage', error);
+    }
   }
 
   function collectData() {
@@ -1394,7 +1521,17 @@
   fileInput.addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
     const reader = new FileReader();
-    reader.onload = () => { try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        const normalized = normalizeImportedData(parsed);
+        hydrate(normalized);
+        saveLocal();
+      } catch (error) {
+        console.error('Import failed', error);
+        alert('Invalid storyboard JSON. Make sure the file was exported from this app or matches the supported schema.');
+      }
+    };
     reader.readAsText(f);
     fileInput.value = '';
   });
