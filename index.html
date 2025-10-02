@@ -892,13 +892,6 @@
       shotTableBody.appendChild(tr);
     });
   }
-
-  function refreshShotListTable() {
-    if (typeof window.renderShotListTable === 'function') {
-      window.renderShotListTable();
-    }
-  }
-
   window.renderShotListTable = renderShotListTable;
     tabLinks.forEach(link => {
       const isActive = link.dataset.tab === target;
@@ -916,8 +909,8 @@
 
     if (save && !isHydrating) saveLocal();
 
-    if (target === 'shotlist') {
-      refreshShotListTable();
+    if (target === 'shotlist' && typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
     }
   }
 
@@ -1129,7 +1122,9 @@
     applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
     resetShots({ preserveSceneColors: true });
     (data?.shots || []).forEach(addShotFromData);
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
     isHydrating = false;
   }
 
@@ -1140,7 +1135,9 @@
     }
     state.shots = [];
     shotList.innerHTML = '';
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
   }
 
   function addShotFromData(s) {
@@ -1202,7 +1199,9 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         state.shots[shotIndex].imageData = dataUrl;
-  refreshShotListTable();
+      if (typeof window.renderShotListTable === 'function') {
+        window.renderShotListTable();
+      }
         saveLocal();
       }
     }
@@ -1221,7 +1220,9 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
         saveLocal();
       }
     }
@@ -1286,7 +1287,9 @@
       state.shots = state.shots.filter(x => x.id !== s.id);
       li.remove();
       renumber();
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
       saveLocal();
     });
 
@@ -1339,7 +1342,9 @@
     // Walk DOM list order to persist state
     state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
     renumber();
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
     saveLocal();
   }
 
@@ -1359,7 +1364,9 @@
     const existing = [...state.shots];
     state.shots = [];
     existing.forEach(addShotFromData);
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
   }
 
   function newShot(preset={}) {
@@ -1378,7 +1385,9 @@
       notes: preset.notes || '',
       folded: preset.folded || false,
     });
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
     saveLocal();
   }
 
@@ -1646,7 +1655,9 @@
   loadLocal();
   setActiveTab(state.activeTab, { save: false });
   applyLayoutColumns(state.layoutColumns, { updateControl: true });
-  refreshShotListTable();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
   // Persist meta edits
