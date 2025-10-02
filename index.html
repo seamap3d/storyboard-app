@@ -213,77 +213,16 @@
           <header class="flex items-center justify-between gap-3">
             <div>
               <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
-              <p class="text-sm text-slate-300 mt-1">Map out key beats, locations, and responsibilities for each shoot day.</p>
+              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
             </div>
-            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Schedule</button>
+            <div class="flex gap-2">
+              <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
+              <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+            </div>
           </header>
 
-          <div class="grid gap-4 lg:grid-cols-2">
-            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
-              <div class="flex items-center justify-between">
-                <h2 class="font-semibold">Upcoming Milestones</h2>
-                <span class="text-xs text-emerald-300">Stay on target</span>
-              </div>
-              <ul class="space-y-2 text-sm text-slate-300">
-                <li class="flex items-start gap-3">
-                  <span class="mt-0.5 h-2 w-2 rounded-full bg-emerald-400"></span>
-                  <div>
-                    <div class="font-medium">Storyboard lock</div>
-                    <div class="text-xs text-slate-400">Finalize shot list and share with department heads.</div>
-                  </div>
-                </li>
-                <li class="flex items-start gap-3">
-                  <span class="mt-0.5 h-2 w-2 rounded-full bg-sky-400"></span>
-                  <div>
-                    <div class="font-medium">Tech scout</div>
-                    <div class="text-xs text-slate-400">Walk locations with DP, Gaffer, and AD to confirm logistics.</div>
-                  </div>
-                </li>
-                <li class="flex items-start gap-3">
-                  <span class="mt-0.5 h-2 w-2 rounded-full bg-amber-400"></span>
-                  <div>
-                    <div class="font-medium">Table read</div>
-                    <div class="text-xs text-slate-400">Host cast read-through and note performance adjustments.</div>
-                  </div>
-                </li>
-              </ul>
-            </div>
-            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
-              <h2 class="font-semibold">Day-By-Day Plan</h2>
-              <table class="w-full text-sm text-left text-slate-300 border-separate border-spacing-y-2">
-                <thead class="text-xs uppercase tracking-wider text-slate-400">
-                  <tr>
-                    <th class="px-3 py-2 rounded-l-lg bg-slate-900/70 border border-slate-800">Day</th>
-                    <th class="px-3 py-2 bg-slate-900/70 border border-slate-800">Focus</th>
-                    <th class="px-3 py-2 rounded-r-lg bg-slate-900/70 border border-slate-800">Notes</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 1</td>
-                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Opening montage</td>
-                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Golden hour exteriors, drone shots.</td>
-                  </tr>
-                  <tr>
-                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 2</td>
-                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Dialogue &amp; interiors</td>
-                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Sound-heavy scenes, plan for boom + lavs.</td>
-                  </tr>
-                  <tr>
-                    <td class="px-3 py-2 rounded-l-lg bg-slate-900/40 border border-slate-800">Day 3</td>
-                    <td class="px-3 py-2 bg-slate-900/40 border border-slate-800">Stunts &amp; pickups</td>
-                    <td class="px-3 py-2 rounded-r-lg bg-slate-900/40 border border-slate-800">Safety briefing + VFX plate coverage.</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
-            <h2 class="font-semibold mb-2">Scratch Pad</h2>
-            <p class="text-xs text-slate-400 mb-3">Capture rough timing, crew requirements, or anything else you need to remember.</p>
-            <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="Add key beats, notes, or to-dos for the schedule."></textarea>
-          </div>
+          <div id="scheduleByDate" class="space-y-4"></div>
+          <div id="scheduleByScene" class="space-y-4 hidden"></div>
         </section>
 
         <section data-pane="props" class="tab-pane hidden space-y-6">
@@ -905,6 +844,127 @@
     });
   }
   window.renderShotListTable = renderShotListTable;
+
+  // --- Scene Heading Parser ---
+  function parseSceneHeading(sceneText) {
+    if (!sceneText || typeof sceneText !== 'string') return null;
+    
+    const regex = /(INT|EXT|INT\/EXT|EXT\/INT)\.?\s+([^.–—-]+?)\.?\s*[.–—-]?\s*(DAY|NIGHT|DAWN|DUSK|MORNING|EVENING|AFTERNOON|SUNSET|SUNRISE|CONTINUOUS|LATER|SAME TIME|MOMENTS LATER)?/i;
+    const match = sceneText.match(regex);
+    
+    if (match) {
+      const type = match[1].toUpperCase().replace(/\//g, '/');
+      const location = match[2].trim().toUpperCase();
+      const timeOfDay = match[3] ? match[3].toUpperCase() : '';
+      
+      let full = `${type}. ${location}`;
+      if (timeOfDay) full += `. ${timeOfDay}`;
+      
+      return {
+        type,
+        location,
+        timeOfDay,
+        full,
+        raw: sceneText
+      };
+    }
+    
+    return {
+      type: '',
+      location: '',
+      timeOfDay: '',
+      full: sceneText,
+      raw: sceneText
+    };
+  }
+
+  // --- Grouping Functions ---
+  function groupBySceneHeading(shots) {
+    const groups = {};
+    
+    shots.forEach(shot => {
+      const parsed = parseSceneHeading(shot.scene);
+      const key = parsed?.full || shot.scene || 'Unspecified';
+      
+      if (!groups[key]) {
+        groups[key] = {
+          heading: key,
+          parsed,
+          shots: [],
+          locations: new Set(),
+          actors: new Set(),
+          props: new Set(),
+          shootDates: new Set()
+        };
+      }
+      
+      groups[key].shots.push(shot);
+      
+      if (shot.location) groups[key].locations.add(shot.location);
+      if (shot.shootDate) groups[key].shootDates.add(shot.shootDate);
+      
+      // Parse comma-separated actors and props
+      const actorsList = shot.chars ? shot.chars.split(',').map(a => a.trim()).filter(Boolean) : [];
+      actorsList.forEach(a => groups[key].actors.add(a));
+      
+      const propsList = shot.props ? shot.props.split(/[,\n]/).map(p => p.trim()).filter(Boolean) : [];
+      propsList.forEach(p => groups[key].props.add(p));
+    });
+    
+    return Object.values(groups).map(g => ({
+      ...g,
+      locations: Array.from(g.locations),
+      actors: Array.from(g.actors),
+      props: Array.from(g.props),
+      shootDates: Array.from(g.shootDates).sort()
+    }));
+  }
+
+  function groupByDateAndLocation(shots) {
+    const groups = {};
+    
+    shots.forEach(shot => {
+      const date = shot.shootDate || 'Unscheduled';
+      const location = shot.location || 'Unknown Location';
+      const key = `${date}|${location}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          date,
+          location,
+          shots: [],
+          sceneHeadings: new Set(),
+          actors: new Set(),
+          props: new Set(),
+          totalDuration: 0
+        };
+      }
+      
+      groups[key].shots.push(shot);
+      
+      if (shot.scene) {
+        const parsed = parseSceneHeading(shot.scene);
+        groups[key].sceneHeadings.add(parsed?.full || shot.scene);
+      }
+      
+      const actorsList = shot.chars ? shot.chars.split(',').map(a => a.trim()).filter(Boolean) : [];
+      actorsList.forEach(a => groups[key].actors.add(a));
+      
+      const propsList = shot.props ? shot.props.split(/[,\n]/).map(p => p.trim()).filter(Boolean) : [];
+      propsList.forEach(p => groups[key].props.add(p));
+    });
+    
+    return Object.values(groups).map(g => ({
+      ...g,
+      sceneHeadings: Array.from(g.sceneHeadings),
+      actors: Array.from(g.actors).sort(),
+      props: Array.from(g.props).sort()
+    })).sort((a, b) => {
+      if (a.date === 'Unscheduled') return 1;
+      if (b.date === 'Unscheduled') return -1;
+      return a.date.localeCompare(b.date);
+    });
+  }
 
   function clampColumns(value) {
     const fallback = state.layoutColumns || 1;
