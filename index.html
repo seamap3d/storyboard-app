@@ -1522,14 +1522,22 @@
     const f = e.target.files[0]; if (!f) return;
     const reader = new FileReader();
     reader.onload = () => {
+      let normalized;
       try {
         const parsed = JSON.parse(reader.result);
-        const normalized = normalizeImportedData(parsed);
+        normalized = normalizeImportedData(parsed);
         hydrate(normalized);
-        saveLocal();
       } catch (error) {
-        console.error('Import failed', error);
+        console.error('Import failed – invalid data', error);
         alert('Invalid storyboard JSON. Make sure the file was exported from this app or matches the supported schema.');
+        return;
+      }
+
+      try {
+        saveLocal();
+      } catch (storageError) {
+        console.error('Storyboard imported but could not persist to local storage', storageError);
+        alert('Storyboard imported, but your browser storage is full so it couldn’t be saved locally. Try exporting it or clearing space.');
       }
     };
     reader.readAsText(f);
