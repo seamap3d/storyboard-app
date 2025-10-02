@@ -1,0 +1,82 @@
+{
+  "meta": {
+    "title": "",
+    "director": "",
+    "productionCompany": "",
+    "dop": "",
+    "producer": "",
+    "shootSchedule": "",
+    "notes": ""
+  },
+  "layout": {
+    "columns": 1
+  },
+  "activeTab": "storyboard",
+  "sceneColors": {},
+  "shots": [
+    {
+      "id": "obu0og0",
+      "scene": "",
+      "number": "1",
+      "type": "Wide",
+      "lens": "35mm",
+      "move": "Locked",
+      "desc": "",
+      "chars": "",
+      "location": "",
+      "shootDate": "",
+      "equipment": "",
+      "props": "",
+      "notes": "",
+      "folded": false
+    },
+    {
+      "id": "3o4p8fk",
+      "scene": "",
+      "number": "2",
+      "type": "Wide",
+      "lens": "35mm",
+      "move": "Locked",
+      "desc": "",
+      "chars": "",
+      "location": "",
+      "shootDate": "",
+      "equipment": "",
+      "props": "",
+      "notes": "",
+      "folded": false
+    },
+    {
+      "id": "oapa2uq",
+      "scene": "",
+      "number": "3",
+      "type": "Wide",
+      "lens": "35mm",
+      "move": "Locked",
+      "desc": "",
+      "chars": "",
+      "location": "",
+      "shootDate": "",
+      "equipment": "",
+      "props": "",
+      "notes": "",
+      "folded": false
+    },
+    {
+      "id": "vzp1j6w",
+      "scene": "",
+      "number": "4",
+      "type": "Wide",
+      "lens": "35mm",
+      "move": "Locked",
+      "desc": "",
+      "chars": "",
+      "location": "",
+      "shootDate": "",
+      "equipment": "",
+      "props": "",
+      "notes": "",
+      "folded": false
+    }
+  ]
+}

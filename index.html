@@ -1526,10 +1526,17 @@
       try {
         const parsed = JSON.parse(reader.result);
         normalized = normalizeImportedData(parsed);
-        hydrate(normalized);
       } catch (error) {
         console.error('Import failed – invalid data', error);
         alert('Invalid storyboard JSON. Make sure the file was exported from this app or matches the supported schema.');
+        return;
+      }
+
+      try {
+        hydrate(normalized);
+      } catch (hydrationError) {
+        console.error('Import failed during hydration', hydrationError);
+        alert(`Storyboard JSON looked valid, but the app couldn’t load it. Details: ${hydrationError.message}`);
         return;
       }
 
