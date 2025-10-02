@@ -905,26 +905,6 @@
     });
   }
   window.renderShotListTable = renderShotListTable;
-    tabLinks.forEach(link => {
-      const isActive = link.dataset.tab === target;
-      activeClasses.forEach(cls => link.classList.toggle(cls, isActive));
-      inactiveClasses.forEach(cls => link.classList.toggle(cls, !isActive));
-      link.setAttribute('data-active', isActive ? 'true' : 'false');
-      if (isActive) {
-        link.classList.add('translate-x-0.5');
-        link.setAttribute('aria-current', 'page');
-      } else {
-        link.classList.remove('translate-x-0.5');
-        link.removeAttribute('aria-current');
-      }
-    });
-
-    if (save && !isHydrating) saveLocal();
-
-    if (target === 'shotlist' && typeof window.renderShotListTable === 'function') {
-      window.renderShotListTable();
-    }
-  }
 
   function clampColumns(value) {
     const fallback = state.layoutColumns || 1;
