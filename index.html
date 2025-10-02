@@ -892,6 +892,14 @@
       shotTableBody.appendChild(tr);
     });
   }
+
+  function refreshShotListTable() {
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+  }
+
+  window.renderShotListTable = renderShotListTable;
     tabLinks.forEach(link => {
       const isActive = link.dataset.tab === target;
       activeClasses.forEach(cls => link.classList.toggle(cls, isActive));
@@ -909,7 +917,7 @@
     if (save && !isHydrating) saveLocal();
 
     if (target === 'shotlist') {
-      renderShotListTable();
+      refreshShotListTable();
     }
   }
 
@@ -1121,7 +1129,7 @@
     applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
     resetShots({ preserveSceneColors: true });
     (data?.shots || []).forEach(addShotFromData);
-    renderShotListTable();
+  refreshShotListTable();
     isHydrating = false;
   }
 
@@ -1132,7 +1140,7 @@
     }
     state.shots = [];
     shotList.innerHTML = '';
-    renderShotListTable();
+  refreshShotListTable();
   }
 
   function addShotFromData(s) {
@@ -1194,7 +1202,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         state.shots[shotIndex].imageData = dataUrl;
-        renderShotListTable();
+  refreshShotListTable();
         saveLocal();
       }
     }
@@ -1213,7 +1221,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
-        renderShotListTable();
+  refreshShotListTable();
         saveLocal();
       }
     }
@@ -1278,7 +1286,7 @@
       state.shots = state.shots.filter(x => x.id !== s.id);
       li.remove();
       renumber();
-      renderShotListTable();
+  refreshShotListTable();
       saveLocal();
     });
 
@@ -1331,7 +1339,7 @@
     // Walk DOM list order to persist state
     state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
     renumber();
-    renderShotListTable();
+  refreshShotListTable();
     saveLocal();
   }
 
@@ -1351,7 +1359,7 @@
     const existing = [...state.shots];
     state.shots = [];
     existing.forEach(addShotFromData);
-    renderShotListTable();
+  refreshShotListTable();
   }
 
   function newShot(preset={}) {
@@ -1370,7 +1378,7 @@
       notes: preset.notes || '',
       folded: preset.folded || false,
     });
-    renderShotListTable();
+  refreshShotListTable();
     saveLocal();
   }
 
@@ -1638,7 +1646,7 @@
   loadLocal();
   setActiveTab(state.activeTab, { save: false });
   applyLayoutColumns(state.layoutColumns, { updateControl: true });
-  renderShotListTable();
+  refreshShotListTable();
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
 
   // Persist meta edits
