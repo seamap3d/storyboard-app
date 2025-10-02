@@ -644,6 +644,18 @@
     const activeClasses = ['bg-slate-800/60', 'border-slate-700', 'text-slate-100', 'shadow-lg'];
     const inactiveClasses = ['bg-slate-900/30', 'border-slate-800/50', 'text-slate-300'];
 
+    tabLinks.forEach(btn => {
+      const isActive = btn.dataset.tab === target;
+      btn.classList.remove(...activeClasses, ...inactiveClasses);
+      btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
+    });
+
+    if (target === 'shotlist' && typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+
+    if (save) saveLocal();
+  }
 
   function updateShotFieldFromTable(shotId, key, value) {
     const idx = indexOfShot(shotId);
@@ -1639,6 +1651,14 @@
       if (!isHydrating) saveLocal();
     });
   }
+
+  // --- Tab switching ---
+  tabLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const tabName = link.dataset.tab;
+      if (tabName) setActiveTab(tabName);
+    });
+  });
 
   // --- New shot ---
   btnNew.addEventListener('click', () => newShot());
