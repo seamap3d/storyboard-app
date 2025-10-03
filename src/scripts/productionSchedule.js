@@ -38,9 +38,9 @@ function renderProductionSchedule() {
         <div class="space-y-2">
           <div>
             <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Scene Headings</h4>
-            <div class="flex flex-wrap gap-1">
+            <div class="flex flex-wrap gap-2">
               ${group.sceneHeadings.map(heading => 
-                `<span class="px-2 py-1 rounded-lg bg-slate-800/60 text-xs text-slate-300">${heading}</span>`
+                `<span class="px-3 py-1.5 rounded-lg bg-slate-800/60 text-sm text-slate-300 break-words whitespace-normal max-w-full">${heading}</span>`
               ).join('')}
             </div>
           </div>
