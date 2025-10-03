@@ -2269,19 +2269,20 @@ window.renderProductionSchedule = renderProductionSchedule;
   function parseSceneHeading(sceneText) {
     if (!sceneText || typeof sceneText !== 'string') return null;
     
-    const regex = /(INT|EXT|INT\/EXT|EXT\/INT)\.?\s+([^.–—-]+?)\.?\s*[.–—-]?\s*(DAY|NIGHT|DAWN|DUSK|MORNING|EVENING|AFTERNOON|SUNSET|SUNRISE|CONTINUOUS|LATER|SAME TIME|MOMENTS LATER)?/i;
+    // Much simpler and more reliable regex
+    const regex = /(INT|EXT|INT\/EXT|EXT\/INT)\.?\s+(.+?)(?:\s*[–—-]\s*(DAY|NIGHT|DAWN|DUSK|MORNING|EVENING|AFTERNOON|SUNSET|SUNRISE|CONTINUOUS|LATER|SAME TIME|MOMENTS LATER))?$/i;
     const match = sceneText.match(regex);
     
     if (match) {
       const type = match[1].toUpperCase().replace(/\//g, '/');
-      const location = match[2].trim().toUpperCase();
+      const location = match[2].trim();
       const timeOfDay = match[3] ? match[3].toUpperCase() : '';
       
       let full = `${type}. ${location}`;
-      if (timeOfDay) full += `. ${timeOfDay}`;
+      if (timeOfDay) full += ` – ${timeOfDay}`;
       
       return {
-        type,
+        intExt: type,
         location,
         timeOfDay,
         full,
@@ -2290,7 +2291,7 @@ window.renderProductionSchedule = renderProductionSchedule;
     }
     
     return {
-      type: '',
+      intExt: '',
       location: '',
       timeOfDay: '',
       full: sceneText,
