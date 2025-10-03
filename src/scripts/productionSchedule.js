@@ -32,6 +32,12 @@ function renderProductionSchedule() {
           </div>
           <div class="text-right text-sm text-slate-400">
             <div>${group.shots.length} shot${group.shots.length !== 1 ? 's' : ''}</div>
+            ${group.date !== 'Unscheduled' ? `
+              <div class="flex gap-1 mt-1">
+                <button onclick="exportCallSheet('${group.date}')" class="px-2 py-1 text-xs rounded bg-emerald-600 hover:bg-emerald-500 text-white">📄 Call Sheet</button>
+                <button onclick="selectShotsForDate('${group.date}', '${group.location}')" class="px-2 py-1 text-xs rounded bg-blue-600 hover:blue-500 text-white">Select All</button>
+              </div>
+            ` : ''}
           </div>
         </div>
         
@@ -170,5 +176,30 @@ function renderProductionSchedule() {
   }
 }
 
+// Helper functions for schedule interaction
+function selectShotsForDate(date, location) {
+  // Clear current selection
+  clearShotSelection();
+  
+  // Select all shots for this date and location
+  Array.from(shotList.children).forEach(li => {
+    const shootDateInput = li.querySelector('.shootdate');
+    const locationInput = li.querySelector('.location');
+    const checkbox = li.querySelector('.select-shot');
+    
+    if (shootDateInput?.value === date && 
+        (locationInput?.value === location || (!locationInput?.value && location === 'Unknown Location'))) {
+      if (checkbox) {
+        checkbox.checked = true;
+        updateShotSelectionVisual(li, true);
+      }
+    }
+  });
+  
+  // Switch to storyboard tab to show selection
+  setActiveTab('storyboard');
+}
+
 // Expose globally
 window.renderProductionSchedule = renderProductionSchedule;
+window.selectShotsForDate = selectShotsForDate;

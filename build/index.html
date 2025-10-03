@@ -251,13 +251,85 @@ body.is-dragging {
           <header class="flex items-center justify-between gap-3">
             <div>
               <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
-              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+              <p class="text-sm text-slate-300 mt-1">Plan shooting dates, organize by location, and generate call sheets.</p>
             </div>
             <div class="flex gap-2">
               <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
               <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+              <button id="btnScheduleTools" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">📅 Schedule Tools</button>
             </div>
           </header>
+
+          <!-- Quick Scheduling Tools -->
+          <div id="scheduleToolsPanel" class="hidden p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Quick Scheduling Tools</h3>
+              <button id="btnCloseScheduleTools" class="text-slate-400 hover:text-slate-200">✕</button>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-4">
+              <!-- Bulk Date Assignment -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📅 Bulk Date Assignment</h4>
+                <div class="space-y-2">
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Select Date</span>
+                    <input type="date" id="bulkDate" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                  </label>
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Call Time</span>
+                    <input type="time" id="bulkCallTime" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" value="07:00">
+                  </label>
+                  <button id="btnApplyToSelected" class="w-full px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Apply to Selected Shots</button>
+                  <button id="btnApplyToUnscheduled" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Apply to All Unscheduled</button>
+                </div>
+              </div>
+
+              <!-- Smart Grouping -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">🎯 Smart Grouping</h4>
+                <div class="space-y-2">
+                  <button id="btnGroupByLocation" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Location</button>
+                  <button id="btnGroupByScene" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Scene</button>
+                  <button id="btnGroupByCast" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Cast</button>
+                  <button id="btnAutoSchedule" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">🤖 Auto-Schedule</button>
+                </div>
+              </div>
+
+              <!-- Export Options -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📤 Export Options</h4>
+                <div class="space-y-2">
+                  <button id="btnExportCallSheet" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Call Sheet</button>
+                  <button id="btnExportSchedule" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Schedule PDF</button>
+                  <button id="btnExportCSV" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export to CSV</button>
+                  <button id="btnSyncCalendar" class="w-full px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm">📱 Sync to Calendar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Range Planning -->
+            <div class="border-t border-slate-700 pt-4">
+              <h4 class="text-sm font-medium text-slate-300 mb-3">📊 Production Timeline</h4>
+              <div class="grid md:grid-cols-4 gap-3">
+                <label>
+                  <span class="text-xs text-slate-400">Start Date</span>
+                  <input type="date" id="productionStart" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">End Date</span>
+                  <input type="date" id="productionEnd" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">Shooting Days</span>
+                  <input type="number" id="shootingDays" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" placeholder="5" min="1">
+                </label>
+                <div class="flex items-end">
+                  <button id="btnDistributeDays" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">Distribute Evenly</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div id="scheduleByDate" class="space-y-4"></div>
           <div id="scheduleByScene" class="space-y-4 hidden"></div>
@@ -831,6 +903,12 @@ function renderProductionSchedule() {
           </div>
           <div class="text-right text-sm text-slate-400">
             <div>${group.shots.length} shot${group.shots.length !== 1 ? 's' : ''}</div>
+            ${group.date !== 'Unscheduled' ? `
+              <div class="flex gap-1 mt-1">
+                <button onclick="exportCallSheet('${group.date}')" class="px-2 py-1 text-xs rounded bg-emerald-600 hover:bg-emerald-500 text-white">📄 Call Sheet</button>
+                <button onclick="selectShotsForDate('${group.date}', '${group.location}')" class="px-2 py-1 text-xs rounded bg-blue-600 hover:blue-500 text-white">Select All</button>
+              </div>
+            ` : ''}
           </div>
         </div>
         
@@ -969,8 +1047,271 @@ function renderProductionSchedule() {
   }
 }
 
+// Helper functions for schedule interaction
+function selectShotsForDate(date, location) {
+  // Clear current selection
+  clearShotSelection();
+  
+  // Select all shots for this date and location
+  Array.from(shotList.children).forEach(li => {
+    const shootDateInput = li.querySelector('.shootdate');
+    const locationInput = li.querySelector('.location');
+    const checkbox = li.querySelector('.select-shot');
+    
+    if (shootDateInput?.value === date && 
+        (locationInput?.value === location || (!locationInput?.value && location === 'Unknown Location'))) {
+      if (checkbox) {
+        checkbox.checked = true;
+        updateShotSelectionVisual(li, true);
+      }
+    }
+  });
+  
+  // Switch to storyboard tab to show selection
+  setActiveTab('storyboard');
+}
+
 // Expose globally
 window.renderProductionSchedule = renderProductionSchedule;
+window.selectShotsForDate = selectShotsForDate;
+
+// --- Schedule Management Functions ---
+
+function initScheduleTools() {
+  const btnScheduleTools = document.getElementById('btnScheduleTools');
+  const btnCloseScheduleTools = document.getElementById('btnCloseScheduleTools');
+  const scheduleToolsPanel = document.getElementById('scheduleToolsPanel');
+  const btnApplyToSelected = document.getElementById('btnApplyToSelected');
+  const btnApplyToUnscheduled = document.getElementById('btnApplyToUnscheduled');
+  const btnGroupByLocation = document.getElementById('btnGroupByLocation');
+  const btnAutoSchedule = document.getElementById('btnAutoSchedule');
+  const btnDistributeDays = document.getElementById('btnDistributeDays');
+  
+  if (!btnScheduleTools) return;
+
+  // Toggle schedule tools panel
+  btnScheduleTools.addEventListener('click', () => {
+    scheduleToolsPanel.classList.toggle('hidden');
+  });
+
+  btnCloseScheduleTools?.addEventListener('click', () => {
+    scheduleToolsPanel.classList.add('hidden');
+  });
+
+  // Bulk date assignment to selected shots
+  btnApplyToSelected?.addEventListener('click', () => {
+    const bulkDate = document.getElementById('bulkDate')?.value;
+    const bulkCallTime = document.getElementById('bulkCallTime')?.value;
+    
+    if (!bulkDate) {
+      alert('Please select a date first');
+      return;
+    }
+
+    const selectedShots = getSelectedShotLis();
+    if (selectedShots.length === 0) {
+      alert('Please select some shots first');
+      return;
+    }
+
+    selectedShots.forEach(li => {
+      const shootDateInput = li.querySelector('.shootdate');
+      if (shootDateInput) {
+        shootDateInput.value = bulkDate;
+        // Trigger change event to save
+        shootDateInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+
+    persistFromDOM();
+    alert(`Applied ${bulkDate} to ${selectedShots.length} shots`);
+  });
+
+  // Apply to all unscheduled shots
+  btnApplyToUnscheduled?.addEventListener('click', () => {
+    const bulkDate = document.getElementById('bulkDate')?.value;
+    
+    if (!bulkDate) {
+      alert('Please select a date first');
+      return;
+    }
+
+    let count = 0;
+    Array.from(shotList.children).forEach(li => {
+      const shootDateInput = li.querySelector('.shootdate');
+      if (shootDateInput && !shootDateInput.value) {
+        shootDateInput.value = bulkDate;
+        shootDateInput.dispatchEvent(new Event('input', { bubbles: true }));
+        count++;
+      }
+    });
+
+    persistFromDOM();
+    alert(`Applied ${bulkDate} to ${count} unscheduled shots`);
+  });
+
+  // Smart grouping by location
+  btnGroupByLocation?.addEventListener('click', () => {
+    const locationGroups = {};
+    
+    // Group shots by location
+    state.shots.forEach(shot => {
+      const location = shot.location || 'Unknown Location';
+      if (!locationGroups[location]) {
+        locationGroups[location] = [];
+      }
+      locationGroups[location].push(shot);
+    });
+
+    // Suggest dates for each location group
+    const suggestions = Object.entries(locationGroups).map(([location, shots]) => {
+      return `${location}: ${shots.length} shots`;
+    }).join('\n');
+
+    alert(`Location Groups:\n\n${suggestions}\n\nTip: Use bulk date assignment to schedule each location group on the same day.`);
+  });
+
+  // Auto-schedule shots intelligently
+  btnAutoSchedule?.addEventListener('click', () => {
+    const startDate = document.getElementById('productionStart')?.value;
+    const shootingDays = parseInt(document.getElementById('shootingDays')?.value) || 5;
+    
+    if (!startDate) {
+      alert('Please set a production start date first');
+      return;
+    }
+
+    // Group shots by location for efficient scheduling
+    const locationGroups = {};
+    state.shots.forEach(shot => {
+      const location = shot.location || 'Unknown Location';
+      if (!locationGroups[location]) {
+        locationGroups[location] = [];
+      }
+      locationGroups[location].push(shot);
+    });
+
+    // Distribute locations across available days
+    const locations = Object.keys(locationGroups);
+    let currentDate = new Date(startDate);
+    let dayIndex = 0;
+
+    locations.forEach((location, index) => {
+      // Skip weekends (simple version)
+      while (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      const dateString = currentDate.toISOString().split('T')[0];
+      
+      // Apply this date to all shots in this location
+      locationGroups[location].forEach(shot => {
+        const shotLi = Array.from(shotList.children).find(li => li.dataset.id === shot.id);
+        if (shotLi) {
+          const shootDateInput = shotLi.querySelector('.shootdate');
+          if (shootDateInput) {
+            shootDateInput.value = dateString;
+            shootDateInput.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+      });
+
+      // Move to next day for next location
+      currentDate.setDate(currentDate.getDate() + 1);
+    });
+
+    persistFromDOM();
+    alert(`Auto-scheduled ${locations.length} locations across ${Math.ceil(locations.length)} days`);
+  });
+
+  // Distribute days evenly
+  btnDistributeDays?.addEventListener('click', () => {
+    const startDate = document.getElementById('productionStart')?.value;
+    const endDate = document.getElementById('productionEnd')?.value;
+    const shootingDays = parseInt(document.getElementById('shootingDays')?.value);
+    
+    if (!startDate || !endDate || !shootingDays) {
+      alert('Please fill in start date, end date, and number of shooting days');
+      return;
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const totalDays = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    
+    if (shootingDays > totalDays) {
+      alert('Shooting days cannot exceed the total production period');
+      return;
+    }
+
+    // Calculate interval between shooting days
+    const interval = Math.floor(totalDays / shootingDays);
+    const dates = [];
+    
+    for (let i = 0; i < shootingDays; i++) {
+      const shootDate = new Date(start);
+      shootDate.setDate(start.getDate() + (i * interval));
+      dates.push(shootDate.toISOString().split('T')[0]);
+    }
+
+    // Show suggested dates
+    alert(`Suggested shooting dates:\n\n${dates.map((date, i) => `Day ${i + 1}: ${new Date(date).toLocaleDateString()}`).join('\n')}\n\nUse bulk assignment to apply these dates to your shots.`);
+  });
+}
+
+function exportCallSheet(date) {
+  const shotsForDate = state.shots.filter(shot => shot.shootDate === date);
+  
+  if (shotsForDate.length === 0) {
+    alert('No shots scheduled for this date');
+    return;
+  }
+
+  // Group by location for the call sheet
+  const locationGroups = {};
+  shotsForDate.forEach(shot => {
+    const location = shot.location || 'Unknown Location';
+    if (!locationGroups[location]) {
+      locationGroups[location] = [];
+    }
+    locationGroups[location].push(shot);
+  });
+
+  // Generate call sheet data
+  const callSheetData = {
+    date: new Date(date).toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    }),
+    locations: Object.entries(locationGroups).map(([location, shots]) => ({
+      location,
+      shotCount: shots.length,
+      scenes: [...new Set(shots.map(s => s.scene))],
+      cast: [...new Set(shots.flatMap(s => s.chars ? s.chars.split(',').map(c => c.trim()) : []))],
+      shots: shots.map(s => ({
+        scene: s.scene,
+        type: s.type,
+        description: s.desc,
+        equipment: s.equipment,
+        props: s.props
+      }))
+    }))
+  };
+
+  // Create and download call sheet JSON
+  const blob = new Blob([JSON.stringify(callSheetData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `call-sheet-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Initialize schedule tools when page loads
+document.addEventListener('DOMContentLoaded', initScheduleTools);
 
 </script>
   <style>
@@ -1177,13 +1518,85 @@ window.renderProductionSchedule = renderProductionSchedule;
           <header class="flex items-center justify-between gap-3">
             <div>
               <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
-              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+              <p class="text-sm text-slate-300 mt-1">Plan shooting dates, organize by location, and generate call sheets.</p>
             </div>
             <div class="flex gap-2">
               <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
               <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+              <button id="btnScheduleTools" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">📅 Schedule Tools</button>
             </div>
           </header>
+
+          <!-- Quick Scheduling Tools -->
+          <div id="scheduleToolsPanel" class="hidden p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Quick Scheduling Tools</h3>
+              <button id="btnCloseScheduleTools" class="text-slate-400 hover:text-slate-200">✕</button>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-4">
+              <!-- Bulk Date Assignment -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📅 Bulk Date Assignment</h4>
+                <div class="space-y-2">
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Select Date</span>
+                    <input type="date" id="bulkDate" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                  </label>
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Call Time</span>
+                    <input type="time" id="bulkCallTime" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" value="07:00">
+                  </label>
+                  <button id="btnApplyToSelected" class="w-full px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Apply to Selected Shots</button>
+                  <button id="btnApplyToUnscheduled" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Apply to All Unscheduled</button>
+                </div>
+              </div>
+
+              <!-- Smart Grouping -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">🎯 Smart Grouping</h4>
+                <div class="space-y-2">
+                  <button id="btnGroupByLocation" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Location</button>
+                  <button id="btnGroupByScene" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Scene</button>
+                  <button id="btnGroupByCast" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Cast</button>
+                  <button id="btnAutoSchedule" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">🤖 Auto-Schedule</button>
+                </div>
+              </div>
+
+              <!-- Export Options -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📤 Export Options</h4>
+                <div class="space-y-2">
+                  <button id="btnExportCallSheet" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Call Sheet</button>
+                  <button id="btnExportSchedule" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Schedule PDF</button>
+                  <button id="btnExportCSV" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export to CSV</button>
+                  <button id="btnSyncCalendar" class="w-full px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm">📱 Sync to Calendar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Range Planning -->
+            <div class="border-t border-slate-700 pt-4">
+              <h4 class="text-sm font-medium text-slate-300 mb-3">📊 Production Timeline</h4>
+              <div class="grid md:grid-cols-4 gap-3">
+                <label>
+                  <span class="text-xs text-slate-400">Start Date</span>
+                  <input type="date" id="productionStart" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">End Date</span>
+                  <input type="date" id="productionEnd" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">Shooting Days</span>
+                  <input type="number" id="shootingDays" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" placeholder="5" min="1">
+                </label>
+                <div class="flex items-end">
+                  <button id="btnDistributeDays" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">Distribute Evenly</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div id="scheduleByDate" class="space-y-4"></div>
           <div id="scheduleByScene" class="space-y-4 hidden"></div>
@@ -1629,13 +2042,85 @@ window.renderProductionSchedule = renderProductionSchedule;
           <header class="flex items-center justify-between gap-3">
             <div>
               <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
-              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+              <p class="text-sm text-slate-300 mt-1">Plan shooting dates, organize by location, and generate call sheets.</p>
             </div>
             <div class="flex gap-2">
               <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
               <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+              <button id="btnScheduleTools" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">📅 Schedule Tools</button>
             </div>
           </header>
+
+          <!-- Quick Scheduling Tools -->
+          <div id="scheduleToolsPanel" class="hidden p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Quick Scheduling Tools</h3>
+              <button id="btnCloseScheduleTools" class="text-slate-400 hover:text-slate-200">✕</button>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-4">
+              <!-- Bulk Date Assignment -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📅 Bulk Date Assignment</h4>
+                <div class="space-y-2">
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Select Date</span>
+                    <input type="date" id="bulkDate" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                  </label>
+                  <label class="block">
+                    <span class="text-xs text-slate-400">Call Time</span>
+                    <input type="time" id="bulkCallTime" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" value="07:00">
+                  </label>
+                  <button id="btnApplyToSelected" class="w-full px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Apply to Selected Shots</button>
+                  <button id="btnApplyToUnscheduled" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Apply to All Unscheduled</button>
+                </div>
+              </div>
+
+              <!-- Smart Grouping -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">🎯 Smart Grouping</h4>
+                <div class="space-y-2">
+                  <button id="btnGroupByLocation" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Location</button>
+                  <button id="btnGroupByScene" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Scene</button>
+                  <button id="btnGroupByCast" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Group by Cast</button>
+                  <button id="btnAutoSchedule" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">🤖 Auto-Schedule</button>
+                </div>
+              </div>
+
+              <!-- Export Options -->
+              <div class="space-y-3">
+                <h4 class="text-sm font-medium text-slate-300">📤 Export Options</h4>
+                <div class="space-y-2">
+                  <button id="btnExportCallSheet" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Call Sheet</button>
+                  <button id="btnExportSchedule" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export Schedule PDF</button>
+                  <button id="btnExportCSV" class="w-full px-3 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm">Export to CSV</button>
+                  <button id="btnSyncCalendar" class="w-full px-3 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm">📱 Sync to Calendar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Range Planning -->
+            <div class="border-t border-slate-700 pt-4">
+              <h4 class="text-sm font-medium text-slate-300 mb-3">📊 Production Timeline</h4>
+              <div class="grid md:grid-cols-4 gap-3">
+                <label>
+                  <span class="text-xs text-slate-400">Start Date</span>
+                  <input type="date" id="productionStart" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">End Date</span>
+                  <input type="date" id="productionEnd" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200">
+                </label>
+                <label>
+                  <span class="text-xs text-slate-400">Shooting Days</span>
+                  <input type="number" id="shootingDays" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 text-slate-200" placeholder="5" min="1">
+                </label>
+                <div class="flex items-end">
+                  <button id="btnDistributeDays" class="w-full px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white text-sm">Distribute Evenly</button>
+                </div>
+              </div>
+            </div>
+          </div>
 
           <div id="scheduleByDate" class="space-y-4"></div>
           <div id="scheduleByScene" class="space-y-4 hidden"></div>

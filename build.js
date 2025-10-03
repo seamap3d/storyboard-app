@@ -22,7 +22,8 @@ const jsFiles = [
   'src/scripts/elements.js', 
   'src/scripts/utils.js',
   'src/scripts/shotManagement.js',
-  'src/scripts/productionSchedule.js'
+  'src/scripts/productionSchedule.js',
+  'src/scripts/scheduleTools.js'
 ];
 
 let combinedJS = '';
