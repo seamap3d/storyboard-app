@@ -98,17 +98,20 @@ function renderProductionSchedule() {
       const location = group.parsed?.location || '';
       const timeOfDay = group.parsed?.timeOfDay || '';
       
+      // Safely escape HTML and ensure proper text wrapping
+      const safeHeading = (group.heading || 'Unknown Scene').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      
       card.innerHTML = `
         <div class="flex items-start justify-between gap-3">
-          <div>
-            <h3 class="font-semibold text-lg">${group.heading}</h3>
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-lg break-words whitespace-pre-wrap">${safeHeading}</h3>
             ${intExt || location || timeOfDay ? `
               <p class="text-sm text-slate-400 mt-1">
                 ${[intExt, location, timeOfDay].filter(Boolean).join(' • ')}
               </p>
             ` : ''}
           </div>
-          <div class="text-right text-sm text-slate-400">
+          <div class="text-right text-sm text-slate-400 flex-shrink-0">
             <div>${group.shots.length} shot${group.shots.length !== 1 ? 's' : ''}</div>
           </div>
         </div>
