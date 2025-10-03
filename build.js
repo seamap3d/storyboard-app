@@ -27,12 +27,20 @@ const jsFiles = [
 
 let combinedJS = '';
 
+// Add modular JavaScript files
+jsFiles.forEach(file => {
+  if (fs.existsSync(file)) {
+    const content = fs.readFileSync(file, 'utf8');
+    combinedJS += '\n' + content + '\n';
+  }
+});
+
 // Add the remaining JS from the original file (everything that wasn't extracted)
-// We'll extract this from the original script section, minus the parts we've modularized
 const originalScript = originalFile.substring(scriptStart + '<script>'.length, scriptEnd - '</script>'.length);
 
-// For now, let's just include the original script as-is since we partially extracted
-combinedJS = originalScript;
+// For now, include both the modules and the original script
+// TODO: Remove duplicated functions from originalScript once fully modularized
+combinedJS += '\n' + originalScript;
 
 // Read CSS
 const customCSS = fs.readFileSync('src/styles.css', 'utf8');
