@@ -1,0 +1,2885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <title>ApeOnAWhale Storyboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+/* Custom styles for ApeOnAWhale Storyboard */
+:root { 
+  --frame-aspect: calc(9/16); 
+}
+
+body { 
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; 
+}
+
+.frame { 
+  aspect-ratio: 16 / 9; 
+  background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); 
+}
+
+.grain::after { 
+  content:""; 
+  position:absolute; 
+  inset:0; 
+  background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); 
+  mix-blend-mode:overlay; 
+  opacity:.6; 
+  pointer-events:none; 
+}
+
+.ellipsis { 
+  display:-webkit-box; 
+  -webkit-line-clamp:2; 
+  line-clamp: 2; 
+  -webkit-box-orient:vertical; 
+  overflow:hidden; 
+}
+
+.handle { 
+  cursor: grab; 
+}
+
+.handle:active { 
+  cursor: grabbing; 
+}
+
+.kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 0.75rem;
+  border: 1px solid #334155;
+  font-weight: 500;
+}
+
+.shot {
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  position: relative;
+}
+
+.shot.dragging {
+  transform: scale(1.02);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+  z-index: 20;
+}
+
+.drag-placeholder {
+  border: 2px dashed rgba(30, 41, 59, 0.4) !important;
+  background-color: rgba(148, 163, 184, 0.18);
+  min-height: 120px;
+  border-radius: 1rem;
+  filter: grayscale(0.2);
+}
+
+.frame:focus-visible,
+.frame-placeholder:focus-visible {
+  outline: 2px dashed rgba(14, 165, 233, 0.6);
+  outline-offset: 4px;
+}
+
+body.is-dragging {
+  user-select: none;
+  cursor: grabbing !important;
+}
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="w-full px-4 md:px-6 py-4 min-h-screen">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <aside class="lg:w-60 shrink-0">
+        <nav class="sticky top-4 space-y-2">
+          <div class="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">Workspace</div>
+          <button type="button" data-tab="storyboard" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2 font-medium">
+            <span>Storyboard</span>
+            <span class="text-xs text-emerald-400">Live</span>
+          </button>
+          <button type="button" data-tab="shotlist" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Shot List</span>
+            <span class="text-xs text-slate-500">Spreadsheet</span>
+          </button>
+          <button type="button" data-tab="schedule" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Production Schedule</span>
+            <span class="text-xs text-slate-500">Plan</span>
+          </button>
+          <button type="button" data-tab="props" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Prop List</span>
+            <span class="text-xs text-slate-500">Inventory</span>
+          </button>
+          <button type="button" data-tab="callsheets" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Call Sheets</span>
+            <span class="text-xs text-slate-500">Daily</span>
+          </button>
+        </nav>
+      </aside>
+      <main class="flex-1 space-y-6">
+        <header class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-4 shadow">
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
+            <p class="text-sm text-slate-400 max-w-xl">Switch between the storyboard, spreadsheet-style shot list, and production planning tools without losing your data.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+            <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+            <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+            <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+            <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+          </div>
+        </header>
+
+        <section data-pane="storyboard" class="tab-pane space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold">Storyboard Workspace</h2>
+            <p class="text-sm text-slate-400">Build and reorder visual beats, paste or upload frames, and capture production notes for every shot.</p>
+          </div>
+
+          <!-- Project Panel -->
+          <section class="mb-6">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+              <h2 class="font-semibold mb-3">Project</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Title</span>
+                  <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director</span>
+                  <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Production Company</span>
+                  <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director of Photography</span>
+                  <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Producer</span>
+                  <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Shooting Schedule</span>
+                  <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Production Notes</span>
+                  <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
+                </label>
+              </div>
+              <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+            </div>
+          </section>
+
+          <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+            <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
+            <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
+            <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
+          </section>
+
+          <!-- Shot list -->
+          <section>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="font-semibold">Shots</h2>
+              <div class="flex flex-wrap items-center gap-3">
+                <label class="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Layout</span>
+                  <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
+                    <option value="1">1 per row</option>
+                    <option value="2">2 per row</option>
+                    <option value="3">3 per row</option>
+                    <option value="4">4 per row</option>
+                    <option value="5">5 per row</option>
+                  </select>
+                </label>
+                <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
+                <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
+                <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+                <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+                <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+              </div>
+            </div>
+            <ol id="shotList" class="grid gap-4 list-none"></ol>
+          </section>
+        </section>
+
+        <section data-pane="shotlist" class="tab-pane hidden space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-2xl md:text-3xl font-semibold">Shot List Spreadsheet</h2>
+            <p class="text-sm text-slate-300">Review every shot in a compact table. Edits here sync instantly with the storyboard cards and saved JSON.</p>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow">
+            <table class="min-w-[1024px] w-full text-sm text-left">
+              <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="px-3 py-3 font-medium">Order</th>
+                  <th class="px-3 py-3 font-medium">Shot #</th>
+                  <th class="px-3 py-3 font-medium">Scene</th>
+                  <th class="px-3 py-3 font-medium">Type</th>
+                  <th class="px-3 py-3 font-medium">Lens</th>
+                  <th class="px-3 py-3 font-medium">Move</th>
+                  <th class="px-3 py-3 font-medium">Description</th>
+                  <th class="px-3 py-3 font-medium">Cast / Characters</th>
+                  <th class="px-3 py-3 font-medium">Location</th>
+                  <th class="px-3 py-3 font-medium">Shoot Date</th>
+                  <th class="px-3 py-3 font-medium">Equipment</th>
+                  <th class="px-3 py-3 font-medium">Props</th>
+                  <th class="px-3 py-3 font-medium">Production Notes</th>
+                  <th class="px-3 py-3 font-medium">Folded</th>
+                  <th class="px-3 py-3 font-medium">Image</th>
+                </tr>
+              </thead>
+              <tbody id="shotTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+
+          <p class="text-xs text-slate-400">Tip: Use Tab or Shift+Tab to move between cells. Updates are saved automatically and reflected across all tabs.</p>
+        </section>
+
+        <section data-pane="schedule" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
+              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+            </div>
+            <div class="flex gap-2">
+              <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
+              <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+            </div>
+          </header>
+
+          <div id="scheduleByDate" class="space-y-4"></div>
+          <div id="scheduleByScene" class="space-y-4 hidden"></div>
+        </section>
+
+        <section data-pane="props" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎭 Prop &amp; Wardrobe Tracker</h1>
+              <p class="text-sm text-slate-300 mt-1">Track every item needed on set and who owns the follow-through.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Prop List</button>
+          </header>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex flex-wrap gap-3 items-center">
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Prop Name</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="e.g., Antique compass">
+              </label>
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Scene / Shot</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Scene 3, Shot 12">
+              </label>
+              <label class="w-40">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Status</span>
+                <select class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm">
+                  <option>Needed</option>
+                  <option>Ordered</option>
+                  <option>Secured</option>
+                  <option>On Set</option>
+                </select>
+              </label>
+              <button class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Add Item</button>
+            </div>
+
+            <div class="border border-dashed border-slate-700/80 rounded-xl px-4 py-6 text-center text-sm text-slate-400">
+              Build your prop inventory here. Start logging items above and paste reference images right into the storyboard cards.
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Hero Props</span>
+                  <span class="text-emerald-300">3 tracked</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Prototype gadget — Scene 5</li>
+                  <li>• Wardrobe: Lead jacket — Scene 2</li>
+                  <li>• Vintage car keys — Scene 7</li>
+                </ul>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Department Notes</span>
+                  <span class="text-amber-300">Action needed</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Confirm stunt harness sizing (Stunts)</li>
+                  <li>• Prep aging on set dressing (Art)</li>
+                  <li>• Double wardrobe for rain cover (Costumes)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section data-pane="callsheets" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">📄 Call Sheets</h1>
+              <p class="text-sm text-slate-300 mt-1">Draft and share daily call sheets with your cast and crew.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Download Template</button>
+          </header>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Call Sheet Overview</h2>
+              <div class="space-y-2 text-sm text-slate-300">
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Production Day</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Day 1 - Monday">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Crew Call</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="07:00">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Location</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Main Warehouse Lot">
+                </label>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Agenda Notes</h2>
+              <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="List key scenes, department calls, safety notes, or transportation details."></textarea>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+            <h2 class="font-semibold mb-2">Distribution List</h2>
+            <p class="text-xs text-slate-400 mb-3">Note who receives this call sheet and confirm delivery per department.</p>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Department</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Camera">
+              </label>
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Contact</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Jordan Blake">
+              </label>
+              <label class="block md:col-span-2">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Notes</span>
+                <textarea class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" rows="2" placeholder="Share call sheet via email + Slack group."></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <template id="shotTmpl">
+    <li class="shot group p-4 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent text-[0.8rem]">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
+          <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80">Shot</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-900/30 text-slate-900/70 hover:bg-slate-900/10">Fold</button>
+          <div class="handle shrink-0 select-none text-slate-700 hover:text-slate-900 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
+      </div>
+      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video" tabindex="0">
+        <img class="frame-image absolute inset-0 w-full h-full object-cover hidden" alt="Shot reference">
+        <div class="text-center px-4 frame-placeholder space-y-2" tabindex="0">
+          <div class="font-semibold text-slate-600">Frame Preview</div>
+          <div class="text-xs text-slate-500">Paste (Ctrl+V) or upload an image</div>
+          <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-xs font-medium">
+            Upload Image
+            <input type="file" accept="image/*" class="image-upload hidden">
+          </label>
+        </div>
+        <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+      </div>
+      <div class="shot-body space-y-3 mt-4 text-[0.85em]">
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Scene</span>
+            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="EXT. LOCATION – TIME">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot #</span>
+            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="1">
+          </label>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot Type</span>
+            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Wide</option>
+              <option>Establishing</option>
+              <option>Medium</option>
+              <option>Close‑Up</option>
+              <option>Extreme CU</option>
+              <option>Over‑the‑Shoulder</option>
+              <option>POV</option>
+              <option>Drone</option>
+              <option>Insert</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Lens</span>
+            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>24mm</option>
+              <option selected>35mm</option>
+              <option>50mm</option>
+              <option>85mm</option>
+              <option>105mm</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Move</span>
+            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Locked</option>
+              <option>Pan</option>
+              <option>Tilt</option>
+              <option>Dolly</option>
+              <option>Handheld</option>
+              <option>Crane</option>
+              <option>Drone</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span class="text-xs uppercase tracking-wide text-slate-700">Action / Composition</span>
+          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Cast / Characters</span>
+            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Character A, Character B">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Location</span>
+            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Set or shooting location">
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shooting Date</span>
+            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Equipment</span>
+            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Props</span>
+            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Production Notes</span>
+            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+          </label>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button class="btnDup px-3 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-slate-900/10 text-slate-800">Duplicate</button>
+          <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <input type="file" id="fileInput" accept="application/json" class="hidden" />
+  <script>
+</script>
+  <style>
+    :root { --frame-aspect: calc(9/16); }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .frame { aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); }
+    .grain::after { content:""; position:absolute; inset:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); mix-blend-mode:overlay; opacity:.6; pointer-events:none; }
+  .ellipsis { display:-webkit-box; -webkit-line-clamp:2; line-clamp: 2; -webkit-box-orient:vertical; overflow:hidden; }
+    .handle { cursor: grab; }
+    .handle:active { cursor: grabbing; }
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 0.75rem;
+      border: 1px solid #334155;
+      font-weight: 500;
+    }
+    .shot {
+      transition: transform 150ms ease, box-shadow 150ms ease;
+      position: relative;
+    }
+    .shot.dragging {
+      transform: scale(1.02);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+      z-index: 20;
+    }
+    .drag-placeholder {
+      border: 2px dashed rgba(30, 41, 59, 0.4) !important;
+      background-color: rgba(148, 163, 184, 0.18);
+      min-height: 120px;
+      border-radius: 1rem;
+      filter: grayscale(0.2);
+    }
+    .frame:focus-visible,
+    .frame-placeholder:focus-visible {
+      outline: 2px dashed rgba(14, 165, 233, 0.6);
+      outline-offset: 4px;
+    }
+    body.is-dragging {
+      user-select: none;
+      cursor: grabbing !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="w-full px-4 md:px-6 py-4 min-h-screen">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <aside class="lg:w-60 shrink-0">
+        <nav class="sticky top-4 space-y-2">
+          <div class="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">Workspace</div>
+          <button type="button" data-tab="storyboard" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2 font-medium">
+            <span>Storyboard</span>
+            <span class="text-xs text-emerald-400">Live</span>
+          </button>
+          <button type="button" data-tab="shotlist" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Shot List</span>
+            <span class="text-xs text-slate-500">Spreadsheet</span>
+          </button>
+          <button type="button" data-tab="schedule" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Production Schedule</span>
+            <span class="text-xs text-slate-500">Plan</span>
+          </button>
+          <button type="button" data-tab="props" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Prop List</span>
+            <span class="text-xs text-slate-500">Inventory</span>
+          </button>
+          <button type="button" data-tab="callsheets" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Call Sheets</span>
+            <span class="text-xs text-slate-500">Daily</span>
+          </button>
+        </nav>
+      </aside>
+      <main class="flex-1 space-y-6">
+        <header class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-4 shadow">
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
+            <p class="text-sm text-slate-400 max-w-xl">Switch between the storyboard, spreadsheet-style shot list, and production planning tools without losing your data.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+            <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+            <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+            <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+            <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+          </div>
+        </header>
+
+        <section data-pane="storyboard" class="tab-pane space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold">Storyboard Workspace</h2>
+            <p class="text-sm text-slate-400">Build and reorder visual beats, paste or upload frames, and capture production notes for every shot.</p>
+          </div>
+
+          <!-- Project Panel -->
+          <section class="mb-6">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+              <h2 class="font-semibold mb-3">Project</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Title</span>
+                  <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director</span>
+                  <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Production Company</span>
+                  <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director of Photography</span>
+                  <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Producer</span>
+                  <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Shooting Schedule</span>
+                  <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Production Notes</span>
+                  <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
+                </label>
+              </div>
+              <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+            </div>
+          </section>
+
+          <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+            <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
+            <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
+            <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
+          </section>
+
+          <!-- Shot list -->
+          <section>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="font-semibold">Shots</h2>
+              <div class="flex flex-wrap items-center gap-3">
+                <label class="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Layout</span>
+                  <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
+                    <option value="1">1 per row</option>
+                    <option value="2">2 per row</option>
+                    <option value="3">3 per row</option>
+                    <option value="4">4 per row</option>
+                    <option value="5">5 per row</option>
+                  </select>
+                </label>
+                <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
+                <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
+                <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+                <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+                <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+              </div>
+            </div>
+            <ol id="shotList" class="grid gap-4 list-none"></ol>
+          </section>
+        </section>
+
+        <section data-pane="shotlist" class="tab-pane hidden space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-2xl md:text-3xl font-semibold">Shot List Spreadsheet</h2>
+            <p class="text-sm text-slate-300">Review every shot in a compact table. Edits here sync instantly with the storyboard cards and saved JSON.</p>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow">
+            <table class="min-w-[1024px] w-full text-sm text-left">
+              <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="px-3 py-3 font-medium">Order</th>
+                  <th class="px-3 py-3 font-medium">Shot #</th>
+                  <th class="px-3 py-3 font-medium">Scene</th>
+                  <th class="px-3 py-3 font-medium">Type</th>
+                  <th class="px-3 py-3 font-medium">Lens</th>
+                  <th class="px-3 py-3 font-medium">Move</th>
+                  <th class="px-3 py-3 font-medium">Description</th>
+                  <th class="px-3 py-3 font-medium">Cast / Characters</th>
+                  <th class="px-3 py-3 font-medium">Location</th>
+                  <th class="px-3 py-3 font-medium">Shoot Date</th>
+                  <th class="px-3 py-3 font-medium">Equipment</th>
+                  <th class="px-3 py-3 font-medium">Props</th>
+                  <th class="px-3 py-3 font-medium">Production Notes</th>
+                  <th class="px-3 py-3 font-medium">Folded</th>
+                  <th class="px-3 py-3 font-medium">Image</th>
+                </tr>
+              </thead>
+              <tbody id="shotTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+
+          <p class="text-xs text-slate-400">Tip: Use Tab or Shift+Tab to move between cells. Updates are saved automatically and reflected across all tabs.</p>
+        </section>
+
+        <section data-pane="schedule" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
+              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+            </div>
+            <div class="flex gap-2">
+              <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
+              <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+            </div>
+          </header>
+
+          <div id="scheduleByDate" class="space-y-4"></div>
+          <div id="scheduleByScene" class="space-y-4 hidden"></div>
+        </section>
+
+        <section data-pane="props" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎭 Prop &amp; Wardrobe Tracker</h1>
+              <p class="text-sm text-slate-300 mt-1">Track every item needed on set and who owns the follow-through.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Prop List</button>
+          </header>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex flex-wrap gap-3 items-center">
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Prop Name</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="e.g., Antique compass">
+              </label>
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Scene / Shot</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Scene 3, Shot 12">
+              </label>
+              <label class="w-40">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Status</span>
+                <select class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm">
+                  <option>Needed</option>
+                  <option>Ordered</option>
+                  <option>Secured</option>
+                  <option>On Set</option>
+                </select>
+              </label>
+              <button class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Add Item</button>
+            </div>
+
+            <div class="border border-dashed border-slate-700/80 rounded-xl px-4 py-6 text-center text-sm text-slate-400">
+              Build your prop inventory here. Start logging items above and paste reference images right into the storyboard cards.
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Hero Props</span>
+                  <span class="text-emerald-300">3 tracked</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Prototype gadget — Scene 5</li>
+                  <li>• Wardrobe: Lead jacket — Scene 2</li>
+                  <li>• Vintage car keys — Scene 7</li>
+                </ul>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Department Notes</span>
+                  <span class="text-amber-300">Action needed</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Confirm stunt harness sizing (Stunts)</li>
+                  <li>• Prep aging on set dressing (Art)</li>
+                  <li>• Double wardrobe for rain cover (Costumes)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section data-pane="callsheets" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">📄 Call Sheets</h1>
+              <p class="text-sm text-slate-300 mt-1">Draft and share daily call sheets with your cast and crew.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Download Template</button>
+          </header>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Call Sheet Overview</h2>
+              <div class="space-y-2 text-sm text-slate-300">
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Production Day</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Day 1 - Monday">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Crew Call</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="07:00">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Location</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Main Warehouse Lot">
+                </label>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Agenda Notes</h2>
+              <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="List key scenes, department calls, safety notes, or transportation details."></textarea>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+            <h2 class="font-semibold mb-2">Distribution List</h2>
+            <p class="text-xs text-slate-400 mb-3">Note who receives this call sheet and confirm delivery per department.</p>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Department</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Camera">
+              </label>
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Contact</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Jordan Blake">
+              </label>
+              <label class="block md:col-span-2">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Notes</span>
+                <textarea class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" rows="2" placeholder="Share call sheet via email + Slack group."></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <template id="shotTmpl">
+    <li class="shot group p-4 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent text-[0.8rem]">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
+          <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80">Shot</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-900/30 text-slate-900/70 hover:bg-slate-900/10">Fold</button>
+          <div class="handle shrink-0 select-none text-slate-700 hover:text-slate-900 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
+      </div>
+      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video" tabindex="0">
+        <img class="frame-image absolute inset-0 w-full h-full object-cover hidden" alt="Shot reference">
+        <div class="text-center px-4 frame-placeholder space-y-2" tabindex="0">
+          <div class="font-semibold text-slate-600">Frame Preview</div>
+          <div class="text-xs text-slate-500">Paste (Ctrl+V) or upload an image</div>
+          <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-xs font-medium">
+            Upload Image
+            <input type="file" accept="image/*" class="image-upload hidden">
+          </label>
+        </div>
+        <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+      </div>
+      <div class="shot-body space-y-3 mt-4 text-[0.85em]">
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Scene</span>
+            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="EXT. LOCATION – TIME">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot #</span>
+            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="1">
+          </label>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot Type</span>
+            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Wide</option>
+              <option>Establishing</option>
+              <option>Medium</option>
+              <option>Close‑Up</option>
+              <option>Extreme CU</option>
+              <option>Over‑the‑Shoulder</option>
+              <option>POV</option>
+              <option>Drone</option>
+              <option>Insert</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Lens</span>
+            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>24mm</option>
+              <option selected>35mm</option>
+              <option>50mm</option>
+              <option>85mm</option>
+              <option>105mm</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Move</span>
+            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Locked</option>
+              <option>Pan</option>
+              <option>Tilt</option>
+              <option>Dolly</option>
+              <option>Handheld</option>
+              <option>Crane</option>
+              <option>Drone</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span class="text-xs uppercase tracking-wide text-slate-700">Action / Composition</span>
+          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Cast / Characters</span>
+            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Character A, Character B">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Location</span>
+            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Set or shooting location">
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shooting Date</span>
+            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Equipment</span>
+            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Props</span>
+            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Production Notes</span>
+            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+          </label>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button class="btnDup px-3 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-slate-900/10 text-slate-800">Duplicate</button>
+          <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <input type="file" id="fileInput" accept="application/json" class="hidden" />
+  <script>
+  </script>
+  <style>
+    :root { --frame-aspect: calc(9/16); }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .frame { aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); }
+    .grain::after { content:""; position:absolute; inset:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); mix-blend-mode:overlay; opacity:.6; pointer-events:none; }
+  .ellipsis { display:-webkit-box; -webkit-line-clamp:2; line-clamp: 2; -webkit-box-orient:vertical; overflow:hidden; }
+    .handle { cursor: grab; }
+    .handle:active { cursor: grabbing; }
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 0.75rem;
+      border: 1px solid #334155;
+      font-weight: 500;
+    }
+    .shot {
+      transition: transform 150ms ease, box-shadow 150ms ease;
+      position: relative;
+    }
+    .shot.dragging {
+      transform: scale(1.02);
+      box-shadow: 0 18px 36px rgba(15, 23, 42, 0.35);
+      z-index: 20;
+    }
+    .drag-placeholder {
+      border: 2px dashed rgba(30, 41, 59, 0.4) !important;
+      background-color: rgba(148, 163, 184, 0.18);
+      min-height: 120px;
+      border-radius: 1rem;
+      filter: grayscale(0.2);
+    }
+    .frame:focus-visible,
+    .frame-placeholder:focus-visible {
+      outline: 2px dashed rgba(14, 165, 233, 0.6);
+      outline-offset: 4px;
+    }
+    body.is-dragging {
+      user-select: none;
+      cursor: grabbing !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+  <div class="w-full px-4 md:px-6 py-4 min-h-screen">
+    <div class="flex flex-col lg:flex-row gap-6">
+      <aside class="lg:w-60 shrink-0">
+        <nav class="sticky top-4 space-y-2">
+          <div class="text-xs uppercase tracking-[0.3em] text-slate-500 mb-2">Workspace</div>
+          <button type="button" data-tab="storyboard" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2 font-medium">
+            <span>Storyboard</span>
+            <span class="text-xs text-emerald-400">Live</span>
+          </button>
+          <button type="button" data-tab="shotlist" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Shot List</span>
+            <span class="text-xs text-slate-500">Spreadsheet</span>
+          </button>
+          <button type="button" data-tab="schedule" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Production Schedule</span>
+            <span class="text-xs text-slate-500">Plan</span>
+          </button>
+          <button type="button" data-tab="props" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Prop List</span>
+            <span class="text-xs text-slate-500">Inventory</span>
+          </button>
+          <button type="button" data-tab="callsheets" class="tab-link w-full text-left px-3 py-2 rounded-xl border border-slate-800/50 bg-slate-900/30 hover:bg-slate-900/50 text-slate-300 transition flex items-center justify-between gap-2">
+            <span>Call Sheets</span>
+            <span class="text-xs text-slate-500">Daily</span>
+          </button>
+        </nav>
+      </aside>
+      <main class="flex-1 space-y-6">
+        <header class="flex flex-wrap items-start justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/60 px-4 py-4 shadow">
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
+            <p class="text-sm text-slate-400 max-w-xl">Switch between the storyboard, spreadsheet-style shot list, and production planning tools without losing your data.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+            <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+            <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+            <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+            <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+          </div>
+        </header>
+
+        <section data-pane="storyboard" class="tab-pane space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-xl font-semibold">Storyboard Workspace</h2>
+            <p class="text-sm text-slate-400">Build and reorder visual beats, paste or upload frames, and capture production notes for every shot.</p>
+          </div>
+
+          <!-- Project Panel -->
+          <section class="mb-6">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+              <h2 class="font-semibold mb-3">Project</h2>
+              <div class="grid grid-cols-2 gap-3">
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Title</span>
+                  <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director</span>
+                  <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Production Company</span>
+                  <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Director of Photography</span>
+                  <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+                </label>
+                <label>
+                  <span class="text-sm text-slate-300">Producer</span>
+                  <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Shooting Schedule</span>
+                  <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+                </label>
+                <label class="col-span-2">
+                  <span class="text-sm text-slate-300">Production Notes</span>
+                  <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
+                </label>
+              </div>
+              <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+            </div>
+          </section>
+
+          <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+            <h2 class="font-semibold mb-2">Working from ChatGPT</h2>
+            <p class="text-sm text-slate-300">You can ask ChatGPT to turn your script into a storyboard JSON using the same schema this app exports. Save that response as a <code class="text-xs bg-slate-800/80 px-1 py-0.5 rounded">.json</code> file and load it here with <strong>Import JSON</strong>.</p>
+            <p class="text-xs text-slate-400 mt-2">Tip: Request a <code>shots</code> array with fields like <em>scene</em>, <em>type</em>, <em>lens</em>, <em>move</em>, <em>desc</em>, and any other production notes you need.</p>
+          </section>
+
+          <!-- Shot list -->
+          <section>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+              <h2 class="font-semibold">Shots</h2>
+              <div class="flex flex-wrap items-center gap-3">
+                <label class="flex items-center gap-2 text-xs text-slate-400">
+                  <span>Layout</span>
+                  <select id="layoutSelect" class="px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-200 text-sm">
+                    <option value="1">1 per row</option>
+                    <option value="2">2 per row</option>
+                    <option value="3">3 per row</option>
+                    <option value="4">4 per row</option>
+                    <option value="5">5 per row</option>
+                  </select>
+                </label>
+                <span class="text-xs text-slate-400">Drag the handle to reorder shots.</span>
+                <button id="btnSelectAll" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Select All</button>
+                <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+                <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+                <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+              </div>
+            </div>
+            <ol id="shotList" class="grid gap-4 list-none"></ol>
+          </section>
+        </section>
+
+        <section data-pane="shotlist" class="tab-pane hidden space-y-6">
+          <div class="space-y-1">
+            <h2 class="text-2xl md:text-3xl font-semibold">Shot List Spreadsheet</h2>
+            <p class="text-sm text-slate-300">Review every shot in a compact table. Edits here sync instantly with the storyboard cards and saved JSON.</p>
+          </div>
+
+          <div class="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/60 shadow">
+            <table class="min-w-[1024px] w-full text-sm text-left">
+              <thead class="bg-slate-900/80 text-xs uppercase tracking-wide text-slate-400">
+                <tr>
+                  <th class="px-3 py-3 font-medium">Order</th>
+                  <th class="px-3 py-3 font-medium">Shot #</th>
+                  <th class="px-3 py-3 font-medium">Scene</th>
+                  <th class="px-3 py-3 font-medium">Type</th>
+                  <th class="px-3 py-3 font-medium">Lens</th>
+                  <th class="px-3 py-3 font-medium">Move</th>
+                  <th class="px-3 py-3 font-medium">Description</th>
+                  <th class="px-3 py-3 font-medium">Cast / Characters</th>
+                  <th class="px-3 py-3 font-medium">Location</th>
+                  <th class="px-3 py-3 font-medium">Shoot Date</th>
+                  <th class="px-3 py-3 font-medium">Equipment</th>
+                  <th class="px-3 py-3 font-medium">Props</th>
+                  <th class="px-3 py-3 font-medium">Production Notes</th>
+                  <th class="px-3 py-3 font-medium">Folded</th>
+                  <th class="px-3 py-3 font-medium">Image</th>
+                </tr>
+              </thead>
+              <tbody id="shotTableBody" class="divide-y divide-slate-800"></tbody>
+            </table>
+          </div>
+
+          <p class="text-xs text-slate-400">Tip: Use Tab or Shift+Tab to move between cells. Updates are saved automatically and reflected across all tabs.</p>
+        </section>
+
+        <section data-pane="schedule" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🗓️ Production Schedule</h1>
+              <p class="text-sm text-slate-300 mt-1">Scene breakdowns grouped by date, location, and scene heading.</p>
+            </div>
+            <div class="flex gap-2">
+              <button id="btnViewByDate" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">By Date & Location</button>
+              <button id="btnViewByScene" class="px-3 py-2 rounded-xl bg-slate-800/50 hover:bg-slate-700 border border-slate-700 text-sm">By Scene Heading</button>
+            </div>
+          </header>
+
+          <div id="scheduleByDate" class="space-y-4"></div>
+          <div id="scheduleByScene" class="space-y-4 hidden"></div>
+        </section>
+
+        <section data-pane="props" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎭 Prop &amp; Wardrobe Tracker</h1>
+              <p class="text-sm text-slate-300 mt-1">Track every item needed on set and who owns the follow-through.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Export Prop List</button>
+          </header>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-4">
+            <div class="flex flex-wrap gap-3 items-center">
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Prop Name</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="e.g., Antique compass">
+              </label>
+              <label class="flex-1 min-w-[200px]">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Scene / Shot</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Scene 3, Shot 12">
+              </label>
+              <label class="w-40">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Status</span>
+                <select class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm">
+                  <option>Needed</option>
+                  <option>Ordered</option>
+                  <option>Secured</option>
+                  <option>On Set</option>
+                </select>
+              </label>
+              <button class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm">Add Item</button>
+            </div>
+
+            <div class="border border-dashed border-slate-700/80 rounded-xl px-4 py-6 text-center text-sm text-slate-400">
+              Build your prop inventory here. Start logging items above and paste reference images right into the storyboard cards.
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-2">
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Hero Props</span>
+                  <span class="text-emerald-300">3 tracked</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Prototype gadget — Scene 5</li>
+                  <li>• Wardrobe: Lead jacket — Scene 2</li>
+                  <li>• Vintage car keys — Scene 7</li>
+                </ul>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
+                <div class="flex items-center justify-between text-xs uppercase tracking-wide text-slate-500">
+                  <span>Department Notes</span>
+                  <span class="text-amber-300">Action needed</span>
+                </div>
+                <ul class="mt-2 space-y-1 text-sm text-slate-200">
+                  <li>• Confirm stunt harness sizing (Stunts)</li>
+                  <li>• Prep aging on set dressing (Art)</li>
+                  <li>• Double wardrobe for rain cover (Costumes)</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section data-pane="callsheets" class="tab-pane hidden space-y-6">
+          <header class="flex items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl md:text-3xl font-black tracking-tight">📄 Call Sheets</h1>
+              <p class="text-sm text-slate-300 mt-1">Draft and share daily call sheets with your cast and crew.</p>
+            </div>
+            <button class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm">Download Template</button>
+          </header>
+
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Call Sheet Overview</h2>
+              <div class="space-y-2 text-sm text-slate-300">
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Production Day</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Day 1 - Monday">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Crew Call</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="07:00">
+                </label>
+                <label class="block">
+                  <span class="text-xs uppercase tracking-wide text-slate-400">Location</span>
+                  <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800" placeholder="Main Warehouse Lot">
+                </label>
+              </div>
+            </div>
+            <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3">
+              <h2 class="font-semibold">Agenda Notes</h2>
+              <textarea class="w-full min-h-[160px] rounded-xl bg-slate-900 border border-slate-800 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-500" placeholder="List key scenes, department calls, safety notes, or transportation details."></textarea>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+            <h2 class="font-semibold mb-2">Distribution List</h2>
+            <p class="text-xs text-slate-400 mb-3">Note who receives this call sheet and confirm delivery per department.</p>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Department</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Camera">
+              </label>
+              <label class="block">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Contact</span>
+                <input class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" placeholder="Jordan Blake">
+              </label>
+              <label class="block md:col-span-2">
+                <span class="text-xs uppercase tracking-wide text-slate-400">Notes</span>
+                <textarea class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-sm" rows="2" placeholder="Share call sheet via email + Slack group."></textarea>
+              </label>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <template id="shotTmpl">
+    <li class="shot group p-4 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent text-[0.8rem]">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
+          <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80">Shot</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-900/30 text-slate-900/70 hover:bg-slate-900/10">Fold</button>
+          <div class="handle shrink-0 select-none text-slate-700 hover:text-slate-900 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
+      </div>
+      <div class="frame grain rounded-xl ring-1 ring-slate-900/20 overflow-hidden flex items-center justify-center text-slate-500 relative group aspect-video" tabindex="0">
+        <img class="frame-image absolute inset-0 w-full h-full object-cover hidden" alt="Shot reference">
+        <div class="text-center px-4 frame-placeholder space-y-2" tabindex="0">
+          <div class="font-semibold text-slate-600">Frame Preview</div>
+          <div class="text-xs text-slate-500">Paste (Ctrl+V) or upload an image</div>
+          <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-xs font-medium">
+            Upload Image
+            <input type="file" accept="image/*" class="image-upload hidden">
+          </label>
+        </div>
+        <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+      </div>
+      <div class="shot-body space-y-3 mt-4 text-[0.85em]">
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Scene</span>
+            <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="EXT. LOCATION – TIME">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot #</span>
+            <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="1">
+          </label>
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shot Type</span>
+            <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Wide</option>
+              <option>Establishing</option>
+              <option>Medium</option>
+              <option>Close‑Up</option>
+              <option>Extreme CU</option>
+              <option>Over‑the‑Shoulder</option>
+              <option>POV</option>
+              <option>Drone</option>
+              <option>Insert</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Lens</span>
+            <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>24mm</option>
+              <option selected>35mm</option>
+              <option>50mm</option>
+              <option>85mm</option>
+              <option>105mm</option>
+            </select>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Move</span>
+            <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+              <option>Locked</option>
+              <option>Pan</option>
+              <option>Tilt</option>
+              <option>Dolly</option>
+              <option>Handheld</option>
+              <option>Crane</option>
+              <option>Drone</option>
+            </select>
+          </label>
+        </div>
+        <label>
+          <span class="text-xs uppercase tracking-wide text-slate-700">Action / Composition</span>
+          <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+        </label>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Cast / Characters</span>
+            <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Character A, Character B">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Location</span>
+            <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" placeholder="Set or shooting location">
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Shooting Date</span>
+            <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800">
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Equipment</span>
+            <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+          </label>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Props</span>
+            <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+          </label>
+          <label>
+            <span class="text-xs uppercase tracking-wide text-slate-700">Production Notes</span>
+            <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-white border border-slate-900/20 text-slate-800 placeholder:text-slate-400" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+          </label>
+        </div>
+        <div class="flex items-center gap-2 pt-1">
+          <button class="btnDup px-3 py-2 rounded-xl bg-white/60 hover:bg-white/80 border border-slate-900/10 text-slate-800">Duplicate</button>
+          <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <input type="file" id="fileInput" accept="application/json" class="hidden" />
+  <script>
+  // --- State ---
+  const STORAGE_KEY = 'apeOnAWhaleStoryboard';
+  const LEGACY_STORAGE_KEY = 'grittyStoryboard';
+  let isHydrating = false;
+
+  const state = {
+    shots: [],
+    layoutColumns: 1,
+    sceneColors: {},
+    activeTab: 'storyboard',
+  };
+
+  const SHOT_TYPE_OPTIONS = ['Wide', 'Establishing', 'Medium', 'Close‑Up', 'Extreme CU', 'Over‑the‑Shoulder', 'POV', 'Drone', 'Insert'];
+  const LENS_OPTIONS = ['24mm', '35mm', '50mm', '85mm', '105mm'];
+  const MOVE_OPTIONS = ['Locked', 'Pan', 'Tilt', 'Dolly', 'Handheld', 'Crane', 'Drone'];
+
+  // --- Elements ---
+  const shotList = document.getElementById('shotList');
+  const tmpl = document.getElementById('shotTmpl');
+  const btnNew = document.getElementById('btnNew');
+  const btnExport = document.getElementById('btnExport');
+  const btnImport = document.getElementById('btnImport');
+  const btnPrint = document.getElementById('btnPrint');
+  const btnReset = document.getElementById('btnReset');
+  const btnSelectAll = document.getElementById('btnSelectAll');
+  const btnFoldSelected = document.getElementById('btnFoldSelected');
+  const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
+  const btnClearSelection = document.getElementById('btnClearSelection');
+  const layoutSelect = document.getElementById('layoutSelect');
+  const tabLinks = document.querySelectorAll('.tab-link');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+  const shotTableBody = document.getElementById('shotTableBody');
+  const fileInput = document.getElementById('fileInput');
+  const projTitle = document.getElementById('projTitle');
+  const director = document.getElementById('director');
+  const productionCompany = document.getElementById('productionCompany');
+  const dop = document.getElementById('dop');
+  const producer = document.getElementById('producer');
+  const shootSchedule = document.getElementById('shootSchedule');
+  const projNotes = document.getElementById('projNotes');
+  // --- Helpers ---
+  const uid = () => Math.random().toString(36).slice(2,9);
+
+  function updateShotTitle(li) {
+    const titleEl = li.querySelector('.shot-title');
+    if (!titleEl) return;
+    const sceneVal = li.querySelector('.scene')?.value.trim() || '';
+    const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
+    let label = sceneVal;
+    if (!label) {
+      const index = Array.from(shotList.children).indexOf(li);
+      const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
+      label = fallbackNumber ? `Shot ${fallbackNumber}` : 'Shot';
+    }
+    titleEl.textContent = label;
+  }
+
+  function setShotFolded(li, folded) {
+    const isFolded = Boolean(folded);
+    const body = li.querySelector('.shot-body');
+    const toggle = li.querySelector('.btnToggleFold');
+    li.dataset.folded = isFolded ? 'true' : 'false';
+    if (body) body.classList.toggle('hidden', isFolded);
+    if (toggle) {
+      toggle.textContent = isFolded ? 'Unfold' : 'Fold';
+      toggle.setAttribute('aria-expanded', (!isFolded).toString());
+      toggle.setAttribute('aria-label', isFolded ? 'Unfold shot details' : 'Fold shot details');
+    }
+    li.classList.toggle('opacity-60', isFolded);
+  }
+
+  function updateShotSelectionVisual(li, selected) {
+    if (!li) return;
+    li.classList.toggle('ring-2', selected);
+    li.classList.toggle('ring-emerald-400', selected);
+    li.classList.toggle('ring-opacity-60', selected);
+  }
+
+  function getSelectedShotLis() {
+    return Array.from(shotList.querySelectorAll('.select-shot:checked')).map(cb => cb.closest('li')).filter(Boolean);
+  }
+
+  function clearShotSelection() {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = false;
+      updateShotSelectionVisual(cb.closest('li'), false);
+    });
+  }
+
+  function selectAllShots() {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = true;
+      updateShotSelectionVisual(cb.closest('li'), true);
+    });
+  }
+
+  function applyLayoutColumns(count, { updateControl = true } = {}) {
+    let cols = parseInt(count, 10);
+    if (Number.isNaN(cols)) cols = state.layoutColumns || 1;
+  cols = Math.min(5, Math.max(1, cols));
+    shotList.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+    state.layoutColumns = cols;
+    if (updateControl && layoutSelect) {
+      const desiredValue = String(cols);
+      if (layoutSelect.value !== desiredValue) {
+        layoutSelect.value = desiredValue;
+      }
+    }
+  }
+
+  function setActiveTab(tab, { save = true } = {}) {
+    const availableTabs = new Set(Array.from(tabPanes).map(pane => pane.dataset.pane));
+    const target = availableTabs.has(tab) ? tab : 'storyboard';
+    state.activeTab = target;
+
+    tabPanes.forEach(pane => {
+      const isActive = pane.dataset.pane === target;
+      pane.classList.toggle('hidden', !isActive);
+    });
+
+    const activeClasses = ['bg-slate-800/60', 'border-slate-700', 'text-slate-100', 'shadow-lg'];
+    const inactiveClasses = ['bg-slate-900/30', 'border-slate-800/50', 'text-slate-300'];
+
+    tabLinks.forEach(btn => {
+      const isActive = btn.dataset.tab === target;
+      btn.classList.remove(...activeClasses, ...inactiveClasses);
+      btn.classList.add(...(isActive ? activeClasses : inactiveClasses));
+    });
+
+    if (target === 'shotlist' && typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+
+    if (target === 'schedule' && typeof window.renderProductionSchedule === 'function') {
+      window.renderProductionSchedule();
+    }
+
+    if (save) saveLocal();
+  }
+
+  function updateShotFieldFromTable(shotId, key, value) {
+    const idx = indexOfShot(shotId);
+    if (idx === -1) return;
+    const targetShot = state.shots[idx];
+    if (!targetShot) return;
+
+    switch (key) {
+      case 'folded':
+        targetShot.folded = Boolean(value);
+        break;
+      case 'number':
+        targetShot.number = value === '' ? '' : String(value);
+        break;
+      case 'shootDate':
+        targetShot.shootDate = value || '';
+        break;
+      default:
+        targetShot[key] = typeof value === 'string' ? value : (value ?? '');
+    }
+
+    renderAll();
+    saveLocal();
+  }
+
+  function attachShotlistInput(element, shotId, key, { parser, eventType = 'change' } = {}) {
+    const parseValue = parser || ((el) => {
+      if (el.type === 'checkbox') return el.checked;
+      if (el.type === 'number') {
+        const trimmed = el.value.trim();
+        return trimmed;
+      }
+      return el.value.trim();
+    });
+
+    const commit = () => {
+      updateShotFieldFromTable(shotId, key, parseValue(element));
+    };
+
+    if (eventType === 'blur') {
+      element.addEventListener('blur', commit);
+      if (element.tagName !== 'TEXTAREA') {
+        element.addEventListener('keydown', (evt) => {
+          if (evt.key === 'Enter' && !evt.shiftKey) {
+            evt.preventDefault();
+            element.blur();
+          }
+        });
+      }
+    } else {
+      element.addEventListener(eventType, commit);
+    }
+  }
+
+  function populateSelectOptions(selectEl, options, currentValue) {
+    selectEl.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '—';
+    selectEl.appendChild(placeholder);
+
+    options.forEach(optionValue => {
+      const optionEl = document.createElement('option');
+      optionEl.value = optionValue;
+      optionEl.textContent = optionValue;
+      selectEl.appendChild(optionEl);
+    });
+
+    if (currentValue && !options.includes(currentValue)) {
+      const customOption = document.createElement('option');
+      customOption.value = currentValue;
+      customOption.textContent = currentValue;
+      selectEl.appendChild(customOption);
+    }
+
+    selectEl.value = currentValue || '';
+  }
+
+  function renderShotListTable() {
+    if (!shotTableBody) return;
+
+    shotTableBody.innerHTML = '';
+
+    if (!state.shots.length) {
+      const emptyRow = document.createElement('tr');
+      const emptyCell = document.createElement('td');
+      emptyCell.colSpan = 15;
+      emptyCell.className = 'px-3 py-6 text-center text-sm text-slate-400';
+      emptyCell.textContent = 'No shots yet. Add a shot from the Storyboard tab to populate this table.';
+      emptyRow.appendChild(emptyCell);
+      shotTableBody.appendChild(emptyRow);
+      return;
+    }
+
+    state.shots.forEach((shot, index) => {
+      const tr = document.createElement('tr');
+      tr.dataset.shotId = shot.id;
+      tr.className = index % 2 === 0 ? 'border-b border-slate-800/60 bg-slate-950/40 hover:bg-slate-950/60 transition' : 'border-b border-slate-800/60 hover:bg-slate-950/60 transition';
+
+      const orderCell = document.createElement('td');
+      orderCell.className = 'px-3 py-3 text-xs text-slate-500 align-top whitespace-nowrap';
+      orderCell.textContent = index + 1;
+      tr.appendChild(orderCell);
+
+      const numberCell = document.createElement('td');
+      numberCell.className = 'px-3 py-2 align-top';
+      const numberInput = document.createElement('input');
+      numberInput.type = 'number';
+      numberInput.min = '1';
+      numberInput.inputMode = 'numeric';
+      numberInput.value = shot.number ?? index + 1;
+      numberInput.className = 'w-24 rounded-lg border border-slate-800 bg-slate-950/60 px-2 py-1.5 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(numberInput, shot.id, 'number', { eventType: 'blur' });
+      numberCell.appendChild(numberInput);
+      tr.appendChild(numberCell);
+
+      const sceneCell = document.createElement('td');
+      sceneCell.className = 'px-3 py-2 align-top min-w-[160px]';
+      const sceneInput = document.createElement('input');
+      sceneInput.type = 'text';
+      sceneInput.value = shot.scene || '';
+      sceneInput.placeholder = 'INT. LOCATION – DAY';
+      sceneInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(sceneInput, shot.id, 'scene', { eventType: 'blur' });
+      sceneCell.appendChild(sceneInput);
+      tr.appendChild(sceneCell);
+
+      const typeCell = document.createElement('td');
+      typeCell.className = 'px-3 py-2 align-top';
+      const typeSelect = document.createElement('select');
+      typeSelect.className = 'w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(typeSelect, SHOT_TYPE_OPTIONS, shot.type || '');
+      attachShotlistInput(typeSelect, shot.id, 'type');
+      typeCell.appendChild(typeSelect);
+      tr.appendChild(typeCell);
+
+      const lensCell = document.createElement('td');
+      lensCell.className = 'px-3 py-2 align-top';
+      const lensSelect = document.createElement('select');
+      lensSelect.className = 'w-28 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(lensSelect, LENS_OPTIONS, shot.lens || '');
+      attachShotlistInput(lensSelect, shot.id, 'lens');
+      lensCell.appendChild(lensSelect);
+      tr.appendChild(lensCell);
+
+      const moveCell = document.createElement('td');
+      moveCell.className = 'px-3 py-2 align-top';
+      const moveSelect = document.createElement('select');
+      moveSelect.className = 'w-32 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      populateSelectOptions(moveSelect, MOVE_OPTIONS, shot.move || '');
+      attachShotlistInput(moveSelect, shot.id, 'move');
+      moveCell.appendChild(moveSelect);
+      tr.appendChild(moveCell);
+
+      const descCell = document.createElement('td');
+      descCell.className = 'px-3 py-2 align-top min-w-[220px]';
+      const descArea = document.createElement('textarea');
+      descArea.value = shot.desc || '';
+      descArea.rows = 3;
+      descArea.placeholder = 'Describe action, framing, and mood.';
+      descArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[96px]';
+      attachShotlistInput(descArea, shot.id, 'desc', { eventType: 'blur' });
+      descCell.appendChild(descArea);
+      tr.appendChild(descCell);
+
+      const charsCell = document.createElement('td');
+      charsCell.className = 'px-3 py-2 align-top min-w-[180px]';
+      const charsInput = document.createElement('textarea');
+      charsInput.value = shot.chars || '';
+      charsInput.rows = 2;
+      charsInput.placeholder = 'Characters in frame';
+      charsInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(charsInput, shot.id, 'chars', { eventType: 'blur' });
+      charsCell.appendChild(charsInput);
+      tr.appendChild(charsCell);
+
+      const locationCell = document.createElement('td');
+      locationCell.className = 'px-3 py-2 align-top min-w-[160px]';
+      const locationInput = document.createElement('input');
+      locationInput.type = 'text';
+      locationInput.value = shot.location || '';
+      locationInput.placeholder = 'Set or location';
+      locationInput.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(locationInput, shot.id, 'location', { eventType: 'blur' });
+      locationCell.appendChild(locationInput);
+      tr.appendChild(locationCell);
+
+      const dateCell = document.createElement('td');
+      dateCell.className = 'px-3 py-2 align-top';
+      const dateInput = document.createElement('input');
+      dateInput.type = 'date';
+      dateInput.value = shot.shootDate || '';
+      dateInput.className = 'w-40 rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30';
+      attachShotlistInput(dateInput, shot.id, 'shootDate');
+      dateCell.appendChild(dateInput);
+      tr.appendChild(dateCell);
+
+      const equipmentCell = document.createElement('td');
+      equipmentCell.className = 'px-3 py-2 align-top min-w-[200px]';
+      const equipmentArea = document.createElement('textarea');
+      equipmentArea.value = shot.equipment || '';
+      equipmentArea.rows = 2;
+      equipmentArea.placeholder = 'Gear, rigs, audio notes';
+      equipmentArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(equipmentArea, shot.id, 'equipment', { eventType: 'blur' });
+      equipmentCell.appendChild(equipmentArea);
+      tr.appendChild(equipmentCell);
+
+      const propsCell = document.createElement('td');
+      propsCell.className = 'px-3 py-2 align-top min-w-[200px]';
+      const propsArea = document.createElement('textarea');
+      propsArea.value = shot.props || '';
+      propsArea.rows = 2;
+      propsArea.placeholder = 'Key props, wardrobe, set dressing';
+      propsArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(propsArea, shot.id, 'props', { eventType: 'blur' });
+      propsCell.appendChild(propsArea);
+      tr.appendChild(propsCell);
+
+      const notesCell = document.createElement('td');
+      notesCell.className = 'px-3 py-2 align-top min-w-[220px]';
+      const notesArea = document.createElement('textarea');
+      notesArea.value = shot.notes || '';
+      notesArea.rows = 2;
+      notesArea.placeholder = 'Production notes, call times, logistics';
+      notesArea.className = 'w-full rounded-lg border border-slate-800 bg-slate-950/60 px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500/30 resize-y min-h-[72px]';
+      attachShotlistInput(notesArea, shot.id, 'notes', { eventType: 'blur' });
+      notesCell.appendChild(notesArea);
+      tr.appendChild(notesCell);
+
+      const foldedCell = document.createElement('td');
+      foldedCell.className = 'px-3 py-2 align-top text-center';
+      const foldedToggle = document.createElement('input');
+      foldedToggle.type = 'checkbox';
+      foldedToggle.checked = shot.folded === true;
+      foldedToggle.className = 'h-5 w-5 rounded border-slate-700 bg-slate-950 text-emerald-500 focus:ring-emerald-500/50';
+      attachShotlistInput(foldedToggle, shot.id, 'folded');
+      foldedCell.appendChild(foldedToggle);
+      tr.appendChild(foldedCell);
+
+      const imageCell = document.createElement('td');
+      imageCell.className = 'px-3 py-2 align-top text-center text-xs text-slate-300';
+      imageCell.textContent = shot.imageData ? 'Has image' : '—';
+      tr.appendChild(imageCell);
+
+      shotTableBody.appendChild(tr);
+    });
+  }
+  window.renderShotListTable = renderShotListTable;
+
+  // --- Scene Heading Parser ---
+  function parseSceneHeading(sceneText) {
+    if (!sceneText || typeof sceneText !== 'string') return null;
+    
+    const regex = /(INT|EXT|INT\/EXT|EXT\/INT)\.?\s+([^.–—-]+?)\.?\s*[.–—-]?\s*(DAY|NIGHT|DAWN|DUSK|MORNING|EVENING|AFTERNOON|SUNSET|SUNRISE|CONTINUOUS|LATER|SAME TIME|MOMENTS LATER)?/i;
+    const match = sceneText.match(regex);
+    
+    if (match) {
+      const type = match[1].toUpperCase().replace(/\//g, '/');
+      const location = match[2].trim().toUpperCase();
+      const timeOfDay = match[3] ? match[3].toUpperCase() : '';
+      
+      let full = `${type}. ${location}`;
+      if (timeOfDay) full += `. ${timeOfDay}`;
+      
+      return {
+        type,
+        location,
+        timeOfDay,
+        full,
+        raw: sceneText
+      };
+    }
+    
+    return {
+      type: '',
+      location: '',
+      timeOfDay: '',
+      full: sceneText,
+      raw: sceneText
+    };
+  }
+
+  // --- Grouping Functions ---
+  function groupBySceneHeading(shots) {
+    const groups = {};
+    
+    shots.forEach(shot => {
+      const parsed = parseSceneHeading(shot.scene);
+      const key = parsed?.full || shot.scene || 'Unspecified';
+      
+      if (!groups[key]) {
+        groups[key] = {
+          heading: key,
+          parsed,
+          shots: [],
+          locations: new Set(),
+          actors: new Set(),
+          props: new Set(),
+          shootDates: new Set()
+        };
+      }
+      
+      groups[key].shots.push(shot);
+      
+      if (shot.location) groups[key].locations.add(shot.location);
+      if (shot.shootDate) groups[key].shootDates.add(shot.shootDate);
+      
+      // Parse comma-separated actors and props
+      const actorsList = shot.chars ? shot.chars.split(',').map(a => a.trim()).filter(Boolean) : [];
+      actorsList.forEach(a => groups[key].actors.add(a));
+      
+      const propsList = shot.props ? shot.props.split(/[,\n]/).map(p => p.trim()).filter(Boolean) : [];
+      propsList.forEach(p => groups[key].props.add(p));
+    });
+    
+    return Object.values(groups).map(g => ({
+      ...g,
+      locations: Array.from(g.locations),
+      actors: Array.from(g.actors),
+      props: Array.from(g.props),
+      shootDates: Array.from(g.shootDates).sort()
+    }));
+  }
+
+  function groupByDateAndLocation(shots) {
+    const groups = {};
+    
+    shots.forEach(shot => {
+      const date = shot.shootDate || 'Unscheduled';
+      const location = shot.location || 'Unknown Location';
+      const key = `${date}|${location}`;
+      
+      if (!groups[key]) {
+        groups[key] = {
+          date,
+          location,
+          shots: [],
+          sceneHeadings: new Set(),
+          actors: new Set(),
+          props: new Set(),
+          totalDuration: 0
+        };
+      }
+      
+      groups[key].shots.push(shot);
+      
+      if (shot.scene) {
+        const parsed = parseSceneHeading(shot.scene);
+        groups[key].sceneHeadings.add(parsed?.full || shot.scene);
+      }
+      
+      const actorsList = shot.chars ? shot.chars.split(',').map(a => a.trim()).filter(Boolean) : [];
+      actorsList.forEach(a => groups[key].actors.add(a));
+      
+      const propsList = shot.props ? shot.props.split(/[,\n]/).map(p => p.trim()).filter(Boolean) : [];
+      propsList.forEach(p => groups[key].props.add(p));
+    });
+    
+    return Object.values(groups).map(g => ({
+      ...g,
+      sceneHeadings: Array.from(g.sceneHeadings),
+      actors: Array.from(g.actors).sort(),
+      props: Array.from(g.props).sort()
+    })).sort((a, b) => {
+      if (a.date === 'Unscheduled') return 1;
+      if (b.date === 'Unscheduled') return -1;
+      return a.date.localeCompare(b.date);
+    });
+  }
+
+  // --- Production Schedule Rendering ---
+  function renderProductionSchedule() {
+    const scheduleByDateEl = document.getElementById('scheduleByDate');
+    const scheduleBySceneEl = document.getElementById('scheduleByScene');
+    
+    if (!scheduleByDateEl || !scheduleBySceneEl) return;
+
+    // Render By Date & Location view
+    const dateGroups = groupByDateAndLocation(state.shots);
+    scheduleByDateEl.innerHTML = '';
+    
+    if (!dateGroups.length) {
+      scheduleByDateEl.innerHTML = `
+        <div class="p-6 rounded-2xl border border-dashed border-slate-700/80 text-center text-slate-400">
+          <p class="text-sm">No shots scheduled yet. Add shooting dates to your storyboard to see the production schedule.</p>
+        </div>
+      `;
+    } else {
+      dateGroups.forEach(group => {
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3';
+        
+        const dateDisplay = group.date === 'Unscheduled' ? 
+          '📅 Unscheduled' : 
+          `📅 ${new Date(group.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+        
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-lg">${dateDisplay}</h3>
+              <p class="text-sm text-slate-300">📍 ${group.location}</p>
+            </div>
+            <div class="text-right text-sm text-slate-400">
+              <div>${group.shots.length} shot${group.shots.length !== 1 ? 's' : ''}</div>
+            </div>
+          </div>
+          
+          <div class="space-y-2">
+            <div>
+              <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Scene Headings</h4>
+              <div class="flex flex-wrap gap-1">
+                ${group.sceneHeadings.map(heading => 
+                  `<span class="px-2 py-1 rounded-lg bg-slate-800/60 text-xs text-slate-300">${heading}</span>`
+                ).join('')}
+              </div>
+            </div>
+            
+            ${group.actors.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Cast</h4>
+                <div class="text-sm text-slate-300">${group.actors.join(', ')}</div>
+              </div>
+            ` : ''}
+            
+            ${group.props.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Key Props</h4>
+                <div class="text-sm text-slate-300">${group.props.slice(0, 5).join(', ')}${group.props.length > 5 ? '...' : ''}</div>
+              </div>
+            ` : ''}
+          </div>
+          
+          <details class="mt-3">
+            <summary class="cursor-pointer text-xs uppercase tracking-wide text-slate-500 hover:text-slate-300">
+              Shot Breakdown (${group.shots.length})
+            </summary>
+            <div class="mt-2 space-y-1">
+              ${group.shots.map(shot => `
+                <div class="flex items-center justify-between text-sm bg-slate-950/40 rounded-lg px-3 py-2">
+                  <span class="text-slate-300">${shot.scene || 'Shot ' + (shot.number || '')}</span>
+                  <span class="text-slate-500">${shot.type || ''} ${shot.lens || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        `;
+        
+        scheduleByDateEl.appendChild(card);
+      });
+    }
+
+    // Render By Scene Heading view
+    const sceneGroups = groupBySceneHeading(state.shots);
+    scheduleBySceneEl.innerHTML = '';
+    
+    if (!sceneGroups.length) {
+      scheduleBySceneEl.innerHTML = `
+        <div class="p-6 rounded-2xl border border-dashed border-slate-700/80 text-center text-slate-400">
+          <p class="text-sm">No scenes found. Add scene headings to your storyboard shots.</p>
+        </div>
+      `;
+    } else {
+      sceneGroups.forEach(group => {
+        const card = document.createElement('div');
+        card.className = 'p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow space-y-3';
+        
+        const intExt = group.parsed?.intExt || '';
+        const location = group.parsed?.location || '';
+        const timeOfDay = group.parsed?.timeOfDay || '';
+        
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h3 class="font-semibold text-lg">${group.heading}</h3>
+              ${intExt || location || timeOfDay ? `
+                <p class="text-sm text-slate-400 mt-1">
+                  ${[intExt, location, timeOfDay].filter(Boolean).join(' • ')}
+                </p>
+              ` : ''}
+            </div>
+            <div class="text-right text-sm text-slate-400">
+              <div>${group.shots.length} shot${group.shots.length !== 1 ? 's' : ''}</div>
+            </div>
+          </div>
+          
+          <div class="space-y-2">
+            ${group.locations.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Locations</h4>
+                <div class="text-sm text-slate-300">${group.locations.join(', ')}</div>
+              </div>
+            ` : ''}
+            
+            ${group.shootDates.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Shoot Dates</h4>
+                <div class="flex flex-wrap gap-1">
+                  ${group.shootDates.map(date => 
+                    `<span class="px-2 py-1 rounded-lg bg-slate-800/60 text-xs text-slate-300">${new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>`
+                  ).join('')}
+                </div>
+              </div>
+            ` : ''}
+            
+            ${group.actors.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Cast</h4>
+                <div class="text-sm text-slate-300">${group.actors.join(', ')}</div>
+              </div>
+            ` : ''}
+            
+            ${group.props.length ? `
+              <div>
+                <h4 class="text-xs uppercase tracking-wide text-slate-500 mb-1">Props</h4>
+                <div class="text-sm text-slate-300">${group.props.slice(0, 5).join(', ')}${group.props.length > 5 ? '...' : ''}</div>
+              </div>
+            ` : ''}
+          </div>
+          
+          <details class="mt-3">
+            <summary class="cursor-pointer text-xs uppercase tracking-wide text-slate-500 hover:text-slate-300">
+              Shot List (${group.shots.length})
+            </summary>
+            <div class="mt-2 space-y-1">
+              ${group.shots.map(shot => `
+                <div class="flex items-center justify-between text-sm bg-slate-950/40 rounded-lg px-3 py-2">
+                  <span class="text-slate-300">${shot.type || 'Shot'} - ${shot.desc || 'No description'}</span>
+                  <span class="text-slate-500">${shot.lens || ''} ${shot.move || ''}</span>
+                </div>
+              `).join('')}
+            </div>
+          </details>
+        `;
+        
+        scheduleBySceneEl.appendChild(card);
+      });
+    }
+  }
+  window.renderProductionSchedule = renderProductionSchedule;
+
+  function clampColumns(value) {
+    const fallback = state.layoutColumns || 1;
+    if (value == null || value === '') return Math.min(5, Math.max(1, fallback));
+    const num = Number(value);
+    if (!Number.isFinite(num)) {
+      const parsed = parseInt(value, 10);
+      if (Number.isNaN(parsed)) return Math.min(5, Math.max(1, fallback));
+      return Math.min(5, Math.max(1, parsed));
+    }
+    return Math.min(5, Math.max(1, Math.round(num)));
+  }
+
+  function coerceString(value) {
+    if (value == null) return '';
+    if (typeof value === 'string') return value.trim();
+    return String(value).trim();
+  }
+
+  function sanitizeShot(rawShot = {}, index = 0) {
+    const heading = coerceString(rawShot.scene || rawShot.Heading || rawShot.heading || rawShot['Scene'] || rawShot['Heading'] || rawShot.title);
+    const descriptions = [rawShot.desc, rawShot.description, rawShot.Description, rawShot['Summary (first action line)'], rawShot['Summary'], rawShot.summary, rawShot.synopsis, rawShot['Synopsis']];
+    const descText = coerceString(descriptions.find(val => typeof val === 'string' && val.trim().length));
+    const characters = coerceString(rawShot.chars || rawShot.Characters || rawShot.characters);
+    const location = coerceString(rawShot.location || rawShot.Location || rawShot['Location']);
+    const equipment = coerceString(rawShot.equipment || rawShot.Equipment);
+    const props = coerceString(rawShot.props || rawShot.Props);
+    const baseNotes = coerceString(rawShot.notes || rawShot.Notes || rawShot['Key dialogue'] || rawShot.keyDialogue || rawShot.dialogue || rawShot['Dialogue']);
+    const intExt = coerceString(rawShot['INT/EXT'] || rawShot['Int/Ext'] || rawShot.intExt || rawShot.int_ext);
+    const timeOfDay = coerceString(rawShot['Time of Day'] || rawShot.timeOfDay || rawShot['Day/Night'] || rawShot.dayNight);
+    const extraNotes = coerceString(rawShot.extraNotes || rawShot['Extra Notes']);
+
+    const notesParts = [];
+    if (baseNotes) notesParts.push(baseNotes);
+    const envParts = [intExt, timeOfDay].filter(Boolean);
+    if (envParts.length) notesParts.push(`Environment: ${envParts.join(' • ')}`);
+    if (extraNotes) notesParts.push(extraNotes);
+
+    const numberValue = rawShot.number ?? rawShot['Scene #'] ?? rawShot['Shot #'] ?? rawShot.sceneNumber ?? rawShot['Scene'] ?? rawShot.index ?? (index + 1);
+
+    return {
+      id: coerceString(rawShot.id) || uid(),
+      scene: heading || `Scene ${index + 1}`,
+      number: coerceString(numberValue) || String(index + 1),
+      type: coerceString(rawShot.type || rawShot['Shot Type'] || rawShot.shotType) || 'Wide',
+      lens: coerceString(rawShot.lens || rawShot.Lens) || '35mm',
+      move: coerceString(rawShot.move || rawShot.Move) || 'Locked',
+      desc: descText,
+      chars: characters,
+      location,
+      shootDate: coerceString(rawShot.shootDate || rawShot.shootingDate || rawShot['Shoot Date'] || rawShot.date),
+      equipment,
+      props,
+      notes: notesParts.join('\n\n'),
+      folded: rawShot.folded === true || rawShot.folded === 'true' || rawShot.folded === 1,
+      imageData: rawShot.imageData ? String(rawShot.imageData) : undefined,
+    };
+  }
+
+  function ensureShotsArray(candidate) {
+    if (!Array.isArray(candidate)) return [];
+    return candidate.map((shot, index) => sanitizeShot(shot, index));
+  }
+
+  function normalizeImportedData(raw) {
+    const defaultMeta = {
+      title: '',
+      director: '',
+      productionCompany: '',
+      dop: '',
+      producer: '',
+      shootSchedule: '',
+      notes: '',
+    };
+
+    if (Array.isArray(raw)) {
+      return {
+        meta: { ...defaultMeta },
+        layout: { columns: clampColumns(state.layoutColumns || 1) },
+        activeTab: 'storyboard',
+        sceneColors: {},
+        shots: ensureShotsArray(raw),
+      };
+    }
+
+    if (raw && typeof raw === 'object') {
+      const metaSource = raw.meta || raw.project || {};
+      const meta = { ...defaultMeta };
+      Object.keys(meta).forEach(key => {
+        if (metaSource[key] != null) {
+          meta[key] = coerceString(metaSource[key]);
+        }
+      });
+      if (!meta.title) meta.title = coerceString(raw.title || raw.projectTitle || raw.name || raw.heading);
+      if (!meta.director && raw.director) meta.director = coerceString(raw.director);
+
+      const columnCandidate = raw.layout?.columns ?? raw.columns ?? raw.layoutColumns ?? raw.columnCount;
+      const activeTab = typeof raw.activeTab === 'string' ? raw.activeTab : 'storyboard';
+      const sceneColors = { ...(raw.sceneColors || raw.scenePalette || {}) };
+      const shotsSource = raw.shots || raw.scenes || raw.storyboard || raw.entries || [];
+      let shots = ensureShotsArray(shotsSource);
+      if (!shots.length && raw.scenes && Array.isArray(raw.scenes.list)) {
+        shots = ensureShotsArray(raw.scenes.list);
+      }
+
+      return {
+        meta,
+        layout: { columns: clampColumns(columnCandidate) },
+        activeTab,
+        sceneColors,
+        shots,
+      };
+    }
+
+    throw new Error('Unsupported JSON structure');
+  }
+
+  const pastelPalette = [
+    '#FDE2E4', '#E2F0CB', '#FFF5BA', '#CCE2F1', '#E5D9F2', '#FADDE1', '#D8F3DC', '#FFE0AC', '#E0E7FF', '#F8EDEB',
+  ];
+
+  function normalizeSceneKey(scene) {
+    return (scene || '').replace(/\s+/g, ' ').trim().toUpperCase();
+  }
+
+  function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  function ensureSceneColor(scene) {
+    const key = normalizeSceneKey(scene);
+    if (!key) return null;
+    if (!state.sceneColors[key]) {
+      const idx = hashString(key) % pastelPalette.length;
+      state.sceneColors[key] = pastelPalette[idx];
+    }
+    return state.sceneColors[key];
+  }
+
+  function applySceneColor(li, scene) {
+    const color = ensureSceneColor(scene) || 'rgba(241, 245, 249, 0.9)';
+    li.style.backgroundColor = color;
+    li.style.setProperty('--scene-color', color);
+  }
+
+  function saveLocal() {
+    const data = collectData();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function loadLocal() {
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(STORAGE_KEY, raw);
+        localStorage.removeItem(LEGACY_STORAGE_KEY);
+      }
+    }
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      const normalized = normalizeImportedData(parsed);
+      hydrate(normalized);
+    } catch (error) {
+      console.error('Failed to load storyboard data from storage', error);
+    }
+  }
+
+  function collectData() {
+    return {
+      meta: {
+  title: projTitle.value.trim(),
+  director: director.value.trim(),
+  productionCompany: productionCompany.value.trim(),
+  dop: dop.value.trim(),
+  producer: producer.value.trim(),
+  shootSchedule: shootSchedule.value.trim(),
+  notes: projNotes.value.trim(),
+      },
+      layout: {
+        columns: state.layoutColumns,
+      },
+      activeTab: state.activeTab,
+      sceneColors: { ...state.sceneColors },
+      shots: state.shots.map(s => ({...s}))
+    };
+  }
+
+  function hydrate(data) {
+    isHydrating = true;
+  projTitle.value = data?.meta?.title || '';
+  director.value = data?.meta?.director || '';
+  productionCompany.value = data?.meta?.productionCompany || '';
+  dop.value = data?.meta?.dop || '';
+  producer.value = data?.meta?.producer || '';
+  shootSchedule.value = data?.meta?.shootSchedule || '';
+  projNotes.value = data?.meta?.notes || '';
+    state.activeTab = data?.activeTab || 'storyboard';
+    setActiveTab(state.activeTab, { save: false });
+    state.sceneColors = { ...(data?.sceneColors || {}) };
+    applyLayoutColumns(data?.layout?.columns ?? state.layoutColumns, { updateControl: true });
+    resetShots({ preserveSceneColors: true });
+    (data?.shots || []).forEach(addShotFromData);
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+    if (typeof window.renderProductionSchedule === 'function') {
+      window.renderProductionSchedule();
+    }
+    isHydrating = false;
+  }
+
+  function resetShots(options = {}) {
+    clearShotSelection();
+    if (!options.preserveSceneColors) {
+      state.sceneColors = {};
+    }
+    state.shots = [];
+    shotList.innerHTML = '';
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+  }
+
+  function addShotFromData(s) {
+    const li = tmpl.content.firstElementChild.cloneNode(true);
+    li.dataset.id = s.id || (s.id = uid());
+    const sceneInput = li.querySelector('.scene');
+    const shotNumInput = li.querySelector('.shotnum');
+    const typeInput = li.querySelector('.type');
+    const lensInput = li.querySelector('.lens');
+    const moveInput = li.querySelector('.move');
+    const descInput = li.querySelector('.desc');
+    const charsInput = li.querySelector('.chars');
+    const locationInput = li.querySelector('.location');
+    const shootDateInput = li.querySelector('.shootdate');
+    const equipmentInput = li.querySelector('.equipment');
+    const propsInput = li.querySelector('.props');
+    const notesInput = li.querySelector('.notes');
+    const selectShot = li.querySelector('.select-shot');
+    const toggleFoldBtn = li.querySelector('.btnToggleFold');
+
+    sceneInput.value = s.scene || '';
+    shotNumInput.value = s.number || state.shots.length + 1;
+    typeInput.value = s.type || 'Wide';
+    lensInput.value = s.lens || '35mm';
+    moveInput.value = s.move || 'Locked';
+    descInput.value = s.desc || '';
+    charsInput.value = s.chars || '';
+    locationInput.value = s.location || '';
+    shootDateInput.value = s.shootDate || s.shootingDate || '';
+    equipmentInput.value = s.equipment || '';
+    propsInput.value = s.props || '';
+    notesInput.value = s.notes || '';
+
+    updateShotTitle(li);
+    applySceneColor(li, sceneInput.value);
+
+    if (selectShot) {
+      selectShot.checked = false;
+      updateShotSelectionVisual(li, false);
+      selectShot.addEventListener('change', () => {
+        updateShotSelectionVisual(li, selectShot.checked);
+      });
+    }
+
+    setShotFolded(li, s.folded);
+
+    const frameImg = li.querySelector('.frame-image');
+    const framePlaceholder = li.querySelector('.frame-placeholder');
+    const removeBtn = li.querySelector('.remove-image');
+
+    function applyImageData(dataUrl) {
+      if (!dataUrl) return;
+      frameImg.src = dataUrl;
+      frameImg.classList.remove('hidden');
+      framePlaceholder.classList.add('hidden');
+      removeBtn.classList.remove('hidden');
+      removeBtn.classList.add('flex');
+      const shotId = li.dataset.id;
+      const shotIndex = indexOfShot(shotId);
+      if (shotIndex > -1) {
+        state.shots[shotIndex].imageData = dataUrl;
+      if (typeof window.renderShotListTable === 'function') {
+        window.renderShotListTable();
+      }
+        saveLocal();
+      }
+    }
+
+    if (s.imageData) {
+      applyImageData(s.imageData);
+    }
+
+    function clearImageData() {
+      frameImg.src = '';
+      frameImg.classList.add('hidden');
+      framePlaceholder.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+      removeBtn.classList.remove('flex');
+      const shotId = li.dataset.id;
+      const shotIndex = indexOfShot(shotId);
+      if (shotIndex > -1) {
+        delete state.shots[shotIndex].imageData;
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+        saveLocal();
+      }
+    }
+
+    // Image upload handler
+    li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        handleImagePaste(file);
+      }
+    });
+
+    function handleImagePaste(file) {
+      if (!file || !file.type.startsWith('image/')) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        applyImageData(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+
+  const pasteTargets = [li, li.querySelector('.frame'), frameImg, framePlaceholder];
+    pasteTargets.forEach(target => {
+      if (!target) return;
+      target.addEventListener('paste', (event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            handleImagePaste(item.getAsFile());
+            break;
+          }
+        }
+      });
+    });
+
+    li.addEventListener('click', (event) => {
+      if (event.target.closest('button, input, textarea, select, label, a')) return;
+      const frame = li.querySelector('.frame');
+      if (frame && typeof frame.focus === 'function') {
+        try { frame.focus({ preventScroll: true }); }
+        catch { frame.focus(); }
+      }
+    });
+
+    // Remove image handler
+    removeBtn.addEventListener('click', () => {
+      clearImageData();
+    });
+
+    // Bind buttons
+    li.querySelector('.btnDup').addEventListener('click', () => {
+      const current = readShotFromLI(li);
+      const clone = { ...current, id: uid() };
+      state.shots.splice(indexOfShot(s.id) + 1, 0, clone);
+      renderAll();
+      saveLocal();
+    });
+
+    li.querySelector('.btnDelete').addEventListener('click', () => {
+      state.shots = state.shots.filter(x => x.id !== s.id);
+      li.remove();
+      renumber();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+      saveLocal();
+    });
+
+    // Track changes
+    li.querySelectorAll('.inp').forEach(el => {
+      el.addEventListener('input', () => {
+        if (el.classList.contains('scene') || el.classList.contains('shotnum')) {
+          updateShotTitle(li);
+        }
+        if (el.classList.contains('scene')) {
+          applySceneColor(li, el.value);
+        }
+        persistFromDOM();
+      });
+    });
+
+    shotList.appendChild(li);
+    addDragHandlers(li);
+    updateShotTitle(li);
+    state.shots.push({ id: s.id, ...readShotFromLI(li) });
+  }
+
+  function readShotFromLI(li) {
+    const frameImg = li.querySelector('.frame-image');
+    const data = {
+      scene: li.querySelector('.scene').value,
+      number: li.querySelector('.shotnum').value,
+      type: li.querySelector('.type').value,
+      lens: li.querySelector('.lens').value,
+      move: li.querySelector('.move').value,
+      desc: li.querySelector('.desc').value,
+      chars: li.querySelector('.chars').value,
+      location: li.querySelector('.location').value,
+      shootDate: li.querySelector('.shootdate').value,
+      equipment: li.querySelector('.equipment').value,
+      props: li.querySelector('.props').value,
+      notes: li.querySelector('.notes').value,
+      folded: li.dataset.folded === 'true',
+    };
+    
+    if (frameImg.src && !frameImg.classList.contains('hidden')) {
+      data.imageData = frameImg.src;
+    }
+    
+    return data;
+  }
+
+  function persistFromDOM() {
+    if (isHydrating) return;
+    // Walk DOM list order to persist state
+    state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
+    renumber();
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+    if (typeof window.renderProductionSchedule === 'function') {
+      window.renderProductionSchedule();
+    }
+    saveLocal();
+  }
+
+  function renumber() {
+    Array.from(shotList.children).forEach((li, i) => {
+      li.querySelector('.shotnum').value = i + 1;
+      updateShotTitle(li);
+      const idx = indexOfShot(li.dataset.id);
+      if (idx > -1) state.shots[idx].number = i + 1;
+    });
+  }
+
+  function indexOfShot(id) { return state.shots.findIndex(s => s.id === id); }
+
+  function renderAll() {
+    shotList.innerHTML = '';
+    const existing = [...state.shots];
+    state.shots = [];
+    existing.forEach(addShotFromData);
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+    if (typeof window.renderProductionSchedule === 'function') {
+      window.renderProductionSchedule();
+    }
+  }
+
+  function newShot(preset={}) {
+    addShotFromData({
+      id: uid(),
+      scene: preset.scene || '',
+      type: preset.type || 'Wide',
+      lens: preset.lens || '35mm',
+      move: preset.move || 'Locked',
+      desc: preset.desc || '',
+      chars: preset.chars || '',
+      location: preset.location || '',
+      shootDate: preset.shootDate || '',
+      equipment: preset.equipment || '',
+      props: preset.props || '',
+      notes: preset.notes || '',
+      folded: preset.folded || false,
+    });
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+    if (typeof window.renderProductionSchedule === 'function') {
+      window.renderProductionSchedule();
+    }
+    saveLocal();
+  }
+
+  // --- Drag to reorder ---
+  let dragSrcEl = null;
+  let ghost;
+  let activePointerId = null;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+  let dragStartRect = null;
+  let lastDropTarget = null;
+
+  function addDragHandlers(li) {
+    if (li.dataset.dragWired === 'true') return;
+    const h = li.querySelector('.handle');
+    if (!h) return;
+    li.dataset.dragWired = 'true';
+    h.style.touchAction = 'none';
+    h.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      dragSrcEl = li;
+      activePointerId = e.pointerId;
+      dragStartRect = li.getBoundingClientRect();
+      dragOffsetX = e.clientX - dragStartRect.left;
+      dragOffsetY = e.clientY - dragStartRect.top;
+      if (h.setPointerCapture) {
+        try { h.setPointerCapture(e.pointerId); } catch {}
+      }
+      ghost = li.cloneNode(true);
+      ghost.classList.add('opacity-50','drag-placeholder');
+  ghost.classList.remove('dragging','ring-2','ring-emerald-500','ring-transparent');
+      ghost.style.pointerEvents = 'none';
+      ghost.style.transition = 'none';
+      ghost.style.height = `${dragStartRect.height}px`;
+      ghost.style.width = `${dragStartRect.width}px`;
+      ghost.querySelectorAll('input, textarea, select, button').forEach(el => {
+        el.setAttribute('disabled', 'true');
+      });
+      ghost.style.pointerEvents = 'none';
+      li.parentNode.insertBefore(ghost, li.nextSibling);
+      li.classList.add('ring-2','ring-emerald-500','dragging');
+      li.style.width = `${dragStartRect.width}px`;
+      li.style.height = `${dragStartRect.height}px`;
+      li.style.position = 'fixed';
+      li.style.pointerEvents = 'none';
+      li.style.left = `${dragStartRect.left}px`;
+      li.style.top = `${dragStartRect.top}px`;
+      li.style.zIndex = '50';
+      document.body.classList.add('is-dragging');
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp, { once: true });
+      document.addEventListener('pointercancel', onUp, { once: true });
+    });
+  }
+
+  function onMove(e) {
+    if (!ghost || !dragSrcEl || (activePointerId !== null && e.pointerId !== activePointerId)) return;
+    dragSrcEl.style.left = `${e.clientX - dragOffsetX}px`;
+    dragSrcEl.style.top = `${e.clientY - dragOffsetY}px`;
+    const y = e.clientY;
+    const x = e.clientX;
+    const elem = document.elementFromPoint(x, y);
+    if (!elem) return;
+    const target = elem.closest('li.shot');
+    if (!target || target === ghost || target === dragSrcEl) {
+      if (lastDropTarget) {
+        lastDropTarget.classList.remove('drop-target');
+        lastDropTarget = null;
+      }
+      return;
+    }
+    if (lastDropTarget && lastDropTarget !== target) {
+      lastDropTarget.classList.remove('drop-target');
+    }
+    target.classList.add('drop-target');
+    lastDropTarget = target;
+    const rect = target.getBoundingClientRect();
+    let before;
+    const withinVertical = y >= rect.top && y <= rect.bottom;
+    if (withinVertical) {
+      before = x < rect.left + rect.width / 2;
+    } else {
+      before = y < rect.top + rect.height / 2;
+    }
+    if (before) {
+      shotList.insertBefore(ghost, target);
+    } else {
+      shotList.insertBefore(ghost, target.nextSibling);
+    }
+  }
+
+  function onUp() {
+    const moved = dragSrcEl;
+    if (moved) {
+      moved.classList.remove('ring-2','ring-emerald-500');
+      shotList.insertBefore(moved, ghost);
+      const handle = moved.querySelector('.handle');
+      if (handle && activePointerId !== null && handle.releasePointerCapture) {
+        try { handle.releasePointerCapture(activePointerId); } catch {}
+      }
+      moved.classList.remove('dragging');
+      moved.style.position = '';
+      moved.style.width = '';
+      moved.style.height = '';
+      moved.style.left = '';
+      moved.style.top = '';
+      moved.style.pointerEvents = '';
+      moved.style.zIndex = '';
+    }
+    if (ghost) ghost.remove();
+    ghost = null;
+    dragStartRect = null;
+    activePointerId = null;
+    dragSrcEl = null;
+    if (lastDropTarget) {
+      lastDropTarget.classList.remove('drop-target');
+      lastDropTarget = null;
+    }
+    persistFromDOM();
+    if (moved) {
+      const cb = moved.querySelector('.select-shot');
+      if (cb) updateShotSelectionVisual(moved, cb.checked);
+    }
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointercancel', onUp);
+    document.body.classList.remove('is-dragging');
+  }
+
+  // Observe list for new items to wire drag
+  const mo = new MutationObserver(() => {
+    Array.from(shotList.children).forEach(addDragHandlers);
+  });
+  mo.observe(shotList, { childList: true });
+
+  // --- Import/Export ---
+  btnExport.addEventListener('click', () => {
+    const data = collectData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (data.meta.title || 'storyboard') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  btnImport.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      let normalized;
+      try {
+        const parsed = JSON.parse(reader.result);
+        normalized = normalizeImportedData(parsed);
+      } catch (error) {
+        console.error('Import failed – invalid data', error);
+        alert('Invalid storyboard JSON. Make sure the file was exported from this app or matches the supported schema.');
+        return;
+      }
+
+      try {
+        hydrate(normalized);
+      } catch (hydrationError) {
+        console.error('Import failed during hydration', hydrationError);
+        alert(`Storyboard JSON looked valid, but the app couldn’t load it. Details: ${hydrationError.message}`);
+        return;
+      }
+
+      try {
+        saveLocal();
+      } catch (storageError) {
+        console.error('Storyboard imported but could not persist to local storage', storageError);
+        alert('Storyboard imported, but your browser storage is full so it couldn’t be saved locally. Try exporting it or clearing space.');
+      }
+    };
+    reader.readAsText(f);
+    fileInput.value = '';
+  });
+
+  btnPrint.addEventListener('click', () => {
+    window.print();
+  });
+
+  btnReset.addEventListener('click', () => {
+    const confirmed = confirm('This will delete all shots and production data for this storyboard. Continue?');
+    if (!confirmed) return;
+
+    // Clear meta fields
+    projTitle.value = '';
+    director.value = '';
+    productionCompany.value = '';
+    dop.value = '';
+    producer.value = '';
+    shootSchedule.value = '';
+    projNotes.value = '';
+
+    // Clear shots and state
+    resetShots();
+    clearShotSelection();
+    saveLocal();
+  });
+
+  if (btnSelectAll) {
+    btnSelectAll.addEventListener('click', () => {
+      if (!shotList.children.length) {
+        alert('No shots are available to select yet.');
+        return;
+      }
+      selectAllShots();
+    });
+  }
+
+  if (btnFoldSelected) {
+    btnFoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to fold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, true));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnUnfoldSelected) {
+    btnUnfoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to unfold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, false));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnClearSelection) {
+    btnClearSelection.addEventListener('click', () => {
+      clearShotSelection();
+    });
+  }
+
+  if (layoutSelect) {
+    layoutSelect.addEventListener('change', (e) => {
+      applyLayoutColumns(e.target.value);
+      if (!isHydrating) saveLocal();
+    });
+  }
+
+  // --- Production Schedule view toggle ---
+  const btnViewByDate = document.getElementById('btnViewByDate');
+  const btnViewByScene = document.getElementById('btnViewByScene');
+  const scheduleByDateEl = document.getElementById('scheduleByDate');
+  const scheduleBySceneEl = document.getElementById('scheduleByScene');
+
+  if (btnViewByDate && btnViewByScene && scheduleByDateEl && scheduleBySceneEl) {
+    btnViewByDate.addEventListener('click', () => {
+      scheduleByDateEl.classList.remove('hidden');
+      scheduleBySceneEl.classList.add('hidden');
+      btnViewByDate.classList.remove('bg-slate-800/50');
+      btnViewByDate.classList.add('bg-slate-800');
+      btnViewByScene.classList.remove('bg-slate-800');
+      btnViewByScene.classList.add('bg-slate-800/50');
+    });
+
+    btnViewByScene.addEventListener('click', () => {
+      scheduleByDateEl.classList.add('hidden');
+      scheduleBySceneEl.classList.remove('hidden');
+      btnViewByScene.classList.remove('bg-slate-800/50');
+      btnViewByScene.classList.add('bg-slate-800');
+      btnViewByDate.classList.remove('bg-slate-800');
+      btnViewByDate.classList.add('bg-slate-800/50');
+    });
+  }
+
+  // --- Tab switching ---
+  tabLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      const tabName = link.dataset.tab;
+      if (tabName) setActiveTab(tabName);
+    });
+  });
+
+  // --- New shot ---
+  btnNew.addEventListener('click', () => newShot());
+
+  // --- Keyboard shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
+    if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
+    if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
+  });
+
+  // --- Init ---
+  loadLocal();
+  setActiveTab(state.activeTab, { save: false });
+  applyLayoutColumns(state.layoutColumns, { updateControl: true });
+    if (typeof window.renderShotListTable === 'function') {
+      window.renderShotListTable();
+    }
+  if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+
+  // Persist meta edits
+  [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));
+  </script>
+
+  <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
+    Built as a single HTML file – host on GitHub Pages or Netlify. © You.
+  </footer>
+</body>
+</html>

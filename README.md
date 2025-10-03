@@ -1,12 +1,14 @@
 # ApeOnAWhale Storyboard (alpha01)
 
-A single-file HTML storyboard application for filmmakers and visual storytellers. Create, organize, and visualize your shots with image uploads, character consistency tracking, and automated PDF script breakdowns.
+A single-file HTML storyboard application for filmmakers and visual storytellers. Create, organize, and visualize your shots with image uploads, character consistency tracking, and production schedule generation.
+
+> **🔧 Developer Note**: This project now uses a modular development structure. See [`DEVELOPMENT.md`](DEVELOPMENT.md) for the new workflow.
 
 ## ✨ Features
 
 - **Visual Storyboarding**: Upload images for each shot with 16:9 aspect ratio frames
-- **Character Bible**: Maintain character consistency across shots
-- **PDF Script Breakdown**: Upload screenplays as PDFs and generate shot cards automatically
+- **Production Schedule**: Automatically organize shots by date/location or scene heading
+- **Shot List Spreadsheet**: Tabular view with inline editing for all shot data
 - **Drag & Drop Reordering**: Easily reorganize your shots
 - **Image Management**: Upload, display, and remove reference images for each shot
 - **Production Metadata**: Track location, shoot dates, equipment, and props per shot for call sheets and catalogues
@@ -15,17 +17,36 @@ A single-file HTML storyboard application for filmmakers and visual storytellers
 - **Password Protection**: Basic authentication for deployed sites
 - **Keyboard Shortcuts**: `N` for new shot, `E` to export, `P` to print
 
+## 🚀 Quick Start
+
+### For Users (Single File)
+1. Download `index.html` (works immediately, no build needed)
+2. Open in any modern browser
+3. Start creating your storyboard!
+
+### For Developers (Modular)
+```bash
+# Build the single file from modular source
+npm run build
+
+# Development server
+npm run dev
+
+# See DEVELOPMENT.md for full details
+```
+
 ## 🚀 Deployment to Netlify
 
 ### Method 1: Drag & Drop
-1. Zip the entire project folder
-2. Go to [Netlify](https://www.netlify.com) and drag the zip file to deploy
+1. Run `npm run build` to generate the `build/` folder
+2. Go to [Netlify](https://www.netlify.com) and drag the `build/` folder to deploy
 3. Your app will be live instantly with a random URL
 
 ### Method 2: GitHub Integration
 1. Push this repository to GitHub
 2. Connect your GitHub repo to Netlify
-3. Netlify will auto-deploy on every push
+3. Set build command: `npm run build` and publish directory: `build`
+4. Netlify will auto-deploy on every push
 
 ### Password Protection
 The app includes a `_headers` file with basic authentication:

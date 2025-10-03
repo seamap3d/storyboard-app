@@ -1,0 +1,14 @@
+{
+  "name": "storyboard-app",
+  "version": "1.0.0",
+  "description": "ApeOnAWhale Storyboard - Single-file HTML application for filmmakers",
+  "main": "index.html",
+  "scripts": {
+    "build": "node build.js",
+    "dev": "python3 -m http.server 8000",
+    "deploy": "npm run build && echo 'Built files ready in build/ directory'"
+  },
+  "keywords": ["storyboard", "filmmaking", "production", "html"],
+  "author": "ApeOnAWhale",
+  "license": "MIT"
+}
