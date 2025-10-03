@@ -35,12 +35,62 @@ jsFiles.forEach(file => {
   }
 });
 
-// Add the remaining JS from the original file (everything that wasn't extracted)
+// Get the original script and extract only the parts not in modules
 const originalScript = originalFile.substring(scriptStart + '<script>'.length, scriptEnd - '</script>'.length);
 
-// For now, include both the modules and the original script
-// TODO: Remove duplicated functions from originalScript once fully modularized
-combinedJS += '\n' + originalScript;
+// Include most of the original script but skip renderProductionSchedule
+// This is a temporary solution - ideally we'd extract everything to modules
+const lines = originalScript.split('\n');
+let skipUntil = -1;
+const filteredLines = [];
+
+for (let i = 0; i < lines.length; i++) {
+  const line = lines[i];
+  
+  // Skip the renderProductionSchedule function
+  if (line.includes('function renderProductionSchedule()')) {
+    // Find the end of the function by counting braces
+    let braceCount = 0;
+    let inFunction = false;
+    skipUntil = i;
+    
+    for (let j = i; j < lines.length; j++) {
+      const currentLine = lines[j];
+      for (let k = 0; k < currentLine.length; k++) {
+        if (currentLine[k] === '{') {
+          braceCount++;
+          inFunction = true;
+        } else if (currentLine[k] === '}') {
+          braceCount--;
+          if (inFunction && braceCount === 0) {
+            skipUntil = j;
+            break;
+          }
+        }
+      }
+      if (skipUntil === j) break;
+    }
+    
+    // Also skip the window assignment line
+    for (let j = skipUntil + 1; j < lines.length; j++) {
+      if (lines[j].includes('window.renderProductionSchedule = renderProductionSchedule')) {
+        skipUntil = j;
+        break;
+      }
+      if (lines[j].trim() && !lines[j].trim().startsWith('//')) break;
+    }
+    
+    continue;
+  }
+  
+  if (i <= skipUntil) {
+    continue;
+  }
+  
+  filteredLines.push(line);
+}
+
+combinedJS += '\n' + filteredLines.join('\n');
 
 // Read CSS
 const customCSS = fs.readFileSync('src/styles.css', 'utf8');
