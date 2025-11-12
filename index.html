@@ -420,7 +420,7 @@
       <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
         <div class="flex items-center gap-3">
           <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
-          <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80">Shot</div>
+          <input type="text" class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-900/80 bg-transparent border-none px-2 py-1 -ml-2 rounded hover:bg-slate-100/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/40" placeholder="Shot">
         </div>
         <div class="flex items-center gap-2">
           <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-900/30 text-slate-900/70 hover:bg-slate-900/10">Fold</button>
@@ -578,6 +578,17 @@
   function updateShotTitle(li) {
     const titleEl = li.querySelector('.shot-title');
     if (!titleEl) return;
+    
+    // If the title input already has a custom value that was manually set, don't override it
+    const shotId = li.dataset.id;
+    const shotIndex = indexOfShot(shotId);
+    
+    // Only auto-update if there's no custom title set or if the field is empty
+    if (shotIndex > -1 && state.shots[shotIndex].customTitle !== undefined) {
+      titleEl.value = state.shots[shotIndex].customTitle;
+      return;
+    }
+    
     const sceneVal = li.querySelector('.scene')?.value.trim() || '';
     const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
     let label = sceneVal;
@@ -586,7 +597,11 @@
       const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
       label = fallbackNumber ? `Shot ${fallbackNumber}` : 'Shot';
     }
-    titleEl.textContent = label;
+    
+    // Only update if the input is currently empty or matches auto-generated content
+    if (!titleEl.value || titleEl.value === titleEl.placeholder) {
+      titleEl.value = label;
+    }
   }
 
   function setShotFolded(li, folded) {
@@ -1608,6 +1623,23 @@
       });
     });
 
+    // Track title changes separately to mark it as custom
+    const titleInput = li.querySelector('.shot-title');
+    if (titleInput) {
+      titleInput.addEventListener('input', () => {
+        const shotId = li.dataset.id;
+        const shotIndex = indexOfShot(shotId);
+        if (shotIndex > -1) {
+          state.shots[shotIndex].customTitle = titleInput.value;
+          saveLocal();
+        }
+      });
+      // Set initial value if customTitle exists
+      if (s.customTitle !== undefined) {
+        titleInput.value = s.customTitle;
+      }
+    }
+
     shotList.appendChild(li);
     addDragHandlers(li);
     updateShotTitle(li);
@@ -1630,6 +1662,7 @@
       props: li.querySelector('.props').value,
       notes: li.querySelector('.notes').value,
       folded: li.dataset.folded === 'true',
+      customTitle: li.querySelector('.shot-title').value,
     };
     
     if (frameImg.src && !frameImg.classList.contains('hidden')) {

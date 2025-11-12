@@ -4,6 +4,17 @@ const uid = () => Math.random().toString(36).slice(2,9);
 function updateShotTitle(li) {
   const titleEl = li.querySelector('.shot-title');
   if (!titleEl) return;
+  
+  // If the title input already has a custom value that was manually set, don't override it
+  const shotId = li.dataset.id;
+  const shotIndex = indexOfShot(shotId);
+  
+  // Only auto-update if there's no custom title set or if the field is empty
+  if (shotIndex > -1 && state.shots[shotIndex].customTitle !== undefined) {
+    titleEl.value = state.shots[shotIndex].customTitle;
+    return;
+  }
+  
   const sceneVal = li.querySelector('.scene')?.value.trim() || '';
   const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
   let label = sceneVal;
@@ -12,7 +23,11 @@ function updateShotTitle(li) {
     const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
     label = fallbackNumber ? `Shot ${fallbackNumber}` : 'Shot';
   }
-  titleEl.textContent = label;
+  
+  // Only update if the input is currently empty or matches auto-generated content
+  if (!titleEl.value || titleEl.value === titleEl.placeholder) {
+    titleEl.value = label;
+  }
 }
 
 function setShotFolded(li, folded) {

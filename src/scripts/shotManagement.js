@@ -123,6 +123,7 @@ function readShotFromLI(li) {
     props: li.querySelector('.props').value,
     notes: li.querySelector('.notes').value,
     folded: li.dataset.folded === 'true',
+    customTitle: li.querySelector('.shot-title').value,
   };
   
   if (frameImg.src && !frameImg.classList.contains('hidden')) {
