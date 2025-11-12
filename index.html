@@ -1378,8 +1378,39 @@
   }
 
   function saveLocal() {
+    try {
+      const data = collectData();
+      const jsonString = JSON.stringify(data);
+      localStorage.setItem(STORAGE_KEY, jsonString);
+      
+      // Show storage usage info if getting close to limit
+      const usedSpace = new Blob([jsonString]).size;
+      const estimatedLimit = 5 * 1024 * 1024; // 5MB typical limit
+      if (usedSpace > estimatedLimit * 0.8) {
+        console.warn(`Storage usage: ${(usedSpace / 1024).toFixed(0)}KB / ~${(estimatedLimit / 1024).toFixed(0)}KB`);
+      }
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') {
+        console.error('LocalStorage quota exceeded. Data not saved.');
+        // Auto-export as backup
+        exportToFile();
+        alert('Browser storage is full! An automatic backup has been downloaded. Consider:\n\n1. Reducing image sizes (images take most space)\n2. Deleting old shots\n3. Using auto-save to file instead');
+      } else {
+        throw e;
+      }
+    }
+  }
+
+  function exportToFile() {
     const data = collectData();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    a.href = url;
+    a.download = `${data.meta.title || 'storyboard'}_${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   function loadLocal() {
@@ -1869,13 +1900,7 @@
 
   // --- Import/Export ---
   btnExport.addEventListener('click', () => {
-    const data = collectData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = (data.meta.title || 'storyboard') + '.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    exportToFile();
   });
 
   btnImport.addEventListener('click', () => fileInput.click());
@@ -2027,6 +2052,27 @@
     if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
     if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
+    
+    // Ctrl+S or Cmd+S to export/save
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      exportToFile();
+    }
+  });
+
+  // --- Auto-save every 5 minutes ---
+  let autoSaveInterval = setInterval(() => {
+    try {
+      exportToFile();
+      console.log('Auto-save: Backup exported at', new Date().toLocaleTimeString());
+    } catch (err) {
+      console.error('Auto-save failed:', err);
+    }
+  }, 5 * 60 * 1000); // 5 minutes
+
+  // Clean up interval on page unload
+  window.addEventListener('beforeunload', () => {
+    clearInterval(autoSaveInterval);
   });
 
   // --- Init ---
