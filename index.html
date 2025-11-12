@@ -2060,20 +2060,7 @@
     }
   });
 
-  // --- Auto-save every 5 minutes ---
-  let autoSaveInterval = setInterval(() => {
-    try {
-      exportToFile();
-      console.log('Auto-save: Backup exported at', new Date().toLocaleTimeString());
-    } catch (err) {
-      console.error('Auto-save failed:', err);
-    }
-  }, 5 * 60 * 1000); // 5 minutes
-
-  // Clean up interval on page unload
-  window.addEventListener('beforeunload', () => {
-    clearInterval(autoSaveInterval);
-  });
+  // ...existing code...
 
   // --- Init ---
   loadLocal();
