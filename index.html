@@ -46,6 +46,30 @@
       </div>
     </header>
 
+  <section id="sharedPanel" aria-label="Projects and account">
+    <h2>Film projects &amp; storyboards</h2>
+    <p id="accountLabel">Browser draft — sign in for shared projects</p>
+    <form id="authForm" class="shared-row">
+      <label>Email <input id="accountEmail" type="email" autocomplete="username" required></label>
+      <label>Password <input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></label>
+      <button type="submit">Sign in</button><button type="button" id="signUp">Create account</button><button type="button" id="recover">Recover access</button>
+    </form>
+    <div id="recoveryPanel" hidden><label>New password <input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8"></label><button id="updatePassword">Update password</button></div>
+    <div id="signedIn" hidden>
+      <div class="shared-row"><label>Film project <select id="projectSelect"><option value="">Browser draft</option></select></label><button id="newProject">New film project</button><button id="reloadShared">Refresh / reload shared version</button><button id="signOut">Sign out</button></div>
+      <div class="shared-row"><label>Storyboard <select id="boardSelect"><option value="">Choose a storyboard</option></select></label><button id="newBoard" disabled>New storyboard</button><button id="copyLocal" disabled>Copy browser draft to project</button></div>
+      <div class="shared-row"><label>Storyboard name <input id="boardName" maxlength="160" disabled></label><button id="cloudSave" disabled>Save storyboard</button></div>
+      <div id="incoming" aria-label="Incoming invitations"></div>
+      <details id="membersPanel" hidden><summary>Project members &amp; invitations</summary>
+        <div id="memberList"></div>
+        <form id="inviteForm" class="shared-row" hidden><label>Invite email <input id="inviteEmail" type="email" required></label><label>Role <select id="inviteRole"><option value="viewer">Viewer</option><option value="commenter">Commenter</option><option value="editor">Editor</option></select></label><button>Invite member</button><p>Share the app link yourself. Invitations expire after 7 days; recipients must verify their email and accept in the app.</p></form>
+        <div id="projectInvitations"></div>
+      </details>
+    </div>
+    <p id="cloudRole">This draft is saved only in this browser.</p>
+    <p id="sharedStatus" role="status" aria-live="polite">Shared storyboards save when you click Save storyboard. Browser drafts remain separate.</p>
+  </section>
+  <fieldset id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
   <!-- Project Panel -->
     <section class="mb-6">
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
@@ -106,6 +130,7 @@
       </div>
   <ol id="shotList" class="space-y-4"></ol>
     </section>
+  </fieldset>
   </div>
 
   <template id="shotTmpl">
@@ -331,6 +356,7 @@
   const shootSchedule = document.getElementById('shootSchedule');
   const projNotes = document.getElementById('projNotes');
   btnUploadScript.addEventListener('click', async () => {
+    const scope = window.storyboard?.scope;
     const file = scriptInput.files && scriptInput.files[0];
     if (!file) {
       alert('Please select a text file.');
@@ -342,6 +368,7 @@
     }
     try {
       const text = await readTextFromFile(file);
+      if (scope !== window.storyboard?.scope) return;
       applyBreakdown(text);
       scriptInput.value = '';
     } catch (error) {
@@ -351,7 +378,7 @@
   });
 
   // --- Helpers ---
-  const uid = () => Math.random().toString(36).slice(2,9);
+  const uid = () => crypto.randomUUID();
 
   function updateShotTitle(li) {
     const titleEl = li.querySelector('.shot-title');
@@ -400,8 +427,11 @@
   }
 
   function saveLocal() {
+    if (isHydrating) return;
+    if (window.storyboard?.mode === 'shared') { window.storyboard.onChange?.(); return; }
     const data = collectData();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+    catch { alert('Browser storage is full or unavailable. Export JSON to keep your changes.'); }
   }
 
   function loadLocal() {
@@ -508,7 +538,7 @@
     const framePlaceholder = li.querySelector('.frame-placeholder');
     const removeBtn = li.querySelector('.remove-image');
     
-    if (s.imageData) {
+    if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(s.imageData || '')) {
       frameImg.src = s.imageData;
       frameImg.classList.remove('hidden');
       framePlaceholder.classList.add('hidden');
@@ -518,10 +548,12 @@
 
     // Image upload handler
     li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const scope = window.storyboard?.scope;
       const file = e.target.files[0];
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (event) => {
+          if (scope !== window.storyboard?.scope) return;
           frameImg.src = event.target.result;
           frameImg.classList.remove('hidden');
           framePlaceholder.classList.add('hidden');
@@ -663,8 +695,11 @@
   let ghost;
 
   function addDragHandlers(li) {
+    if (li.dataset.dragBound) return;
+    li.dataset.dragBound = 'true';
     const h = li.querySelector('.handle');
     h.addEventListener('pointerdown', (e) => {
+      if (window.storyboard && !window.storyboard.canEdit) return;
       dragSrcEl = li;
       ghost = li.cloneNode(true);
       ghost.classList.add('opacity-50');
@@ -724,8 +759,9 @@
   btnImport.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
+    const scope = window.storyboard?.scope;
     const reader = new FileReader();
-    reader.onload = () => { try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
+    reader.onload = () => { if (scope !== window.storyboard?.scope) return; try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
     reader.readAsText(f);
     fileInput.value = '';
   });
@@ -791,11 +827,33 @@
   // --- Keyboard shortcuts ---
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (window.storyboard && !window.storyboard.canEdit && e.key.toLowerCase() === 'n') return;
     if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
     if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
   });
 
+  window.storyboard = {
+    mode: 'local', canEdit: true, scope: 0,
+    collectData,
+    hydrate(data) { this.scope++; hydrate(data); },
+    localData() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"meta":{},"shots":[]}'); }
+      catch { throw new Error('Browser draft could not be read. Export it before switching.'); }
+    },
+    setEditable(value) {
+      this.canEdit = value;
+      document.querySelectorAll('#storyboardEditor input, #storyboardEditor textarea, #storyboardEditor select').forEach(el => {
+        el.disabled = !value && !el.classList.contains('select-shot');
+      });
+      document.querySelectorAll('#storyboardEditor button').forEach(el => {
+        const viewOnly = el.classList.contains('btnToggleFold') || ['btnFoldSelected','btnUnfoldSelected','btnClearSelection'].includes(el.id);
+        el.disabled = !value && !viewOnly;
+      });
+      [btnNew,btnImport,btnReset].forEach(button=>button.disabled=!value);
+      shotList.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=String(value));
+    }
+  };
   // --- Init ---
   loadLocal();
   if (!projTitle.value) projTitle.value = 'Project Title (working title)';
@@ -804,6 +862,7 @@
   [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));
   </script>
 
+  <script type="module" src="shared-ui.mjs"></script>
   <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
     Built as a single HTML file – host on GitHub Pages or Netlify. © You.
   </footer>

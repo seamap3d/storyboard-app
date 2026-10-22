@@ -17,7 +17,7 @@ A single-file HTML storyboard application for filmmakers and visual storytellers
 
 ## Development and production foundation
 
-Use the [Netlify + Supabase environment runbook](docs/environments.md) for isolated development/production setup, migrations, deployment, and smoke checks. The app currently stores storyboard data locally; collaboration is separate work.
+Use the [Netlify + Supabase environment runbook](docs/environments.md) for isolated development/production setup, migrations, deployment, and smoke checks. Shared projects support Supabase accounts, private film projects, multiple named storyboards and membership roles. Shared changes require Save storyboard. The original browser draft remains separate; see the runbook for migrations and Auth setup before enabling shared use.
 
 ## 🚀 Legacy static deployment to Netlify
 

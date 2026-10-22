@@ -74,3 +74,17 @@ h1, h2, h3 {
     break-after: auto;
   }
 }
+
+[hidden] { display: none !important; }
+#sharedPanel .shared-row, #sharedPanel .member-row { display: flex; gap: .75rem; align-items: end; flex-wrap: wrap; margin: 1rem 0; }
+#sharedPanel label { display: grid; gap: .3rem; }
+#sharedPanel input, #sharedPanel select, #sharedPanel button { border: 1px solid #64748b; border-radius: .5rem; padding: .55rem .8rem; background: #0f172a; color: #f1f5f9; }
+#sharedPanel button { background: #1e3a5f; cursor: pointer; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+#sharedStatus { padding: .75rem; background: #0f172a; border-radius: .5rem; }
+#cloudRole { color: #a5b4fc; }
+.member-row span { overflow-wrap: anywhere; }
+@media print { #sharedPanel { display: none; } }
+header, header > div { flex-wrap: wrap; }
+#sharedPanel input, #sharedPanel select { max-width: 100%; }
+#sharedPanel label { min-width: 0; }

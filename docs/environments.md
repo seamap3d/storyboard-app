@@ -37,15 +37,15 @@ CLI access tokens in secure provider/CI settings; never commit them or send them
 in chat.
 
 Netlify uses `netlify.toml`, Node 22, `npm run build`, and `dist`. The build emits
-only HTML, CSS, and an allowlisted public `runtime-config.json`. It does not publish
+only HTML, CSS, browser modules, and an allowlisted public `runtime-config.json`. It does not publish
 the repository root, backlog, environment files, or scripts. The legacy root
 `_headers` file is intentionally excluded; its Basic-Auth configuration is not
-an application authentication system. The current storyboard still uses localStorage:
-this story does not implement login, collaboration, or shared project saving.
+an application authentication system. The original browser draft still uses localStorage. Shared-project setup and its
+additional migration are described below.
 
 ## Local build
 
-Node 22+ and Python 3 are required. There are no npm dependencies to install.
+Node 22+ and Python 3 are required. The build has no runtime npm dependencies; `npm ci` installs development-only browser test tooling.
 Export your development project's URL and publishable key in your terminal, then:
 
 ```sh
@@ -57,8 +57,8 @@ npm run dev
 Open the local app in your browser and create a shot, edit metadata, reload, and
 export JSON. This static server does not emulate Netlify Functions. To exercise
 functions locally, use the official Netlify CLI (`netlify dev`) with the development
-site linked and its environment configured. `runtime-config.json` establishes
-configuration for later integration; the existing storyboard does not consume it yet.
+site linked and its environment configured. `runtime-config.json` configures the shared-project client. A fixture key can
+exercise the static build but cannot authenticate with Supabase.
 
 ## Database migrations
 
@@ -141,3 +141,83 @@ They are not evidence of a live provider deployment. A preview URL, production
 URL, access to the Netlify sites and Supabase projects, applied migration evidence,
 and current pricing confirmation are required to complete the story. Neither
 provider credentials nor its management tools were available in this session.
+
+## Shared projects and multiple storyboards (review branch)
+
+The collaboration migration `20261022010000_shared_storyboards.sql` adds film
+projects, project membership, invitations, and versioned storyboard documents.
+Apply **both ordered migrations to development first**, using the CLI workflow
+above. Do not paste these files into production without migration history checks.
+The application reads public runtime configuration and talks to Supabase Auth and
+PostgREST with the signed-in user's JWT. No service-role key is needed.
+
+In Netlify, classify `SUPABASE_URL` and a verified publishable/legacy anon key as
+public configuration (not secret values): they intentionally appear in
+`runtime-config.json`. Keep secret scanning enabled and never exempt privileged
+keys. Netlify secret scanning previously blocked the preview for `SUPABASE_URL`.
+
+In Supabase Auth, enable email/password accounts with email confirmation. Set the
+site URL and allowed redirect URLs to the exact development preview and production
+URLs used for confirmation and password recovery. Restrict production redirects
+to reviewed application URLs. The app supports sign-up, password sign-in,
+recovery-link password changes, token refresh, and sign-out. Session tokens are
+stored in sessionStorage for this tab, not in storyboard exports. Configure/test
+provider email delivery and rate limits before inviting the pilot team; no paid
+email service is selected by this implementation.
+
+Users can create separate film projects and multiple named storyboards per
+project. Shared changes require **Save storyboard**; the UI clearly distinguishes
+unsaved changes, failures and version conflicts. Reload after a conflict only
+after exporting any edits you want to keep. There is no realtime merge. Owners
+can invite verified email recipients as editor, commenter or viewer, change
+member roles, remove members, revoke pending invitations, and transfer ownership
+to an existing member. The original owner becomes an editor. Invitations last
+seven days and can only be accepted once by the intended verified account.
+Invitations appear in the recipient's signed-in app; **no invitation email is
+sent**. The owner shares the app link through their existing communication
+channel, with no additional delivery cost. Refresh to discover new invitations.
+Commenters currently have read access; commenting itself is a separate story.
+
+The original browser draft remains in its original localStorage key. Opening a
+shared storyboard does not overwrite it; **Copy browser draft to project** makes
+a separate shared copy. JSON import/export still works on the selected board.
+Do not clear browser storage until you have verified a shared copy and export.
+Shared document content is kept in memory rather than the browser draft; unsaved
+shared edits require saving or exporting before closing the tab.
+
+Current storage unit: a versioned JSON document per storyboard, preserving all
+existing shot fields and stable shot IDs. Images remain embedded raster data URLs
+inside that private document, protected by the same row access policies. A board
+is limited to **5 MiB of JSON**, so this is for the initial pilot, not large image
+libraries. Dedicated private object storage, normalized scene/shot records,
+comments, project deletion/renaming, and realtime collaboration are follow-up work.
+Membership revocation stops subsequent backend reads/writes; it cannot erase
+copies someone has already viewed or exported.
+
+### Repeatable local verification
+
+```sh
+npm ci
+npm test
+npm run test:db
+# Build with development configuration, then install a Chromium test browser:
+npx playwright install chromium
+npm run test:browser
+# Or use an already-installed Chromium:
+CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
+```
+
+`test:db` starts a disposable PostgreSQL 17 Alpine container with no published
+ports and removes it afterwards. It supplies a minimal Auth schema/roles fixture,
+applies ordered migrations and exercises SQL access policies/RPCs as different
+users. It does not emulate the complete hosted Supabase service or prove remote
+migration state. Docker socket access is required. Playwright is development-only;
+it is not shipped in the public build. Browser tests stub Supabase HTTP responses;
+SQL tests independently validate backend role enforcement.
+
+Before promoting: apply migrations to development; verify sign-up/confirmation,
+password recovery, actual cross-device saves, all roles, invitations, revoked
+access and simultaneous edits with real pilot accounts. The preview foundation
+health endpoint has been confirmed by the owner, but health probes only Auth
+connectivity, not these workflows. Production migration, pricing/limits review,
+and production smoke checks remain outstanding.
