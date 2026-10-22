@@ -124,6 +124,7 @@
         <h2 class="font-semibold">Shots</h2>
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-slate-400 mr-2">Drag the handle to reorder shots.</span>
+          <label class="flex items-center gap-2 text-sm"><input id="selectAllShots" type="checkbox" class="w-5 h-5 accent-emerald-500" disabled> Select all</label>
           <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
           <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
           <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
@@ -346,6 +347,7 @@
   const btnFoldSelected = document.getElementById('btnFoldSelected');
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
+  const selectAllShots = document.getElementById('selectAllShots');
   const scriptInput = document.getElementById('scriptInput');
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
@@ -420,11 +422,28 @@
     return Array.from(shotList.querySelectorAll('.select-shot:checked')).map(cb => cb.closest('li')).filter(Boolean);
   }
 
+  function updateSelectAll() {
+    const checkboxes = Array.from(shotList.querySelectorAll('.select-shot'));
+    const selected = checkboxes.filter(cb => cb.checked).length;
+    selectAllShots.checked = checkboxes.length > 0 && selected === checkboxes.length;
+    selectAllShots.indeterminate = selected > 0 && selected < checkboxes.length;
+    selectAllShots.disabled = checkboxes.length === 0;
+  }
+
+  selectAllShots.addEventListener('change', () => {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = selectAllShots.checked;
+      updateShotSelectionVisual(cb.closest('li'), cb.checked);
+    });
+    updateSelectAll();
+  });
+
   function clearShotSelection() {
     shotList.querySelectorAll('.select-shot').forEach(cb => {
       cb.checked = false;
       updateShotSelectionVisual(cb.closest('li'), false);
     });
+    updateSelectAll();
   }
 
   let draftStore;
@@ -558,6 +577,7 @@
       updateShotSelectionVisual(li, false);
       selectShot.addEventListener('change', () => {
         updateShotSelectionVisual(li, selectShot.checked);
+        updateSelectAll();
       });
     }
 
@@ -780,6 +800,7 @@
   // Observe list for new items to wire drag
   const mo = new MutationObserver(() => {
     Array.from(shotList.children).forEach(addDragHandlers);
+    updateSelectAll();
   });
   mo.observe(shotList, { childList: true });
 
@@ -880,7 +901,7 @@
     setEditable(value) {
       this.canEdit = value;
       document.querySelectorAll('#storyboardEditor input, #storyboardEditor textarea, #storyboardEditor select').forEach(el => {
-        el.disabled = !value && !el.classList.contains('select-shot');
+        el.disabled = !value && !el.classList.contains('select-shot') && el.id !== 'selectAllShots';
       });
       document.querySelectorAll('#storyboardEditor button').forEach(el => {
         const viewOnly = el.classList.contains('btnToggleFold') || ['btnFoldSelected','btnUnfoldSelected','btnClearSelection'].includes(el.id);
@@ -888,6 +909,7 @@
       });
       [btnNew,btnImport,btnReset].forEach(button=>button.disabled=!value);
       shotList.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=String(value));
+      updateSelectAll();
     }
   };
   // --- Init ---

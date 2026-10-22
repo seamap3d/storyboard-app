@@ -36,6 +36,20 @@ try {
  });
  const origin='http://127.0.0.1:'+server.address().port;
  await page.goto(origin);await page.locator('#projTitle').fill('Keep browser draft');await page.locator('#btnNew').click();
+ // Select-all tracks empty, partial and full selection, and drives both actions.
+ await page.locator('#btnNew').click();
+ await page.locator('#selectAllShots').check();
+ assert.equal(await page.locator('.select-shot:checked').count(),2);
+ await page.locator('#btnFoldSelected').click();
+ assert.equal(await page.locator('.shot[data-folded="true"]').count(),2);
+ assert.equal(await page.locator('#selectAllShots').isChecked(),false);
+ await page.locator('#selectAllShots').check();await page.locator('#btnUnfoldSelected').click();
+ assert.equal(await page.locator('.shot[data-folded="false"]').count(),2);
+ await page.locator('.select-shot').first().check();
+ assert.equal(await page.locator('#selectAllShots').evaluate(el=>el.indeterminate),true);
+ await page.locator('.select-shot').nth(1).check();assert.equal(await page.locator('#selectAllShots').isChecked(),true);
+ await page.locator('#selectAllShots').uncheck();assert.equal(await page.locator('.select-shot:checked').count(),0);
+ await page.locator('.btnDelete').nth(1).click();
  await page.locator('.scene').fill('EXT. LOCAL BEACH');
  await page.waitForFunction(()=>!window.storyboard.localUnsaved);
  await page.reload();await page.waitForFunction(()=>document.getElementById('projTitle').value==='Keep browser draft');
