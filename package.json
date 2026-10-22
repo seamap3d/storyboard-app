@@ -1,0 +1,11 @@
+{
+  "name": "apeonawhale-storyboard",
+  "private": true,
+  "version": "0.1.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test",
+    "dev": "python3 -m http.server 8000 --bind 0.0.0.0 --directory dist"
+  }
+}
