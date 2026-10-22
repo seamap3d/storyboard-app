@@ -40,8 +40,8 @@ export class SharedClient {
     catch (error) { if (error.status===400 || error.status===401) this.setSession(null); throw error; }
   }
   async signIn(email,password) { this.setSession(await this.request('/auth/v1/token?grant_type=password',{auth:false,body:{email,password}})); }
-  async signUp(email,password) {
-    const data = await this.request('/auth/v1/signup',{auth:false,body:{email,password}});
+  async signUp(email,password,redirectTo) {
+    const data = await this.request('/auth/v1/signup'+(redirectTo?'?redirect_to='+encodeURIComponent(redirectTo):''),{auth:false,body:{email,password}});
     if (data?.access_token) this.setSession(data);
   }
   async user() { return this.request('/auth/v1/user'); }

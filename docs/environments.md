@@ -264,3 +264,42 @@ confirmation/recovery, redirects, cross-device saves, membership flows, and conf
 checks through the hosted app remain to be verified with development accounts.
 MCP database access does not itself configure Auth settings. The earlier local
 and mocked-browser tests remain supporting evidence, not substitutes for those checks.
+
+## Hosted collaboration smoke check — 23 October 2026 (Auckland)
+
+`tests/sql/hosted-collaboration-smoke.sql` was executed against development only.
+It inserts random temporary identity fixtures within one transaction, simulates
+JWT subject changes at the SQL layer, exercises the real installed RPCs and RLS,
+and rolls back every fixture row. It passed project/board creation, reading an
+editor's save as the owner, multiple boards, cross-project isolation, viewer write
+denial, stale-version conflict detection, and revoked-member access denial.
+This validates hosted SQL behavior, not password sign-in, JWT issuance, PostgREST,
+email delivery, browser UI or cross-device persistence. No real emails were sent.
+
+The workspace still receives proxy HTTP 403 when requesting the preview. Supabase
+MCP provides database access but no Auth configuration editor. Real browser/email
+checks require the owner's browser and inbox until those capabilities are available.
+
+Sign-up now explicitly requests the originating app URL as its confirmation
+redirect, matching recovery's existing behavior. Supabase must allow that URL;
+otherwise its Site URL fallback can take the user elsewhere.
+
+### Owner-assisted development Auth check
+
+1. Open development Auth URL Configuration:
+   https://supabase.com/dashboard/project/lfvsimzmjhceyvjaoats/auth/url-configuration
+2. Set the development Site URL to
+   `https://deploy-preview-3--storyboardafterlive.netlify.app/` and include that exact
+   address in allowed Redirect URLs. Keep production configuration separate.
+3. Confirm email/password accounts and email confirmation are enabled. If delivery
+   is restricted by the default mail service, use an allowed team address for the
+   pilot or review SMTP configuration and costs before selecting a provider.
+4. Open the preview, select Create account, use your own email and a private
+   password, then follow the confirmation email. Do not share the password,
+   confirmation URL, access token or refresh token in chat.
+5. Confirm return to the preview and successful sign-in. Create a film project,
+   add two named storyboards, add/edit a shot and click Save storyboard. Switch
+   between storyboards, reload, select the project again, and confirm saved content.
+6. Repeat sign-in in a separate browser/device to verify actual cross-device saves.
+   Report outcomes or error messages without credentials. Recovery and real
+   multi-account membership testing remain separate pending checks.

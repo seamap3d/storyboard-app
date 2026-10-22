@@ -41,3 +41,11 @@ test('storyboard RPC accepts the single-row composite representation from PostgR
  client.setSession({access_token:'current',expires_in:3600});
  assert.deepEqual(await client.rpc('save_storyboard',{p_version:1}),{id:'board',version:2});
 });
+test('signup explicitly returns email confirmation to the originating app',async()=>{
+ let request;const client=new SharedClient(config,{storage:storage(),fetcher:async(url,options)=>{request={url,options};return response({user:{id:'pending'}});}});
+ const redirect='https://deploy-preview-3--storyboardafterlive.netlify.app/';
+ await client.signUp('person@example.test','private-fixture-password',redirect);
+ const url=new URL(request.url);
+ assert.equal(url.pathname,'/auth/v1/signup');assert.equal(url.searchParams.get('redirect_to'),redirect);
+ assert.equal(url.href.includes('private-fixture-password'),false);assert.equal(client.session,null);
+});
