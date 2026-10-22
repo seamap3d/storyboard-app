@@ -15,7 +15,11 @@ A single-file HTML storyboard application for filmmakers and visual storytellers
 - **Password Protection**: Basic authentication for deployed sites
 - **Keyboard Shortcuts**: `N` for new shot, `E` to export, `P` to print
 
-## 🚀 Deployment to Netlify
+## Development and production foundation
+
+Use the [Netlify + Supabase environment runbook](docs/environments.md) for isolated development/production setup, migrations, deployment, and smoke checks. The app currently stores storyboard data locally; collaboration is separate work.
+
+## 🚀 Legacy static deployment to Netlify
 
 ### Method 1: Drag & Drop
 1. Zip the entire project folder
