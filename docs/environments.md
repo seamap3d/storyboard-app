@@ -40,7 +40,7 @@ Netlify uses `netlify.toml`, Node 22, `npm run build`, and `dist`. The build emi
 only HTML, CSS, browser modules, and an allowlisted public `runtime-config.json`. It does not publish
 the repository root, backlog, environment files, or scripts. The legacy root
 `_headers` file is intentionally excluded; its Basic-Auth configuration is not
-an application authentication system. The original browser draft still uses localStorage. Shared-project setup and its
+an application authentication system. Browser drafts use IndexedDB, with migration from legacy localStorage. Shared-project setup and its
 additional migration are described below.
 
 ## Local build
@@ -178,8 +178,8 @@ sent**. The owner shares the app link through their existing communication
 channel, with no additional delivery cost. Refresh to discover new invitations.
 Commenters currently have read access; commenting itself is a separate story.
 
-The original browser draft remains in its original localStorage key. Opening a
-shared storyboard does not overwrite it; **Copy browser draft to project** makes
+The browser draft is stored in IndexedDB; old localStorage data is migrated and
+kept as a fallback backup. Opening a shared storyboard does not overwrite it; **Copy browser draft to project** makes
 a separate shared copy. JSON import/export still works on the selected board.
 Do not clear browser storage until you have verified a shared copy and export.
 Shared document content is kept in memory rather than the browser draft; unsaved
@@ -303,3 +303,26 @@ otherwise its Site URL fallback can take the user elsewhere.
 6. Repeat sign-in in a separate browser/device to verify actual cross-device saves.
    Report outcomes or error messages without credentials. Recovery and real
    multi-account membership testing remain separate pending checks.
+
+
+## JSON import storage fix — 23 October 2026 (Auckland)
+
+The owner confirmed development sign-up and email confirmation returned to the
+preview successfully. They then reported a browser-storage warning when importing
+an existing storyboard JSON file. Embedded images can exceed localStorage's small
+string quota. The old code kept failed imports on screen but reread an older saved
+copy when copying a browser draft into shared storage.
+
+Browser drafts now use IndexedDB. Initial load migrates legacy localStorage data
+without deleting it, waits for hydration before enabling editing, and serializes
+saves. A status line reports saving/saved/failed state. Failed saves retain the
+latest in-memory document, allow export and shared-copy attempts, and warn before
+closing. Copy browser draft reads this current document rather than stale storage.
+No repeated quota alert is shown on every edit.
+
+Chromium regression checks cover legacy migration, importing and reloading a
+6 MiB JSON document that exceeds localStorage quota, failed-save preservation,
+export availability and subsequent storage recovery. Shared copy/save additionally
+reports the existing 5 MiB document limit before sending oversized requests. This
+does not increase the Supabase document limit or implement object storage. Large
+image libraries still require the dedicated private-image storage story.

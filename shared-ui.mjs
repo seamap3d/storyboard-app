@@ -1,10 +1,17 @@
 import {SharedClient} from './shared-client.mjs';
 const $ = id => document.getElementById(id);
 const bridge = window.storyboard;
+await bridge.ready;
 let client, user, projects=[], boards=[], project=null, board=null, dirty=false, loading=false, busy=false;
+function checkSharedSize(document) {
+  if (new Blob([JSON.stringify(document)]).size > 5 * 1024 * 1024) {
+    throw new Error('This storyboard exceeds the current 5 MiB shared-save limit, often because of embedded images. Your draft is preserved; keep its JSON export. Dedicated image storage is planned.');
+  }
+}
 const status = message => { $('sharedStatus').textContent=message; };
 function editable() { return !project || project.owner_id===user?.id || project.role==='editor'; }
 function controls() {
+  $('draftStatus').hidden=bridge.mode!=='local';
   bridge.setEditable(!loading && (bridge.mode==='local' || (!!user && !!board && editable())));
   $('cloudSave').disabled=!user || !board || !editable() || busy;
   $('newBoard').disabled=!project || !editable() || busy;
@@ -129,11 +136,14 @@ $('projectSelect').onchange=()=>{const id=$('projectSelect').value;if(!discard()
 $('boardSelect').onchange=()=>{const id=$('boardSelect').value;if(!discard()){$('boardSelect').value=board?.id||'';return;}run(()=>loadBoard(id));};
 for(const [id,copy] of [['newBoard',false],['copyLocal',true]]) $(id).onclick=()=>run(async()=>{
   if(!discard())return;const name=prompt(copy?'Name for a shared copy of your browser draft':'Storyboard name');if(!name?.trim())return;
-  const result=await client.rpc('create_storyboard',{p_project:project.id,p_name:name.trim(),p_document:copy?bridge.localData():{meta:{},shots:[]}});
+  const document=copy?bridge.localData():{meta:{},shots:[]};
+  checkSharedSize(document);
+  const result=await client.rpc('create_storyboard',{p_project:project.id,p_name:name.trim(),p_document:document});
   const selectedProject=project.id;await selectProject(selectedProject);$('boardSelect').value=result.id;await loadBoard(result.id);
 });
 $('cloudSave').onclick=()=>run(async()=>{
   const snapshot=JSON.stringify(bridge.collectData()), name=$('boardName').value;
+  checkSharedSize(JSON.parse(snapshot));
   const result=await client.rpc('save_storyboard',{p_id:board.id,p_version:board.version,p_name:name,p_document:JSON.parse(snapshot)});
   board=result;
   dirty=JSON.stringify(bridge.collectData())!==snapshot || $('boardName').value!==name;

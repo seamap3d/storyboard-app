@@ -69,6 +69,7 @@
     <p id="cloudRole">This draft is saved only in this browser.</p>
     <p id="sharedStatus" role="status" aria-live="polite">Shared storyboards save when you click Save storyboard. Browser drafts remain separate.</p>
   </section>
+  <p id="draftStatus" role="status" aria-live="polite">Loading browser draft…</p>
   <fieldset id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
   <!-- Project Panel -->
     <section class="mb-6">
@@ -426,25 +427,62 @@
     });
   }
 
+  let draftStore;
+  let draftData = {meta:{},shots:[]};
+  let draftSave = Promise.resolve();
+  let draftRevision = 0;
+  let draftUnsaved = false;
+  const draftStatus = document.getElementById('draftStatus');
+  function persistDraft() {
+    const revision = ++draftRevision;
+    const snapshot = structuredClone(draftData);
+    draftUnsaved = true;
+    draftStatus.textContent = 'Saving browser draft…';
+    draftSave = draftSave.catch(() => {}).then(() => {
+      if (!draftStore) throw new Error('Draft storage unavailable.');
+      return draftStore.writeDraft(snapshot);
+    }).then(() => {
+      if (revision !== draftRevision) return;
+      draftUnsaved = false;
+      draftStatus.textContent = 'Browser draft saved on this device.';
+    }).catch(() => {
+      if (revision !== draftRevision) return;
+      draftStatus.textContent = 'Browser draft could not be saved on this device. Your changes remain open; export JSON or copy the draft to a shared project before closing.';
+    });
+  }
   function saveLocal() {
     if (isHydrating) return;
     if (window.storyboard?.mode === 'shared') { window.storyboard.onChange?.(); return; }
-    const data = collectData();
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
-    catch { alert('Browser storage is full or unavailable. Export JSON to keep your changes.'); }
+    draftData = collectData();
+    persistDraft();
   }
-
-  function loadLocal() {
-    let raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (raw) {
-        localStorage.setItem(STORAGE_KEY, raw);
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
+  async function loadLocal() {
+    let readable = false;
+    try {
+      draftStore = await import('./local-draft.mjs');
+      const saved = await draftStore.readDraft();
+      readable = true;
+      if (saved) {
+        draftData = saved;
+        hydrate(draftData);
+        draftStatus.textContent = 'Browser draft saved on this device.';
+        return;
       }
+    } catch {
+      draftStatus.textContent = 'Browser draft storage is unavailable. Export changes before closing.';
     }
-    if (!raw) return;
-    try { hydrate(JSON.parse(raw)); } catch {}
+    // Keep legacy data unchanged until the new draft is safely stored, and retain
+    // it as a fallback backup. The in-memory snapshot always tracks current edits.
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        draftData = JSON.parse(raw);
+        hydrate(draftData);
+        persistDraft();
+      } else if (readable) draftStatus.textContent = 'Browser draft ready. Changes save on this device.';
+    } catch {
+      draftStatus.textContent = 'Previous browser draft could not be read. Your exported JSON files can still be imported.';
+    }
   }
 
   function collectData() {
@@ -837,10 +875,8 @@
     mode: 'local', canEdit: true, scope: 0,
     collectData,
     hydrate(data) { this.scope++; hydrate(data); },
-    localData() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"meta":{},"shots":[]}'); }
-      catch { throw new Error('Browser draft could not be read. Export it before switching.'); }
-    },
+    localData() { return structuredClone(draftData); },
+    get localUnsaved() { return draftUnsaved; },
     setEditable(value) {
       this.canEdit = value;
       document.querySelectorAll('#storyboardEditor input, #storyboardEditor textarea, #storyboardEditor select').forEach(el => {
@@ -855,8 +891,14 @@
     }
   };
   // --- Init ---
-  loadLocal();
-  if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+  window.storyboard.setEditable(false);
+  window.storyboard.ready = loadLocal().finally(() => {
+    if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+    window.storyboard.setEditable(true);
+  });
+  window.addEventListener('beforeunload', event => {
+    if (draftUnsaved) { event.preventDefault(); event.returnValue = ''; }
+  });
 
   // Persist meta edits
   [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));

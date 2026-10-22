@@ -28,7 +28,7 @@ export async function build(env = process.env, output = resolve('dist')) {
   await rm(output, { recursive: true, force: true });
   await mkdir(output, { recursive: true });
   // Explicit allowlist prevents publishing backlog, source configuration, or credentials.
-  for (const name of ['index.html', 'styles.css', 'shared-client.mjs', 'shared-ui.mjs']) await copyFile(name, resolve(output, name));
+  for (const name of ['index.html', 'styles.css', 'shared-client.mjs', 'shared-ui.mjs', 'local-draft.mjs']) await copyFile(name, resolve(output, name));
   await writeFile(resolve(output, 'runtime-config.json'), JSON.stringify(config, null, 2) + '\n');
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

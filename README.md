@@ -46,7 +46,7 @@ The app includes a `_headers` file with basic authentication:
 
 ### Uploaded Images
 - Images uploaded via the app are stored as base64 data
-- Saved in browser localStorage and JSON exports
+- Saved in browser IndexedDB drafts and JSON exports; shared saves use Supabase
 - No server required - works entirely client-side
 
 ## 🎬 Usage
@@ -80,7 +80,7 @@ The app includes a `_headers` file with basic authentication:
 - **CDN-Powered**: Tailwind CSS, Google Fonts, and PDF.js loaded via CDN
 - **Client-Side**: No server or database required
 - **Responsive**: Works on desktop and mobile devices
-- **Browser Storage**: Auto-saves to localStorage
+- **Browser Storage**: Auto-saves local drafts to IndexedDB
 
 ## 📝 File Structure
 
