@@ -144,7 +144,7 @@ provider credentials nor its management tools were available in this session.
 
 ## Shared projects and multiple storyboards (review branch)
 
-The collaboration migration `20261022010000_shared_storyboards.sql` adds film
+The collaboration migration `20261022215928_shared_storyboards.sql` adds film
 projects, project membership, invitations, and versioned storyboard documents.
 Apply **both ordered migrations to development first**, using the CLI workflow
 above. Do not paste these files into production without migration history checks.
@@ -221,3 +221,46 @@ access and simultaneous edits with real pilot accounts. The preview foundation
 health endpoint has been confirmed by the owner, but health probes only Auth
 connectivity, not these workflows. Production migration, pricing/limits review,
 and production smoke checks remain outstanding.
+
+
+## Development migration deployment — 23 October 2026 (Auckland)
+
+Authenticated Supabase MCP access is working for `storyboard-dev`, reference
+`lfvsimzmjhceyvjaoats` (PostgreSQL 17.11). Initial inspection found no application
+tables or recorded migrations. The two repository migrations were applied using
+Supabase MCP and verified in its migration history:
+
+| Recorded version | Migration |
+| --- | --- |
+| `20261022214509` | `environment_foundation` |
+| `20261022215928` | `shared_storyboards` |
+
+MCP assigns application-time migration versions. Repository filenames were renamed
+to these exact versions without changing SQL contents. Use the updated collaboration
+branch before future CLI pushes; old filenames would appear unapplied and attempt
+to recreate existing tables. The foundation metadata's `schema_version` remains its
+original logical version marker, independent of the deployment timestamp.
+
+Verified remotely: RLS is enabled on all five application/private tables; anonymous
+roles cannot read them; authenticated users cannot write directly; all eight public
+write RPCs deny anonymous execution. Transactional negative-access checks passed
+and were rolled back without adding application records.
+
+Security advisor findings: one informational notice for the intentionally
+policy-free private metadata table (all client access is revoked), plus eight
+warnings for intentionally authenticated `SECURITY DEFINER` RPCs. These RPCs have
+explicit identity/membership/role checks, fixed empty search paths, and revoked
+anonymous/PUBLIC execution. Preserve these checks; review this API design before
+production. References:
+- https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
+- https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
+
+The first collaboration application attempt returned an MCP request-state error.
+History and tables were rechecked before retrying; no collaboration schema had been
+installed. The subsequent application succeeded and both migrations are recorded.
+
+No production project was contacted or modified by this deployment. Real email
+confirmation/recovery, redirects, cross-device saves, membership flows, and conflict
+checks through the hosted app remain to be verified with development accounts.
+MCP database access does not itself configure Auth settings. The earlier local
+and mocked-browser tests remain supporting evidence, not substitutes for those checks.
