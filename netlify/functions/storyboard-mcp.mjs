@@ -1,4 +1,4 @@
-import { publicConfig } from '../../scripts/build.mjs';
+import { publicConfig } from '../../server/public-config.mjs';
 import { createToolClient, runTool, toolDefinitions } from '../../server/storyboard-tools.mjs';
 const versions=['2025-03-26','2025-06-18','2025-11-25'];
 const json=(statusCode,value,headers={})=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store',...headers},body:JSON.stringify(value)});
