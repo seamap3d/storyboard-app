@@ -70,7 +70,16 @@
     <p id="sharedStatus" role="status" aria-live="polite">Shared storyboards save when you click Save storyboard. Browser drafts remain separate.</p>
   </section>
   <p id="draftStatus" role="status" aria-live="polite">Loading browser draft…</p>
-  <fieldset id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
+  <nav id="workspaceTabs" role="tablist" aria-label="Film planning views">
+    <button role="tab" id="tab-script" disabled aria-selected="false" tabindex="-1" title="Planned">Script · planned</button>
+    <button role="tab" id="tab-storyboard" data-tab="storyboard" aria-controls="storyboardEditor" aria-selected="true">Storyboard</button>
+    <button role="tab" id="tab-shot-list" data-tab="shot-list" aria-controls="shotListPanel" aria-selected="false" tabindex="-1">Shot list</button>
+    <button role="tab" id="tab-requirements" data-tab="requirements" aria-controls="requirementsPanel" aria-selected="false" tabindex="-1">Props &amp; equipment</button>
+    <button role="tab" id="tab-schedule" disabled aria-selected="false" tabindex="-1" title="Planned">Schedule · planned</button>
+    <button role="tab" id="tab-people" disabled aria-selected="false" tabindex="-1" title="Planned">People &amp; locations · planned</button>
+    <button role="tab" id="tab-call-sheets" disabled aria-selected="false" tabindex="-1" title="Planned">Call sheets · planned</button>
+  </nav>
+  <fieldset role="tabpanel" aria-labelledby="tab-storyboard" data-workspace-panel="storyboard" id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
   <!-- Project Panel -->
     <section class="mb-6">
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
@@ -133,6 +142,27 @@
   <ol id="shotList" class="space-y-4"></ol>
     </section>
   </fieldset>
+  <section id="shotListPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-shot-list" data-workspace-panel="shot-list" hidden>
+    <h2>Shot list</h2><p>Current storyboard. Edits update the same shot cards. Use Save storyboard to share changes.</p>
+    <div class="planning-tools">
+      <label>Search <input id="shotSearch" data-filter="search" type="search" placeholder="Scene, cast, props…"></label>
+      <label>Scene <select id="shotScene" data-filter="scene"><option value="">All scenes</option></select></label>
+      <label>Location <select id="shotLocation" data-filter="location"><option value="">All locations</option></select></label>
+      <label>Shoot date <select id="shotDay" data-filter="day"><option value="">All shoot dates</option></select></label>
+      <label>Status <select id="shotStatus" data-filter="status"><option value="">All statuses</option><option value="planned">Planned</option><option value="ready">Ready</option><option value="filmed">Filmed</option></select></label>
+      <label>Sort <select id="shotSort" data-filter="sort"><option value="">Storyboard order</option><option value="scene">Scene</option><option value="day">Shoot date</option></select></label>
+      <button id="exportShotCsv">Export filtered CSV</button>
+    </div>
+    <p id="shotSummary" role="status"></p><p id="shotEmpty">No matching shots. Import a storyboard, add shots, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Shot list table"><table id="shotTable"></table></div>
+  </section>
+  <section id="requirementsPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-requirements" data-workspace-panel="requirements" hidden>
+    <h2>Props &amp; equipment</h2><p>Current storyboard. Items are consolidated from shot fields; separate names with commas, semicolons or new lines. Quantities are entered manually.</p>
+    <div class="planning-tools"><label>Search <input id="requirementSearch" type="search"></label><label>Category <select id="requirementKind"><option value="">All categories</option><option value="prop">Props</option><option value="equipment">Equipment</option></select></label><button id="exportRequirementCsv">Export filtered CSV</button></div>
+    <form id="addRequirement" class="planning-tools"><label>Category <select id="newRequirementKind"><option value="prop">Prop</option><option value="equipment">Equipment</option></select></label><label>Item <input id="newRequirementName" required maxlength="160" placeholder="Additional requirement"></label><button>Add item</button></form>
+    <p id="requirementsSummary" role="status"></p><p id="requirementsEmpty">No matching requirements. Add props/equipment to a shot, add an item here, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Props and equipment table"><table id="requirementsTable"></table></div>
+  </section>
   </div>
 
   <template id="shotTmpl">
@@ -473,6 +503,7 @@
   }
   function saveLocal() {
     if (isHydrating) return;
+    document.dispatchEvent(new Event('storyboardchange'));
     if (window.storyboard?.mode === 'shared') { window.storyboard.onChange?.(); return; }
     draftData = collectData();
     persistDraft();
@@ -572,6 +603,9 @@
 
     sceneInput.value = s.scene || '';
     shotNumInput.value = s.number || state.shots.length + 1;
+    for (const [input,value] of [[typeInput,s.type],[lensInput,s.lens],[moveInput,s.move]]) {
+      if(value && !Array.from(input.options).some(option=>option.value===value)) input.add(new Option(value,value));
+    }
     typeInput.value = s.type || 'Wide';
     lensInput.value = s.lens || '35mm';
     moveInput.value = s.move || 'Locked';
@@ -920,7 +954,7 @@
 
   // --- Keyboard shortcuts ---
   document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
     if (window.storyboard && !window.storyboard.canEdit && e.key.toLowerCase() === 'n') return;
     if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
     if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
@@ -930,7 +964,18 @@
   window.storyboard = {
     mode: 'local', canEdit: true, scope: 0,
     collectData,
-    hydrate(data) { this.scope++; hydrate(data); },
+    hydrate(data) { this.scope++; hydrate(data); document.dispatchEvent(new Event('storyboardchange')); },
+    updateShot(id,patch) {
+      if (!this.canEdit) return;
+      const shot = state.shots.find(s=>s.id===id); if (!shot) return;
+      const fields = ['scene','desc','type','lens','move','location','chars','shootDate','estimatedMinutes','status','props','equipment','notes'];
+      for (const field of fields) if (Object.hasOwn(patch,field)) shot[field]=patch[field];
+      renderAll(); saveLocal();
+    },
+    updateRequirements(requirements) {
+      if (!this.canEdit) return;
+      documentExtras.planning={...documentExtras.planning,requirements}; saveLocal();
+    },
     localData() { return structuredClone(draftData); },
     get localUnsaved() { return draftUnsaved; },
     setEditable(value) {
@@ -945,6 +990,7 @@
       [btnNew,btnImport,btnReset].forEach(button=>button.disabled=!value);
       shotList.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=String(value));
       updateSelectAll();
+      document.dispatchEvent(new Event('storyboardpermissions'));
     }
   };
   // --- Init ---
@@ -962,6 +1008,7 @@
   </script>
 
   <script type="module" src="shared-ui.mjs"></script>
+  <script type="module" src="workspace-ui.mjs"></script>
   <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
     Built as a single HTML file – host on GitHub Pages or Netlify. © You.
   </footer>

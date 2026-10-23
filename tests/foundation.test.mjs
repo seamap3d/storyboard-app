@@ -18,7 +18,7 @@ test('build publishes only assets and selected public configuration', async () =
   const dir = await mkdtemp(join(tmpdir(), 'storyboard-build-'));
   try {
     await build({...env, PRIVATE_TEST_SECRET:'must-not-appear'}, dir);
-    assert.deepEqual((await readdir(dir)).sort(), ['index.html','local-draft.mjs','runtime-config.json','shared-client.mjs','shared-ui.mjs','storyboard-media.mjs','styles.css']);
+    assert.deepEqual((await readdir(dir)).sort(), ['index.html','local-draft.mjs','runtime-config.json','shared-client.mjs','shared-ui.mjs','storyboard-media.mjs','styles.css','workspace-model.mjs','workspace-ui.mjs']);
     const config = await readFile(join(dir,'runtime-config.json'),'utf8');
     assert.equal(config.includes('must-not-appear'),false);
     assert.equal(JSON.parse(config).supabaseUrl, env.SUPABASE_URL);

@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs', 'storyboard-media.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
+const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs', 'storyboard-media.mjs', 'workspace-model.mjs', 'workspace-ui.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;
 try {
@@ -51,8 +51,33 @@ try {
  await page.locator('#selectAllShots').uncheck();assert.equal(await page.locator('.select-shot:checked').count(),0);
  await page.locator('.btnDelete').nth(1).click();
  await page.locator('.scene').fill('EXT. LOCAL BEACH');
+ // Table edits must update the same cards and preserve metadata across tabs/reload.
+ await page.locator('#tab-shot-list').click();
+ await page.locator('#shotTable [data-field="props"]').fill('Cup, Chair');await page.locator('#shotTable [data-field="props"]').press('Tab');
+ await page.locator('#shotTable [data-field="equipment"]').fill('Camera');await page.locator('#shotTable [data-field="equipment"]').press('Tab');
+ await page.locator('#shotTable [data-field="status"]').selectOption('ready');
+ await page.locator('#shotTable [data-field="estimatedMinutes"]').fill('12');await page.locator('#shotTable [data-field="estimatedMinutes"]').press('Tab');
+ await page.locator('#shotSearch').fill('no matching shot');assert.equal(await page.locator('#shotTable tbody tr').count(),0);await page.locator('#shotSearch').fill('');
+ const csvDownloadPromise=page.waitForEvent('download');await page.locator('#exportShotCsv').click();const csvDownload=await csvDownloadPromise;
+ assert.ok((await readFile(await csvDownload.path(),'utf8')).includes('Cup, Chair'));
+
+ await page.locator('#tab-requirements').click();assert.equal(await page.locator('#requirementsTable tbody tr').count(),3);
+ await page.locator('[data-requirement-key="prop:cup"] [data-field="quantity"]').fill('2');await page.locator('[data-requirement-key="prop:cup"] [data-field="quantity"]').press('Tab');
+ await page.locator('[data-requirement-key="prop:cup"] [data-field="readiness"]').selectOption('ready');
+ await page.locator('#newRequirementName').fill('Spare batteries');await page.locator('#newRequirementKind').selectOption('equipment');await page.locator('#addRequirement button').click();
+ await page.locator('#tab-storyboard').click();assert.equal(await page.locator('.props').inputValue(),'Cup, Chair');
+ await page.locator('#tab-storyboard').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#tab-shot-list').getAttribute('aria-selected'),'true');
+ await page.keyboard.press('End');assert.equal(await page.locator('#tab-requirements').getAttribute('aria-selected'),'true');
+ await page.keyboard.press('Home');assert.equal(await page.locator('#tab-storyboard').getAttribute('aria-selected'),'true');
+
+ assert.equal(await page.evaluate(()=>window.storyboard.collectData().shots[0].status),'ready');
+
  await page.waitForFunction(()=>!window.storyboard.localUnsaved);
  await page.reload();await page.waitForFunction(()=>document.getElementById('projTitle').value==='Keep browser draft');
+ await page.locator('#tab-requirements').click();assert.equal(await page.locator('[data-requirement-key="prop:cup"] [data-field="quantity"]').inputValue(),'2');
+ assert.equal(await page.locator('[data-requirement-key="equipment:spare batteries"]').count(),1);
+ await page.locator('#tab-storyboard').click();
+
  await page.locator('#accountEmail').fill(user.email);await page.locator('#accountPassword').fill('test-password');await page.locator('#authForm button[type=submit]').click();
  await page.waitForFunction(()=>document.getElementById('projectSelect').options.length===3).catch(async e=>{console.error(await page.locator('#sharedStatus').textContent(),errors);throw e;});
  await page.selectOption('#projectSelect','project-1');await page.waitForFunction(()=>document.getElementById('projTitle').value==='Shared One');
@@ -96,6 +121,10 @@ try {
  const count=await page.locator('.shot').count();await page.locator('body').press('n');assert.equal(await page.locator('.shot').count(),count);
  await page.locator('.btnToggleFold').click();await page.locator('.btnToggleFold').click();assert.equal(await page.locator('.scene').isVisible(),true);
  assert.equal(await page.locator('#btnExport').isEnabled(),true);
+ await page.locator('#tab-shot-list').click();assert.equal(await page.locator('#shotTable [data-field="scene"]').isDisabled(),true);
+ await page.locator('#tab-requirements').click();assert.equal(await page.locator('#newRequirementName').isDisabled(),true);
+ await page.locator('#tab-storyboard').click();
+
  // Verify migration, large-file persistence, and real write failures in Chromium.
  const draftContext=await browser.newContext();
  const draftPage=await draftContext.newPage();

@@ -400,3 +400,38 @@ Source archives, extracted JSON, decoded image bytes and reproduction scratch
 files remain in ignored `work/`; they must not be committed or published. No paid
 plan was selected or upgraded. Existing project Storage/egress allowances still
 apply; review usage before a wider pilot.
+
+## Planning workspace: first three views — 23 October 2026
+
+The workspace now provides Storyboard, Shot list and Props & equipment views for
+the **currently selected storyboard**. Script, Schedule, People & locations and
+Call sheets are visible as disabled planned tabs; their editing/workflows are not
+implemented by this increment. Navigation supports pointer and keyboard use and
+does not change the selected project/board or discard unsaved edits.
+
+Shot list is an editable table over the same shot records as storyboard cards:
+scene, action, framing/lens/movement, location, cast, shoot date, estimated minutes,
+filming status, props, equipment and notes. Search/filter by scene, location, shoot
+date/status, sort by scene/date or original storyboard order, and export filtered
+CSV. Table edits update cards immediately; shared users still click Save storyboard.
+Sorting/filtering is a view operation and does not reorder the source storyboard.
+Custom framing/lens/movement values are preserved when entered through the table.
+
+Props & equipment consolidates case-insensitive names from comma/semicolon/newline
+lists on shots, keeping categories separate and showing shot/scene references.
+Quantities are manual inventory counts, not guessed from mentions. Users can add
+manual requirements and save quantity, provided-by, readiness and notes. These
+records live in `planning.requirements` inside the versioned storyboard document,
+with stable IDs once materialized; all existing RLS, shared-save version checks,
+portable export/import and image handling continue to apply. Unreferenced manual
+records remain visible so removing a shot mention does not erase logistics notes.
+This is not yet a project-wide cross-storyboard resource catalog or script-tagging
+system; those require the later canonical-record integration stories.
+
+Viewers/commenters can navigate, filter and export but cannot edit table values
+or add requirements. CSV export quotes fields and neutralizes spreadsheet formula
+prefixes. No backend migration or production change is required for these views.
+
+Validation: 18 unit tests pass; Chromium checks cover cross-tab edits, filters,
+manual requirement persistence, CSV download, keyboard navigation and read-only
+controls, alongside the existing workflow and full-size private-image import checks.

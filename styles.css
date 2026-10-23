@@ -88,3 +88,20 @@ button:disabled { opacity: .45; cursor: not-allowed; }
 header, header > div { flex-wrap: wrap; }
 #sharedPanel input, #sharedPanel select { max-width: 100%; }
 #sharedPanel label { min-width: 0; }
+
+#workspaceTabs { display:flex; gap:.5rem; flex-wrap:wrap; margin:1rem 0; }
+#workspaceTabs button, .planning-panel button { border:1px solid #64748b; border-radius:.5rem; padding:.55rem .8rem; background:#1e293b; color:#f1f5f9; }
+#workspaceTabs [aria-selected="true"] { background:#047857; border-color:#34d399; }
+.planning-panel h2 { font-size:1.25rem; margin:0 0 .5rem; }
+.planning-panel > p { color:#cbd5e1; margin:.5rem 0; }
+.planning-tools { display:flex; flex-wrap:wrap; align-items:end; gap:.75rem; margin:1rem 0; }
+.planning-tools label { display:grid; gap:.25rem; }
+.planning-panel input, .planning-panel select { background:#0f172a; color:#f1f5f9; border:1px solid #475569; border-radius:.35rem; padding:.45rem; }
+.planning-scroll { overflow:auto; max-height:70vh; border:1px solid #475569; border-radius:.5rem; }
+.planning-panel table { border-collapse:collapse; width:100%; font-size:.85rem; }
+.planning-panel th { position:sticky; top:0; z-index:1; background:#1e293b; text-align:left; white-space:nowrap; }
+.planning-panel th,.planning-panel td { padding:.5rem; border-bottom:1px solid #334155; vertical-align:top; }
+.planning-panel td { white-space:pre-line; min-width:9rem; }
+.planning-panel td input,.planning-panel td select { width:100%; min-width:8rem; }
+.planning-panel input:disabled,.planning-panel select:disabled { opacity:.75; }
+@media print { #workspaceTabs,.planning-tools { display:none; } .planning-scroll { overflow:visible; max-height:none; } .planning-panel th { position:static; } }
