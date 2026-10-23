@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs', 'storyboard-media.mjs', 'workspace-model.mjs', 'workspace-ui.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
+const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['oauth-consent.html','oauth-consent.mjs','index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs', 'storyboard-media.mjs', 'workspace-model.mjs', 'workspace-ui.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;
 try {
@@ -156,6 +156,26 @@ try {
  await draftPage.waitForFunction(()=>!window.storyboard.localUnsaved);
  await draftPage.reload();await draftPage.waitForFunction(()=>document.getElementById('projTitle').value==='Recovered imported draft');
  await draftContext.close();
+ // OAuth consent uses the existing app account and never approves automatically.
+ const consent=await browser.newPage();let consentActions=[];
+ await consent.route('https://**.supabase.co/**',async route=>{
+  const req=route.request();const u=new URL(req.url());
+  const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'*'};
+  if(req.method()==='OPTIONS'){await route.fulfill({status:204,headers});return;}
+  let value;
+  if(u.pathname==='/auth/v1/token')value={access_token:'consent-user',refresh_token:'refresh',expires_in:3600};
+  else if(u.pathname.endsWith('/consent')){consentActions.push(req.postDataJSON().action);value={redirect_url:'https://chatgpt.com/connector-fixture'};}
+  else value={authorization_id:'test-authorization',client:{name:'Storyboard test client'},scope:'openid',redirect_uri:'https://chatgpt.com/connector-fixture'};
+  await route.fulfill({headers,json:value});
+ });
+ await consent.route('https://chatgpt.com/connector-fixture',r=>r.fulfill({body:'Callback fixture'}));
+ await consent.goto(origin+'/oauth-consent.html?authorization_id=test-authorization');
+ await consent.locator('[name=email]').fill('owner@example.test');await consent.locator('[name=password]').fill('test-password');await consent.locator('#signin button').click();
+ await consent.locator('#approve').waitFor({state:'visible'});assert.deepEqual(consentActions,[]);
+ assert.ok((await consent.locator('#details').textContent()).includes('Storyboard test client'));
+ await consent.locator('#deny').click();await consent.waitForURL('https://chatgpt.com/connector-fixture');assert.deepEqual(consentActions,['deny']);
+ await consent.goto(origin+'/oauth-consent.html?authorization_id=test-authorization');await consent.locator('#approve').click();await consent.waitForURL('https://chatgpt.com/connector-fixture');assert.deepEqual(consentActions,['deny','approve']);
+ await consent.close();
  assert.deepEqual(errors,[]);
  console.log('Browser checks passed: local persistence, sign-in, multiple projects/boards, shared save/reload, conflict preservation, draft copy, sign-out isolation, viewer read-only controls, legacy migration, 6 MiB JSON reload, storage-failure preservation/recovery.');
 } finally {await browser?.close();await new Promise(resolve=>server.close(resolve));}

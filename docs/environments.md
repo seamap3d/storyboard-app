@@ -435,3 +435,68 @@ prefixes. No backend migration or production change is required for these views.
 Validation: 18 unit tests pass; Chromium checks cover cross-tab edits, filters,
 manual requirement persistence, CSV download, keyboard navigation and read-only
 controls, alongside the existing workflow and full-size private-image import checks.
+
+## ChatGPT image attachment MCP (development preview)
+
+The application now includes its own stateless HTTP MCP endpoint at
+`https://deploy-preview-3--storyboardafterlive.netlify.app/mcp`.
+This replaces the unverified standalone connector for this workflow; the existing
+connected plugin returned no storyboards and could not find the app's board.
+The separate `feat/storyboard-mcp` branch was fetched and contains only the old
+main commit, not a server implementation. No data was copied into that connector.
+
+The new endpoint is disabled outside `APP_ENV=development` and also rejects
+Netlify's production context. It uses only the publishable key plus the user's
+Bearer token, validates the account against Supabase Auth on every request, and
+forwards that same token through PostgREST and Storage. It never uses a service
+role or management credential. Existing RLS and save RPCs remain authoritative.
+There are no schema changes or new paid services.
+
+Tools: `list_storyboards`, `get_storyboard`, `attach_shot_image`. List results are
+limited to the latest 100 visible boards. Read returns shot IDs, descriptions,
+image presence and board revision without returning image bytes or private paths.
+Attach requires an exact board/shot, current revision and explicit replacement
+when the shot has an image. It verifies owner/editor access before downloading or
+uploading, checks MIME and PNG/JPEG/WebP signatures, and caps files at 5 MiB.
+A save conflict preserves the saved board; an uploaded object can remain orphaned
+for later cleanup. Other document fields and old immutable image objects survive.
+
+Transfer accepts actual embedded image data or a temporary HTTPS file URL on
+`oaiusercontent.com` or its subdomains. Remote redirects are rejected and downloads
+are bounded. Netlify's synchronous request payload limit means large base64 files
+must use a supported file URL or the existing app upload instead. There is no
+remote-local-filesystem upload tool: a ChatGPT local path is not readable by this
+Netlify function. Do not invent URLs or promise transfer when the generation tool
+has not exposed an accessible file. Existing manual image upload is the fallback.
+No OpenAI API key, in-app generation, or additional API billing is introduced.
+
+### Finish OAuth setup (requires development dashboard access)
+
+1. In development Supabase **Authentication > OAuth Server**, enable OAuth server.
+2. Set its authorization/consent page to
+   `https://deploy-preview-3--storyboardafterlive.netlify.app/oauth-consent.html`
+   (use the dashboard's authorization path field if it asks for a relative path).
+   This is separate from the Auth email Site URL; keep the existing email settings.
+3. Either register ChatGPT explicitly using its displayed callback URL and client
+   details, or enable dynamic client registration. Register only trusted callbacks;
+   dynamic registration allows other clients to register but does not grant user
+   data access without consent. No client secret belongs in chat or browser assets.
+4. Check the project's discovery endpoint:
+   `https://lfvsimzmjhceyvjaoats.supabase.co/.well-known/oauth-authorization-server/auth/v1`.
+5. Add a new custom ChatGPT MCP connection to the preview `/mcp` URL, using OAuth.
+   The server's `WWW-Authenticate` challenge links to its protected-resource
+   metadata, which points to `https://lfvsimzmjhceyvjaoats.supabase.co/auth/v1`.
+6. Sign in with the **app account**, review the requesting client/callback, and
+   approve. The consent page uses Supabase's authorization details and consent API;
+   it does not mint tokens or automatically approve new requests.
+7. Verify that this new connection lists `AfterLife_23-10-26`, read a chosen shot,
+   generate/review one image, then attach with its current revision. Refresh the
+   app's shared version and confirm persistence. Test viewer rejection, another
+   account's isolation, revocation and concurrent save against the hosted service.
+
+Implementation references: Supabase MCP authentication guide
+<https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication> and
+`@supabase/auth-js` 2.118.0's published authorization/consent implementation.
+Local tests mock the HTTP APIs; OAuth provider configuration, actual ChatGPT
+connection and a real generated-image attachment remain live acceptance checks.
+Production is not enabled by this work.
