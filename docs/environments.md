@@ -186,10 +186,10 @@ Shared document content is kept in memory rather than the browser draft; unsaved
 shared edits require saving or exporting before closing the tab.
 
 Current storage unit: a versioned JSON document per storyboard, preserving all
-existing shot fields and stable shot IDs. Images remain embedded raster data URLs
-inside that private document, protected by the same row access policies. A board
-is limited to **5 MiB of JSON**, so this is for the initial pilot, not large image
-libraries. Dedicated private object storage, normalized scene/shot records,
+existing shot fields and stable shot IDs. Shared saves move embedded raster images into the private `storyboard-images`
+bucket and retain project/storyboard-scoped references in the document. The
+**5 MiB limit applies to text/metadata JSON**, with a separate **5 MiB per image**
+limit; the combined image library can be larger. Normalized scene/shot records,
 comments, project deletion/renaming, and realtime collaboration are follow-up work.
 Membership revocation stops subsequent backend reads/writes; it cannot erase
 copies someone has already viewed or exported.
@@ -326,3 +326,77 @@ export availability and subsequent storage recovery. Shared copy/save additional
 reports the existing 5 MiB document limit before sending oversized requests. This
 does not increase the Supabase document limit or implement object storage. Large
 image libraries still require the dedicated private-image storage story.
+
+
+## Full-size storyboard import and private images — 23 October 2026
+
+The owner's multipart archive was successfully reassembled and inspected. Its JSON
+is 52,590,678 bytes, with 31 shots and 18 PNG images (39,421,119 decoded image
+bytes). Largest image: 2,948,213 bytes. It also contains custom shot titles, layout,
+active-tab and scene-color settings. The format is valid; embedded images exceeded
+the old whole-document shared limit. A separate loss-of-fields issue was fixed:
+unknown document/shot metadata and custom titles now survive editing and exports.
+Custom titles are displayed and editable; layout settings remain preserved even
+where the current UI does not expose their original controls.
+
+Development migration `20261023002713_private_storyboard_images.sql` creates a
+private `storyboard-images` bucket, five-MiB per-file/type restrictions, membership
+read policies, owner/editor-only insertion, and a database trigger rejecting missing
+or cross-storyboard image references. No public URLs or service-role keys are used.
+The trigger is internal-only; the policy helper is private with fixed search_path.
+The migration was created with the official CLI and its filename aligned to the
+actual MCP-recorded version after development deployment. Production was untouched.
+
+Shared Save uploads images losslessly and sequentially, showing progress, then
+commits the small metadata document through the existing version-checked RPC.
+Paths are project UUID / storyboard UUID / SHA-256 content hash plus extension.
+Identical images are reused within the same board. A failed upload or conflicting
+save does not overwrite the saved JSON or remove the source draft. Successful
+uploads from an interrupted save may remain unreferenced until a separately
+reviewed cleanup process is added. They stay private. Objects are immutable:
+no update/delete policy is granted, so replacing/removing an image changes the
+reference while retaining old bytes for safety. Do not delete Storage metadata
+manually or promise automatic orphan cleanup.
+
+Loading a shared storyboard downloads private images with the user's JWT and
+current membership checks, then displays them. No signed URLs are persisted in
+JSON. Portable exports embed the loaded image bytes and omit private storage
+paths, so the original offline import/export workflow remains usable. Removing
+or replacing an image clears the old reference before the next save.
+
+Copy browser draft to project stages an empty storyboard first to establish the
+Storage permission boundary, uploads images, and then saves the complete document.
+If it fails, the source draft remains intact and an explicit incomplete-import
+message identifies the newly created board as a retry destination. The existing
+saved user storyboard was not overwritten during implementation or verification.
+
+Validation: 14 unit tests and the existing Chromium workflow passed. A dedicated
+Chromium regression used the exact owner-supplied JSON to verify all 31 shots,
+18 image hashes, custom titles and extra metadata across local import/IndexedDB
+reload, failed-upload preservation, simulated private upload/save, shared reload,
+and portable export. It produced 16 unique image objects and a 26,969-byte shared
+JSON document. Storage/PostgREST requests in that browser regression were stubbed:
+actual hosted Storage upload/download from a real account still requires owner
+verification in the preview because workspace HTTP remains blocked.
+
+Local PostgreSQL checks passed for private bucket configuration, owner upload,
+viewer read-only access, outsider/revoked-member denial, immutable objects, missing
+image rejection and cross-project reference rejection. Development catalog checks
+confirmed the private bucket, read/insert-only policies and reference guard.
+Security advisor retained the existing guarded-RPC warnings and deny-all private
+metadata notice; it additionally reports Auth leaked-password protection disabled
+(an Auth configuration follow-up, not changed by this migration):
+https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
+To repeat the exact-file browser check without committing private content:
+
+```sh
+# Build using public development configuration first.
+STORYBOARD_IMPORT_FILE=/path/to/original-storyboard.json \
+CHROMIUM_PATH=/usr/bin/chromium npm run test:import
+```
+
+Source archives, extracted JSON, decoded image bytes and reproduction scratch
+files remain in ignored `work/`; they must not be committed or published. No paid
+plan was selected or upgraded. Existing project Storage/egress allowances still
+apply; review usage before a wider pilot.

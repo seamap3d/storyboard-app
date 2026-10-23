@@ -332,6 +332,8 @@
   const LEGACY_STORAGE_KEY = 'grittyStoryboard';
   let isHydrating = false;
 
+  let documentExtras = {};
+  let metadataExtras = {};
   const state = {
     shots: [],
   };
@@ -388,7 +390,7 @@
     if (!titleEl) return;
     const sceneVal = li.querySelector('.scene')?.value.trim() || '';
     const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
-    let label = sceneVal;
+    let label = li.dataset.customTitle || sceneVal;
     if (!label) {
       const index = Array.from(shotList.children).indexOf(li);
       const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
@@ -506,7 +508,9 @@
 
   function collectData() {
     return {
+      ...documentExtras,
       meta: {
+        ...metadataExtras,
   title: projTitle.value.trim(),
   director: director.value.trim(),
   productionCompany: productionCompany.value.trim(),
@@ -521,6 +525,9 @@
 
   function hydrate(data) {
     isHydrating = true;
+    const {meta,shots,...extra} = data || {};
+    documentExtras = structuredClone(extra);
+    metadataExtras = structuredClone(meta || {});
   projTitle.value = data?.meta?.title || '';
   director.value = data?.meta?.director || '';
   productionCompany.value = data?.meta?.productionCompany || '';
@@ -542,6 +549,12 @@
   function addShotFromData(s) {
     const li = tmpl.content.firstElementChild.cloneNode(true);
     li.dataset.id = s.id || (s.id = uid());
+    li.dataset.customTitle = s.customTitle || '';
+    if(s.imagePath)li.dataset.imagePath=s.imagePath;
+    li.querySelector('.shot-title').addEventListener('input', event => {
+      li.dataset.customTitle=event.target.textContent.trim();
+      persistFromDOM();
+    });
     const sceneInput = li.querySelector('.scene');
     const shotNumInput = li.querySelector('.shotnum');
     const typeInput = li.querySelector('.type');
@@ -612,6 +625,7 @@
         const reader = new FileReader();
         reader.onload = (event) => {
           if (scope !== window.storyboard?.scope) return;
+          delete li.dataset.imagePath;
           frameImg.src = event.target.result;
           frameImg.classList.remove('hidden');
           framePlaceholder.classList.add('hidden');
@@ -623,6 +637,7 @@
           const shotIndex = indexOfShot(shotId);
           if (shotIndex > -1) {
             state.shots[shotIndex].imageData = event.target.result;
+            delete state.shots[shotIndex].imagePath;
             saveLocal();
           }
         };
@@ -632,6 +647,7 @@
 
     // Remove image handler
     removeBtn.addEventListener('click', () => {
+      delete li.dataset.imagePath;
       frameImg.src = '';
       frameImg.classList.add('hidden');
       framePlaceholder.classList.remove('hidden');
@@ -643,6 +659,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
+        delete state.shots[shotIndex].imagePath;
         saveLocal();
       }
     });
@@ -650,7 +667,7 @@
     // Bind buttons
     li.querySelector('.btnDup').addEventListener('click', () => {
       const current = readShotFromLI(li);
-      const clone = { ...current, id: uid() };
+      const clone = { ...state.shots[indexOfShot(s.id)], ...current, id: uid() };
       state.shots.splice(indexOfShot(s.id) + 1, 0, clone);
       renderAll();
       saveLocal();
@@ -675,12 +692,16 @@
 
     shotList.appendChild(li);
     updateShotTitle(li);
-    state.shots.push({ id: s.id, ...readShotFromLI(li) });
+    state.shots.push({ ...s, id: s.id, ...readShotFromLI(li) });
   }
 
   function readShotFromLI(li) {
     const frameImg = li.querySelector('.frame-image');
+    const original = state.shots.find(shot=>shot.id===li.dataset.id) || {};
+    const {imageData,imagePath,...preserved} = original;
     const data = {
+      ...preserved,
+      customTitle: li.dataset.customTitle || '',
       scene: li.querySelector('.scene').value,
       number: li.querySelector('.shotnum').value,
       type: li.querySelector('.type').value,
@@ -696,6 +717,7 @@
       folded: li.dataset.folded === 'true',
     };
     
+    if(li.dataset.imagePath)data.imagePath=li.dataset.imagePath;
     if (frameImg.src && !frameImg.classList.contains('hidden')) {
       data.imageData = frameImg.src;
     }
@@ -805,8 +827,10 @@
   mo.observe(shotList, { childList: true });
 
   // --- Import/Export ---
-  btnExport.addEventListener('click', () => {
-    const data = collectData();
+  btnExport.addEventListener('click', async () => {
+    let data;
+    try { const media=await import('./storyboard-media.mjs'); data=media.portableDocument(collectData()); }
+    catch(error){alert(error.message);return;}
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -820,7 +844,17 @@
     const f = e.target.files[0]; if (!f) return;
     const scope = window.storyboard?.scope;
     const reader = new FileReader();
-    reader.onload = () => { if (scope !== window.storyboard?.scope) return; try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
+    reader.onerror = () => alert('The JSON file could not be read. Your current storyboard is unchanged.');
+    reader.onload = async () => {
+      if (scope !== window.storyboard?.scope) return;
+      try {
+        const media = await import('./storyboard-media.mjs');
+        const data = media.validateStoryboard(JSON.parse(reader.result));
+        if (scope !== window.storyboard?.scope) return;
+        hydrate(data); saveLocal();
+        window.storyboard.onImport?.(data.shots.length);
+      } catch (error) { alert(error instanceof SyntaxError ? 'Invalid JSON. Your current storyboard is unchanged.' : error.message); }
+    };
     reader.readAsText(f);
     fileInput.value = '';
   });
@@ -843,6 +877,7 @@
     projNotes.value = '';
 
     // Clear shots and state
+    documentExtras={}; metadataExtras={};
     resetShots();
     clearShotSelection();
     saveLocal();

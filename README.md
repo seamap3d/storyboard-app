@@ -46,7 +46,7 @@ The app includes a `_headers` file with basic authentication:
 
 ### Uploaded Images
 - Images uploaded via the app are stored as base64 data
-- Saved in browser IndexedDB drafts and JSON exports; shared saves use Supabase
+- Local drafts and portable JSON exports embed images; shared saves store image bytes privately in Supabase Storage and keep references in PostgreSQL
 - No server required - works entirely client-side
 
 ## 🎬 Usage

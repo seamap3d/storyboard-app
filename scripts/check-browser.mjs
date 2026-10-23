@@ -4,7 +4,7 @@ import {chromium} from 'playwright';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
-const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
+const server=createServer(async(req,res)=>{try{const path=new URL(req.url,'http://localhost').pathname;const name=path==='/'?'index.html':path.slice(1);if(!['index.html','styles.css','shared-ui.mjs','shared-client.mjs','local-draft.mjs', 'storyboard-media.mjs','runtime-config.json'].includes(name)){res.writeHead(404).end();return;}res.setHeader('Content-Type',name.endsWith('.mjs')?'text/javascript':name.endsWith('.json')?'application/json':name.endsWith('.css')?'text/css':'text/html');res.end(await readFile(new URL('../dist/'+name,import.meta.url)));}catch{res.writeHead(500).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let browser;
 try {
@@ -70,7 +70,7 @@ try {
  await page.locator('#fileInput').setInputFiles({name:'oversized.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(oversized))});
  await page.waitForFunction(()=>document.getElementById('projTitle').value==='Oversized shared import');
  await page.locator('#cloudSave').click();
- await page.waitForFunction(()=>document.getElementById('sharedStatus').textContent.includes('5 MiB shared-save limit'));
+ await page.waitForFunction(()=>document.getElementById('sharedStatus').textContent.includes('5 MiB document limit'));
  assert.equal(saveRequests,beforeOversizedSave);
  assert.equal(await page.locator('#projTitle').inputValue(),'Oversized shared import');
  page.on('dialog',d=>d.accept());

@@ -1,13 +1,9 @@
 import {SharedClient} from './shared-client.mjs';
+import {prepareSharedDocument,loadSharedImages,validateStoryboard} from './storyboard-media.mjs';
 const $ = id => document.getElementById(id);
 const bridge = window.storyboard;
 await bridge.ready;
 let client, user, projects=[], boards=[], project=null, board=null, dirty=false, loading=false, busy=false;
-function checkSharedSize(document) {
-  if (new Blob([JSON.stringify(document)]).size > 5 * 1024 * 1024) {
-    throw new Error('This storyboard exceeds the current 5 MiB shared-save limit, often because of embedded images. Your draft is preserved; keep its JSON export. Dedicated image storage is planned.');
-  }
-}
 const status = message => { $('sharedStatus').textContent=message; };
 function editable() { return !project || project.owner_id===user?.id || project.role==='editor'; }
 function controls() {
@@ -49,8 +45,10 @@ async function loadBoard(id) {
   clearShared(); controls();
   const rows=await client.list('storyboards','select=*&id=eq.'+encodeURIComponent(id));
   if (!rows.length) { clearShared(); controls(); throw new Error('Storyboard is unavailable. Your project access may have changed.'); }
-  board=rows[0]; bridge.hydrate(board.document); $('boardName').value=board.name; dirty=false;
-  controls(); status(`Loaded ${board.name}, version ${board.version}.`);
+  const loaded=rows[0];
+  const document=await loadSharedImages(client,loaded.document,loaded.project_id,loaded.id,status);
+  board=loaded; bridge.hydrate(document); $('boardName').value=board.name; dirty=false;
+  controls(); status(`Loaded ${board.name}, version ${board.version}: ${document.shots.length} shots.${document.shots.length?'':' Import your JSON here, then Save storyboard.'}`);
 }
 async function selectProject(id) {
   if (!id) { useLocal(); return; }
@@ -123,6 +121,7 @@ async function run(action) {
     controls();
   }
 }
+bridge.onImport=count=>status(`${count} shots imported. ${bridge.mode==='shared'?'Click Save storyboard to upload images privately and save.':'Saved as a browser draft; choose a film project and Copy browser draft to project for shared saving.'}`);
 bridge.onChange=()=>{ if (bridge.mode==='shared' && board && editable()) { dirty=true; status('Unsaved shared changes — click Save storyboard.'); } };
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 $('boardName').oninput=()=>bridge.onChange();
@@ -137,14 +136,22 @@ $('boardSelect').onchange=()=>{const id=$('boardSelect').value;if(!discard()){$(
 for(const [id,copy] of [['newBoard',false],['copyLocal',true]]) $(id).onclick=()=>run(async()=>{
   if(!discard())return;const name=prompt(copy?'Name for a shared copy of your browser draft':'Storyboard name');if(!name?.trim())return;
   const document=copy?bridge.localData():{meta:{},shots:[]};
-  checkSharedSize(document);
-  const result=await client.rpc('create_storyboard',{p_project:project.id,p_name:name.trim(),p_document:document});
+  validateStoryboard(document);
+  const hasImages=document.shots.some(s=>s.imageData || s.imagePath);
+  // A board must exist before Storage policies can authorize its image paths.
+  let result=await client.rpc('create_storyboard',{p_project:project.id,p_name:name.trim(),p_document:hasImages?{meta:{},shots:[]}:document});
+  if(hasImages) {
+    try {
+      const prepared=await prepareSharedDocument(client,document,project.id,result.id,status);
+      result=await client.rpc('save_storyboard',{p_id:result.id,p_version:result.version,p_name:name.trim(),p_document:prepared});
+    } catch(error) {throw new Error(`The new storyboard was created, but its import is not saved: ${error.message} Your browser draft is still preserved. Select that storyboard and import again to retry.`);}
+  }
   const selectedProject=project.id;await selectProject(selectedProject);$('boardSelect').value=result.id;await loadBoard(result.id);
 });
 $('cloudSave').onclick=()=>run(async()=>{
   const snapshot=JSON.stringify(bridge.collectData()), name=$('boardName').value;
-  checkSharedSize(JSON.parse(snapshot));
-  const result=await client.rpc('save_storyboard',{p_id:board.id,p_version:board.version,p_name:name,p_document:JSON.parse(snapshot)});
+  const prepared=await prepareSharedDocument(client,JSON.parse(snapshot),project.id,board.id,status);
+  const result=await client.rpc('save_storyboard',{p_id:board.id,p_version:board.version,p_name:name,p_document:prepared});
   board=result;
   dirty=JSON.stringify(bridge.collectData())!==snapshot || $('boardName').value!==name;
   const option=[...$('boardSelect').options].find(o=>o.value===board.id);if(option)option.textContent=result.name;

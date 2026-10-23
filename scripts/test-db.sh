@@ -17,3 +17,4 @@ for migration in supabase/migrations/*.sql; do
   run_sql < "$migration"
 done
 run_sql < tests/sql/collaboration.sql
+run_sql < tests/sql/private-images.sql
