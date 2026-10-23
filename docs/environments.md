@@ -445,8 +445,11 @@ connected plugin returned no storyboards and could not find the app's board.
 The separate `feat/storyboard-mcp` branch was fetched and contains only the old
 main commit, not a server implementation. No data was copied into that connector.
 
-The new endpoint is disabled outside `APP_ENV=development` and also rejects
-Netlify's production context. It uses only the publishable key plus the user's
+The endpoint is pinned to the development Supabase project and preview hostname,
+and rejects explicit production context/environment values. It does not require
+Netlify build-only variables to be available in the Functions runtime.
+`MCP_PUBLIC_URL` may explicitly override the canonical preview origin for a future
+development deployment; it must be an HTTPS origin and its host must match the request. It uses only the publishable key plus the user's
 Bearer token, validates the account against Supabase Auth on every request, and
 forwards that same token through PostgREST and Storage. It never uses a service
 role or management credential. Existing RLS and save RPCs remain authoritative.
@@ -500,3 +503,12 @@ Implementation references: Supabase MCP authentication guide
 Local tests mock the HTTP APIs; OAuth provider configuration, actual ChatGPT
 connection and a real generated-image attachment remain live acceptance checks.
 Production is not enabled by this work.
+
+
+OAuth discovery troubleshooting (2026-10-23): runtime readiness must not depend on
+APP_ENV or DEPLOY_PRIME_URL defined only for builds. Regression coverage verifies
+the unauthenticated 401 challenge and protected-resource metadata with only the
+two configured Supabase runtime variables, and rejects production project/host.
+If the dashboard concatenates Site URL and Authorization Path with two slashes,
+remove the trailing slash from Site URL and retain `/oauth-consent.html` as the
+Authorization Path. The consent page is included in the published asset allowlist.

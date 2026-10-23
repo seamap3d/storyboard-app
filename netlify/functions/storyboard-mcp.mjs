@@ -3,13 +3,21 @@ import { createToolClient, runTool, toolDefinitions } from '../../server/storybo
 const versions=['2025-03-26','2025-06-18','2025-11-25'];
 const json=(statusCode,value,headers={})=>({statusCode,headers:{'Content-Type':'application/json','Cache-Control':'no-store',...headers},body:JSON.stringify(value)});
 export async function handleMcp(event,env=process.env,fetcher=fetch) {
-  // Preview only until the real account/OAuth/image checks have passed.
-  if(env.APP_ENV!=='development' || env.CONTEXT==='production')return json(404,{error:'Not available.'});
+  // netlify.toml context/build variables are not guaranteed in Functions runtime.
+  // Pin this first connector to development; never infer deployment from Host.
+  const headers=Object.fromEntries(Object.entries(event.headers||{}).map(([k,v])=>[k.toLowerCase(),v]));
+  if(env.APP_ENV==='production' || env.CONTEXT==='production')return json(404,{error:'Not available.'});
   let config,origin;
-  try {config=publicConfig(env);origin=new URL(env.DEPLOY_PRIME_URL).origin;if(!origin.startsWith('https://'))throw Error();}catch{return json(503,{error:'Connector configuration unavailable.'});}
+  try {
+    config=publicConfig(env);
+    if(config.supabaseUrl!=='https://lfvsimzmjhceyvjaoats.supabase.co')return json(404,{error:'Not available.'});
+    const configured=new URL(env.MCP_PUBLIC_URL || 'https://deploy-preview-3--storyboardafterlive.netlify.app');
+    if(configured.protocol!=='https:' || configured.username || configured.password || configured.search || configured.hash || configured.pathname!=='/')throw Error();
+    origin=configured.origin;
+    if(headers.host && headers.host!==configured.host)return json(404,{error:'Not available.'});
+  }catch{return json(503,{error:'Connector configuration unavailable.'});}
   const endpoint=origin+'/mcp';
   const metadata=origin+'/.well-known/oauth-protected-resource';
-  const headers=Object.fromEntries(Object.entries(event.headers||{}).map(([k,v])=>[k.toLowerCase(),v]));
   if(headers.origin && headers.origin!==origin)return json(403,{error:'Origin not allowed.'});
   if(event.httpMethod==='GET' && (event.queryStringParameters?.metadata==='1' || event.path?.startsWith('/.well-known/oauth-protected-resource')))return json(200,{resource:endpoint,authorization_servers:[config.supabaseUrl+'/auth/v1'],bearer_methods_supported:['header'],resource_name:'ApeOnAWhale development storyboards'});
   const unauthorized=()=>json(401,{error:'Authenticate with your storyboard app account.'},{'WWW-Authenticate':`Bearer resource_metadata="${metadata}"`});

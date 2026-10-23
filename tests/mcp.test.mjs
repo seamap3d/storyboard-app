@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { handleMcp } from '../netlify/functions/storyboard-mcp.mjs';
 import { runTool } from '../server/storyboard-tools.mjs';
 const id='cae28003-b2f1-4ba2-9075-20ed454e9f50',project='504e737e-ce39-4eb3-80f9-c194a89a6e17';
-const env={APP_ENV:'development',CONTEXT:'deploy-preview',DEPLOY_PRIME_URL:'https://preview.example',SUPABASE_URL:'https://dev.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture'};
+const env={APP_ENV:'development',CONTEXT:'deploy-preview',DEPLOY_PRIME_URL:'https://preview.example',MCP_PUBLIC_URL:'https://preview.example',SUPABASE_URL:'https://lfvsimzmjhceyvjaoats.supabase.co',SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture'};
 const request=(method,params)=>({httpMethod:'POST',path:'/mcp',headers:{'content-type':'application/json',authorization:'Bearer test-user-token'},body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})});
 function fixture({role='owner',existing=false,conflict=false}={}){
   const board={id,project_id:project,name:'AfterLife',version:3,document:{meta:{title:'keep'},planning:{requirements:[{notes:'keep'}]},shots:[{id:'shot-1',desc:'keep',...(existing?{imagePath:'existing'}:{})},{id:'shot-2',notes:'untouched'}]}};
@@ -61,4 +61,18 @@ test('HTTP tools use the verified user token for RLS requests, never an admin ke
 test('hidden boards disclose no shots or image content and cannot be attached',async()=>{
   const client={list:async()=>[]};
   for(const name of ['get_storyboard','attach_shot_image'])await assert.rejects(runTool(client,{id:'user'},name,name==='get_storyboard'?{storyboard_id:id}:attach),/not found or access denied/);
+});
+
+test('runtime discovery works without build-only variables and rejects production hosts/projects',async()=>{
+  const runtime={SUPABASE_URL:env.SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY:env.SUPABASE_PUBLISHABLE_KEY};
+  const host='deploy-preview-3--storyboardafterlive.netlify.app';
+  const get={httpMethod:'GET',path:'/mcp',headers:{host}};
+  const challenge=await handleMcp(get,runtime);
+  assert.equal(challenge.statusCode,401);
+  assert.match(challenge.headers['WWW-Authenticate'],/oauth-protected-resource/);
+  const meta=await handleMcp({...get,path:'/.netlify/functions/storyboard-mcp',queryStringParameters:{metadata:'1'}},runtime);
+  assert.equal(meta.statusCode,200);
+  assert.equal(JSON.parse(meta.body).resource,'https://'+host+'/mcp');
+  assert.equal((await handleMcp({...get,headers:{host:'storyboardafterlive.netlify.app'}},runtime)).statusCode,404);
+  assert.equal((await handleMcp(get,{...runtime,SUPABASE_URL:'https://yvtixpzlsnhgsyksmypm.supabase.co'})).statusCode,404);
 });
