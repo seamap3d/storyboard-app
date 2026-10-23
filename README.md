@@ -15,7 +15,11 @@ A single-file HTML storyboard application for filmmakers and visual storytellers
 - **Password Protection**: Basic authentication for deployed sites
 - **Keyboard Shortcuts**: `N` for new shot, `E` to export, `P` to print
 
-## 🚀 Deployment to Netlify
+## Development and production foundation
+
+Use the [Netlify + Supabase environment runbook](docs/environments.md) for isolated development/production setup, migrations, deployment, and smoke checks. Shared projects support Supabase accounts, private film projects, multiple named storyboards and membership roles. Shared changes require Save storyboard. The original browser draft remains separate; see the runbook for migrations and Auth setup before enabling shared use.
+
+## 🚀 Legacy static deployment to Netlify
 
 ### Method 1: Drag & Drop
 1. Zip the entire project folder
@@ -42,7 +46,7 @@ The app includes a `_headers` file with basic authentication:
 
 ### Uploaded Images
 - Images uploaded via the app are stored as base64 data
-- Saved in browser localStorage and JSON exports
+- Local drafts and portable JSON exports embed images; shared saves store image bytes privately in Supabase Storage and keep references in PostgreSQL
 - No server required - works entirely client-side
 
 ## 🎬 Usage
@@ -76,7 +80,7 @@ The app includes a `_headers` file with basic authentication:
 - **CDN-Powered**: Tailwind CSS, Google Fonts, and PDF.js loaded via CDN
 - **Client-Side**: No server or database required
 - **Responsive**: Works on desktop and mobile devices
-- **Browser Storage**: Auto-saves to localStorage
+- **Browser Storage**: Auto-saves local drafts to IndexedDB
 
 ## 📝 File Structure
 

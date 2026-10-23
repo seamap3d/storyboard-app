@@ -1,0 +1,42 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[context.production.environment]
+  APP_ENV = "production"
+
+[context.deploy-preview.environment]
+  APP_ENV = "development"
+
+[context.branch-deploy.environment]
+  APP_ENV = "development"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+[[headers]]
+  for = "/runtime-config.json"
+  [headers.values]
+    Cache-Control = "no-store"
+
+[[redirects]]
+  from = "/mcp"
+  to = "/.netlify/functions/storyboard-mcp"
+  status = 200
+
+[[redirects]]
+  from = "/.well-known/oauth-protected-resource"
+  to = "/.netlify/functions/storyboard-mcp?metadata=1"
+  status = 200
+
+[[redirects]]
+  from = "/.well-known/oauth-protected-resource/mcp"
+  to = "/.netlify/functions/storyboard-mcp?metadata=1"
+  status = 200

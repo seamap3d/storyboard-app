@@ -46,6 +46,40 @@
       </div>
     </header>
 
+  <section id="sharedPanel" aria-label="Projects and account">
+    <h2>Film projects &amp; storyboards</h2>
+    <p id="accountLabel">Browser draft — sign in for shared projects</p>
+    <form id="authForm" class="shared-row">
+      <label>Email <input id="accountEmail" type="email" autocomplete="username" required></label>
+      <label>Password <input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></label>
+      <button type="submit">Sign in</button><button type="button" id="signUp">Create account</button><button type="button" id="recover">Recover access</button>
+    </form>
+    <div id="recoveryPanel" hidden><label>New password <input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8"></label><button id="updatePassword">Update password</button></div>
+    <div id="signedIn" hidden>
+      <div class="shared-row"><label>Film project <select id="projectSelect"><option value="">Browser draft</option></select></label><button id="newProject">New film project</button><button id="reloadShared">Refresh / reload shared version</button><button id="signOut">Sign out</button></div>
+      <div class="shared-row"><label>Storyboard <select id="boardSelect"><option value="">Choose a storyboard</option></select></label><button id="newBoard" disabled>New storyboard</button><button id="copyLocal" disabled>Copy browser draft to project</button></div>
+      <div class="shared-row"><label>Storyboard name <input id="boardName" maxlength="160" disabled></label><button id="cloudSave" disabled>Save storyboard</button></div>
+      <div id="incoming" aria-label="Incoming invitations"></div>
+      <details id="membersPanel" hidden><summary>Project members &amp; invitations</summary>
+        <div id="memberList"></div>
+        <form id="inviteForm" class="shared-row" hidden><label>Invite email <input id="inviteEmail" type="email" required></label><label>Role <select id="inviteRole"><option value="viewer">Viewer</option><option value="commenter">Commenter</option><option value="editor">Editor</option></select></label><button>Invite member</button><p>Share the app link yourself. Invitations expire after 7 days; recipients must verify their email and accept in the app.</p></form>
+        <div id="projectInvitations"></div>
+      </details>
+    </div>
+    <p id="cloudRole">This draft is saved only in this browser.</p>
+    <p id="sharedStatus" role="status" aria-live="polite">Shared storyboards save when you click Save storyboard. Browser drafts remain separate.</p>
+  </section>
+  <p id="draftStatus" role="status" aria-live="polite">Loading browser draft…</p>
+  <nav id="workspaceTabs" role="tablist" aria-label="Film planning views">
+    <button role="tab" id="tab-script" disabled aria-selected="false" tabindex="-1" title="Planned">Script · planned</button>
+    <button role="tab" id="tab-storyboard" data-tab="storyboard" aria-controls="storyboardEditor" aria-selected="true">Storyboard</button>
+    <button role="tab" id="tab-shot-list" data-tab="shot-list" aria-controls="shotListPanel" aria-selected="false" tabindex="-1">Shot list</button>
+    <button role="tab" id="tab-requirements" data-tab="requirements" aria-controls="requirementsPanel" aria-selected="false" tabindex="-1">Props &amp; equipment</button>
+    <button role="tab" id="tab-schedule" disabled aria-selected="false" tabindex="-1" title="Planned">Schedule · planned</button>
+    <button role="tab" id="tab-people" disabled aria-selected="false" tabindex="-1" title="Planned">People &amp; locations · planned</button>
+    <button role="tab" id="tab-call-sheets" disabled aria-selected="false" tabindex="-1" title="Planned">Call sheets · planned</button>
+  </nav>
+  <fieldset role="tabpanel" aria-labelledby="tab-storyboard" data-workspace-panel="storyboard" id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
   <!-- Project Panel -->
     <section class="mb-6">
       <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
@@ -99,6 +133,7 @@
         <h2 class="font-semibold">Shots</h2>
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-slate-400 mr-2">Drag the handle to reorder shots.</span>
+          <label class="flex items-center gap-2 text-sm"><input id="selectAllShots" type="checkbox" class="w-5 h-5 accent-emerald-500" disabled> Select all</label>
           <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
           <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
           <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
@@ -106,6 +141,28 @@
       </div>
   <ol id="shotList" class="space-y-4"></ol>
     </section>
+  </fieldset>
+  <section id="shotListPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-shot-list" data-workspace-panel="shot-list" hidden>
+    <h2>Shot list</h2><p>Current storyboard. Edits update the same shot cards. Use Save storyboard to share changes.</p>
+    <div class="planning-tools">
+      <label>Search <input id="shotSearch" data-filter="search" type="search" placeholder="Scene, cast, props…"></label>
+      <label>Scene <select id="shotScene" data-filter="scene"><option value="">All scenes</option></select></label>
+      <label>Location <select id="shotLocation" data-filter="location"><option value="">All locations</option></select></label>
+      <label>Shoot date <select id="shotDay" data-filter="day"><option value="">All shoot dates</option></select></label>
+      <label>Status <select id="shotStatus" data-filter="status"><option value="">All statuses</option><option value="planned">Planned</option><option value="ready">Ready</option><option value="filmed">Filmed</option></select></label>
+      <label>Sort <select id="shotSort" data-filter="sort"><option value="">Storyboard order</option><option value="scene">Scene</option><option value="day">Shoot date</option></select></label>
+      <button id="exportShotCsv">Export filtered CSV</button>
+    </div>
+    <p id="shotSummary" role="status"></p><p id="shotEmpty">No matching shots. Import a storyboard, add shots, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Shot list table"><table id="shotTable"></table></div>
+  </section>
+  <section id="requirementsPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-requirements" data-workspace-panel="requirements" hidden>
+    <h2>Props &amp; equipment</h2><p>Current storyboard. Items are consolidated from shot fields; separate names with commas, semicolons or new lines. Quantities are entered manually.</p>
+    <div class="planning-tools"><label>Search <input id="requirementSearch" type="search"></label><label>Category <select id="requirementKind"><option value="">All categories</option><option value="prop">Props</option><option value="equipment">Equipment</option></select></label><button id="exportRequirementCsv">Export filtered CSV</button></div>
+    <form id="addRequirement" class="planning-tools"><label>Category <select id="newRequirementKind"><option value="prop">Prop</option><option value="equipment">Equipment</option></select></label><label>Item <input id="newRequirementName" required maxlength="160" placeholder="Additional requirement"></label><button>Add item</button></form>
+    <p id="requirementsSummary" role="status"></p><p id="requirementsEmpty">No matching requirements. Add props/equipment to a shot, add an item here, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Props and equipment table"><table id="requirementsTable"></table></div>
+  </section>
   </div>
 
   <template id="shotTmpl">
@@ -305,6 +362,8 @@
   const LEGACY_STORAGE_KEY = 'grittyStoryboard';
   let isHydrating = false;
 
+  let documentExtras = {};
+  let metadataExtras = {};
   const state = {
     shots: [],
   };
@@ -320,6 +379,7 @@
   const btnFoldSelected = document.getElementById('btnFoldSelected');
   const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
   const btnClearSelection = document.getElementById('btnClearSelection');
+  const selectAllShots = document.getElementById('selectAllShots');
   const scriptInput = document.getElementById('scriptInput');
   const btnUploadScript = document.getElementById('btnUploadScript');
   const fileInput = document.getElementById('fileInput');
@@ -331,6 +391,7 @@
   const shootSchedule = document.getElementById('shootSchedule');
   const projNotes = document.getElementById('projNotes');
   btnUploadScript.addEventListener('click', async () => {
+    const scope = window.storyboard?.scope;
     const file = scriptInput.files && scriptInput.files[0];
     if (!file) {
       alert('Please select a text file.');
@@ -342,6 +403,7 @@
     }
     try {
       const text = await readTextFromFile(file);
+      if (scope !== window.storyboard?.scope) return;
       applyBreakdown(text);
       scriptInput.value = '';
     } catch (error) {
@@ -351,14 +413,14 @@
   });
 
   // --- Helpers ---
-  const uid = () => Math.random().toString(36).slice(2,9);
+  const uid = () => crypto.randomUUID();
 
   function updateShotTitle(li) {
     const titleEl = li.querySelector('.shot-title');
     if (!titleEl) return;
     const sceneVal = li.querySelector('.scene')?.value.trim() || '';
     const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
-    let label = sceneVal;
+    let label = li.dataset.customTitle || sceneVal;
     if (!label) {
       const index = Array.from(shotList.children).indexOf(li);
       const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
@@ -392,34 +454,94 @@
     return Array.from(shotList.querySelectorAll('.select-shot:checked')).map(cb => cb.closest('li')).filter(Boolean);
   }
 
+  function updateSelectAll() {
+    const checkboxes = Array.from(shotList.querySelectorAll('.select-shot'));
+    const selected = checkboxes.filter(cb => cb.checked).length;
+    selectAllShots.checked = checkboxes.length > 0 && selected === checkboxes.length;
+    selectAllShots.indeterminate = selected > 0 && selected < checkboxes.length;
+    selectAllShots.disabled = checkboxes.length === 0;
+  }
+
+  selectAllShots.addEventListener('change', () => {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = selectAllShots.checked;
+      updateShotSelectionVisual(cb.closest('li'), cb.checked);
+    });
+    updateSelectAll();
+  });
+
   function clearShotSelection() {
     shotList.querySelectorAll('.select-shot').forEach(cb => {
       cb.checked = false;
       updateShotSelectionVisual(cb.closest('li'), false);
     });
+    updateSelectAll();
   }
 
+  let draftStore;
+  let draftData = {meta:{},shots:[]};
+  let draftSave = Promise.resolve();
+  let draftRevision = 0;
+  let draftUnsaved = false;
+  const draftStatus = document.getElementById('draftStatus');
+  function persistDraft() {
+    const revision = ++draftRevision;
+    const snapshot = structuredClone(draftData);
+    draftUnsaved = true;
+    draftStatus.textContent = 'Saving browser draft…';
+    draftSave = draftSave.catch(() => {}).then(() => {
+      if (!draftStore) throw new Error('Draft storage unavailable.');
+      return draftStore.writeDraft(snapshot);
+    }).then(() => {
+      if (revision !== draftRevision) return;
+      draftUnsaved = false;
+      draftStatus.textContent = 'Browser draft saved on this device.';
+    }).catch(() => {
+      if (revision !== draftRevision) return;
+      draftStatus.textContent = 'Browser draft could not be saved on this device. Your changes remain open; export JSON or copy the draft to a shared project before closing.';
+    });
+  }
   function saveLocal() {
-    const data = collectData();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    if (isHydrating) return;
+    document.dispatchEvent(new Event('storyboardchange'));
+    if (window.storyboard?.mode === 'shared') { window.storyboard.onChange?.(); return; }
+    draftData = collectData();
+    persistDraft();
   }
-
-  function loadLocal() {
-    let raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      raw = localStorage.getItem(LEGACY_STORAGE_KEY);
-      if (raw) {
-        localStorage.setItem(STORAGE_KEY, raw);
-        localStorage.removeItem(LEGACY_STORAGE_KEY);
+  async function loadLocal() {
+    let readable = false;
+    try {
+      draftStore = await import('./local-draft.mjs');
+      const saved = await draftStore.readDraft();
+      readable = true;
+      if (saved) {
+        draftData = saved;
+        hydrate(draftData);
+        draftStatus.textContent = 'Browser draft saved on this device.';
+        return;
       }
+    } catch {
+      draftStatus.textContent = 'Browser draft storage is unavailable. Export changes before closing.';
     }
-    if (!raw) return;
-    try { hydrate(JSON.parse(raw)); } catch {}
+    // Keep legacy data unchanged until the new draft is safely stored, and retain
+    // it as a fallback backup. The in-memory snapshot always tracks current edits.
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        draftData = JSON.parse(raw);
+        hydrate(draftData);
+        persistDraft();
+      } else if (readable) draftStatus.textContent = 'Browser draft ready. Changes save on this device.';
+    } catch {
+      draftStatus.textContent = 'Previous browser draft could not be read. Your exported JSON files can still be imported.';
+    }
   }
 
   function collectData() {
     return {
+      ...documentExtras,
       meta: {
+        ...metadataExtras,
   title: projTitle.value.trim(),
   director: director.value.trim(),
   productionCompany: productionCompany.value.trim(),
@@ -434,6 +556,9 @@
 
   function hydrate(data) {
     isHydrating = true;
+    const {meta,shots,...extra} = data || {};
+    documentExtras = structuredClone(extra);
+    metadataExtras = structuredClone(meta || {});
   projTitle.value = data?.meta?.title || '';
   director.value = data?.meta?.director || '';
   productionCompany.value = data?.meta?.productionCompany || '';
@@ -455,6 +580,12 @@
   function addShotFromData(s) {
     const li = tmpl.content.firstElementChild.cloneNode(true);
     li.dataset.id = s.id || (s.id = uid());
+    li.dataset.customTitle = s.customTitle || '';
+    if(s.imagePath)li.dataset.imagePath=s.imagePath;
+    li.querySelector('.shot-title').addEventListener('input', event => {
+      li.dataset.customTitle=event.target.textContent.trim();
+      persistFromDOM();
+    });
     const sceneInput = li.querySelector('.scene');
     const shotNumInput = li.querySelector('.shotnum');
     const typeInput = li.querySelector('.type');
@@ -472,6 +603,9 @@
 
     sceneInput.value = s.scene || '';
     shotNumInput.value = s.number || state.shots.length + 1;
+    for (const [input,value] of [[typeInput,s.type],[lensInput,s.lens],[moveInput,s.move]]) {
+      if(value && !Array.from(input.options).some(option=>option.value===value)) input.add(new Option(value,value));
+    }
     typeInput.value = s.type || 'Wide';
     lensInput.value = s.lens || '35mm';
     moveInput.value = s.move || 'Locked';
@@ -490,6 +624,7 @@
       updateShotSelectionVisual(li, false);
       selectShot.addEventListener('change', () => {
         updateShotSelectionVisual(li, selectShot.checked);
+        updateSelectAll();
       });
     }
 
@@ -508,7 +643,7 @@
     const framePlaceholder = li.querySelector('.frame-placeholder');
     const removeBtn = li.querySelector('.remove-image');
     
-    if (s.imageData) {
+    if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(s.imageData || '')) {
       frameImg.src = s.imageData;
       frameImg.classList.remove('hidden');
       framePlaceholder.classList.add('hidden');
@@ -518,10 +653,13 @@
 
     // Image upload handler
     li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const scope = window.storyboard?.scope;
       const file = e.target.files[0];
       if (file && file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = (event) => {
+          if (scope !== window.storyboard?.scope) return;
+          delete li.dataset.imagePath;
           frameImg.src = event.target.result;
           frameImg.classList.remove('hidden');
           framePlaceholder.classList.add('hidden');
@@ -533,6 +671,7 @@
           const shotIndex = indexOfShot(shotId);
           if (shotIndex > -1) {
             state.shots[shotIndex].imageData = event.target.result;
+            delete state.shots[shotIndex].imagePath;
             saveLocal();
           }
         };
@@ -542,6 +681,7 @@
 
     // Remove image handler
     removeBtn.addEventListener('click', () => {
+      delete li.dataset.imagePath;
       frameImg.src = '';
       frameImg.classList.add('hidden');
       framePlaceholder.classList.remove('hidden');
@@ -553,6 +693,7 @@
       const shotIndex = indexOfShot(shotId);
       if (shotIndex > -1) {
         delete state.shots[shotIndex].imageData;
+        delete state.shots[shotIndex].imagePath;
         saveLocal();
       }
     });
@@ -560,7 +701,7 @@
     // Bind buttons
     li.querySelector('.btnDup').addEventListener('click', () => {
       const current = readShotFromLI(li);
-      const clone = { ...current, id: uid() };
+      const clone = { ...state.shots[indexOfShot(s.id)], ...current, id: uid() };
       state.shots.splice(indexOfShot(s.id) + 1, 0, clone);
       renderAll();
       saveLocal();
@@ -585,12 +726,16 @@
 
     shotList.appendChild(li);
     updateShotTitle(li);
-    state.shots.push({ id: s.id, ...readShotFromLI(li) });
+    state.shots.push({ ...s, id: s.id, ...readShotFromLI(li) });
   }
 
   function readShotFromLI(li) {
     const frameImg = li.querySelector('.frame-image');
+    const original = state.shots.find(shot=>shot.id===li.dataset.id) || {};
+    const {imageData,imagePath,...preserved} = original;
     const data = {
+      ...preserved,
+      customTitle: li.dataset.customTitle || '',
       scene: li.querySelector('.scene').value,
       number: li.querySelector('.shotnum').value,
       type: li.querySelector('.type').value,
@@ -606,6 +751,7 @@
       folded: li.dataset.folded === 'true',
     };
     
+    if(li.dataset.imagePath)data.imagePath=li.dataset.imagePath;
     if (frameImg.src && !frameImg.classList.contains('hidden')) {
       data.imageData = frameImg.src;
     }
@@ -663,8 +809,11 @@
   let ghost;
 
   function addDragHandlers(li) {
+    if (li.dataset.dragBound) return;
+    li.dataset.dragBound = 'true';
     const h = li.querySelector('.handle');
     h.addEventListener('pointerdown', (e) => {
+      if (window.storyboard && !window.storyboard.canEdit) return;
       dragSrcEl = li;
       ghost = li.cloneNode(true);
       ghost.classList.add('opacity-50');
@@ -707,12 +856,15 @@
   // Observe list for new items to wire drag
   const mo = new MutationObserver(() => {
     Array.from(shotList.children).forEach(addDragHandlers);
+    updateSelectAll();
   });
   mo.observe(shotList, { childList: true });
 
   // --- Import/Export ---
-  btnExport.addEventListener('click', () => {
-    const data = collectData();
+  btnExport.addEventListener('click', async () => {
+    let data;
+    try { const media=await import('./storyboard-media.mjs'); data=media.portableDocument(collectData()); }
+    catch(error){alert(error.message);return;}
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -724,8 +876,19 @@
   btnImport.addEventListener('click', () => fileInput.click());
   fileInput.addEventListener('change', (e) => {
     const f = e.target.files[0]; if (!f) return;
+    const scope = window.storyboard?.scope;
     const reader = new FileReader();
-    reader.onload = () => { try { hydrate(JSON.parse(reader.result)); saveLocal(); } catch (e) { alert('Invalid JSON'); } };
+    reader.onerror = () => alert('The JSON file could not be read. Your current storyboard is unchanged.');
+    reader.onload = async () => {
+      if (scope !== window.storyboard?.scope) return;
+      try {
+        const media = await import('./storyboard-media.mjs');
+        const data = media.validateStoryboard(JSON.parse(reader.result));
+        if (scope !== window.storyboard?.scope) return;
+        hydrate(data); saveLocal();
+        window.storyboard.onImport?.(data.shots.length);
+      } catch (error) { alert(error instanceof SyntaxError ? 'Invalid JSON. Your current storyboard is unchanged.' : error.message); }
+    };
     reader.readAsText(f);
     fileInput.value = '';
   });
@@ -748,6 +911,7 @@
     projNotes.value = '';
 
     // Clear shots and state
+    documentExtras={}; metadataExtras={};
     resetShots();
     clearShotSelection();
     saveLocal();
@@ -790,20 +954,61 @@
 
   // --- Keyboard shortcuts ---
   document.addEventListener('keydown', (e) => {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
+    if (window.storyboard && !window.storyboard.canEdit && e.key.toLowerCase() === 'n') return;
     if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
     if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
     if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
   });
 
+  window.storyboard = {
+    mode: 'local', canEdit: true, scope: 0,
+    collectData,
+    hydrate(data) { this.scope++; hydrate(data); document.dispatchEvent(new Event('storyboardchange')); },
+    updateShot(id,patch) {
+      if (!this.canEdit) return;
+      const shot = state.shots.find(s=>s.id===id); if (!shot) return;
+      const fields = ['scene','desc','type','lens','move','location','chars','shootDate','estimatedMinutes','status','props','equipment','notes'];
+      for (const field of fields) if (Object.hasOwn(patch,field)) shot[field]=patch[field];
+      renderAll(); saveLocal();
+    },
+    updateRequirements(requirements) {
+      if (!this.canEdit) return;
+      documentExtras.planning={...documentExtras.planning,requirements}; saveLocal();
+    },
+    localData() { return structuredClone(draftData); },
+    get localUnsaved() { return draftUnsaved; },
+    setEditable(value) {
+      this.canEdit = value;
+      document.querySelectorAll('#storyboardEditor input, #storyboardEditor textarea, #storyboardEditor select').forEach(el => {
+        el.disabled = !value && !el.classList.contains('select-shot') && el.id !== 'selectAllShots';
+      });
+      document.querySelectorAll('#storyboardEditor button').forEach(el => {
+        const viewOnly = el.classList.contains('btnToggleFold') || ['btnFoldSelected','btnUnfoldSelected','btnClearSelection'].includes(el.id);
+        el.disabled = !value && !viewOnly;
+      });
+      [btnNew,btnImport,btnReset].forEach(button=>button.disabled=!value);
+      shotList.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=String(value));
+      updateSelectAll();
+      document.dispatchEvent(new Event('storyboardpermissions'));
+    }
+  };
   // --- Init ---
-  loadLocal();
-  if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+  window.storyboard.setEditable(false);
+  window.storyboard.ready = loadLocal().finally(() => {
+    if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+    window.storyboard.setEditable(true);
+  });
+  window.addEventListener('beforeunload', event => {
+    if (draftUnsaved) { event.preventDefault(); event.returnValue = ''; }
+  });
 
   // Persist meta edits
   [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));
   </script>
 
+  <script type="module" src="shared-ui.mjs"></script>
+  <script type="module" src="workspace-ui.mjs"></script>
   <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
     Built as a single HTML file – host on GitHub Pages or Netlify. © You.
   </footer>
