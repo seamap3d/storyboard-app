@@ -84,3 +84,19 @@ compare future runs against the new checked-in source and same measurement scope
 JSDoc covers the card action interface; full type checking remains a possible
 incremental improvement. Hosted email/multi-account and production acceptance
 remain separate backlog work.
+
+## One-time GitHub merge protection
+
+After the workflow's first successful run, open repository Settings → Branches
+(or Rules → Rulesets), create/edit the rule for `main`, require pull requests and
+passing status checks, and select `quality (22)`, `quality (24)` and `database`.
+Apply the rule to administrators too if manual owner bypass should be disallowed.
+The current connection cannot inspect or change this setting: the GitHub CLI API
+returned Forbidden. The workflow itself is committed and has passed remotely.
+
+For other repositories, place equivalent instructions in their AGENTS.md. A useful
+personal custom instruction is: “For coding work, follow repository AGENTS.md,
+keep changes maintainable, add meaningful regression tests, and run the required
+quality checks before committing or publishing. State any checks you could not
+run.” Repository files and CI provide the concrete project-specific requirements;
+a chat instruction alone cannot guarantee enforcement across unrelated tools.

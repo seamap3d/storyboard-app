@@ -1,14 +1,14 @@
 # ChatGPT Sites setup and source handoff
 
-## Last published save fix (before quality refactor)
+## Current deployment (quality refactor, 2026-11-01)
 
 - URL: https://apeonawhale-film-workspace.seamap3d.chatgpt.site
 - Site project: `appgprj_6ae647f088b48191b14473736fa55625`
 - Database/Auth/private images: development Supabase `lfvsimzmjhceyvjaoats`.
 - Source directory here: `sites/film-workspace/`.
-- Deployed Site source commit: `6e345b3198f55848f669185a25ef0b85ac64b5a7`.
-- Saved version: `appgprj_6ae647f088b48191b14473736fa55625~appgver_aaa71f75280c8191a6813ff1e1f9fe24`.
-- Successful deployment: `appgdep_6ae6da2ad77c81918c26e69e34f98817`.
+- Deployed Site source commit: `719042c18f8e45184d3a4f3350b37a86ff586618`.
+- Saved version: `appgprj_6ae647f088b48191b14473736fa55625~appgver_66da9928e2408191baa07a5efe1f0de9`.
+- Successful deployment: `appgdep_6ae7830338ec8191b850693c44b79115`.
 
 The current canonical source is `sites/film-workspace/` in GitHub. Its source
 instructions, checks and code travel together to the Site publication mirror.
@@ -122,3 +122,22 @@ Keep these acceptance items open:
 
 The save-timeout defect alone is accepted; the parent shared-storage/deployment
 stories remain In Progress. Backlog evidence belongs in ESNZ, not `backlog.json`.
+
+## Quality release evidence
+
+GitHub implementation commits are `c25c210` plus the cross-version runner
+corrections through `c2ad5d44d74fe3c52184c56a7918ee37350c9a2d`. All 52 canonical
+application files matched the dedicated Site publication checkout before saving
+its version. Deployment succeeded with MCP enabled and runtime revision 2.
+
+GitHub Actions run https://github.com/seamap3d/storyboard-app/actions/runs/41335958166
+passed `quality (22)`, `quality (24)` and `database`. Standalone Site clean-install,
+quality and browser checks passed too: 52 active unit cases, 81.66% combined runtime
+line coverage, 100% vault coverage, 95.23% planning-model coverage and maximum
+function decision complexity 20. The router fell from 56 to 12. Root fallback
+unit tests (26) and disposable PostgreSQL migration/access/image-policy tests pass.
+
+The real MCP read after publication succeeded and matched the pre-publication
+storyboard summary. No user film/account/image was changed by the regression
+fixtures. Required-check branch protection remains a one-time owner setting;
+the CLI API returned Forbidden for its settings endpoint. See quality.md.
