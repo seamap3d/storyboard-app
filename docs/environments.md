@@ -1,4 +1,17 @@
-# Netlify + Supabase environments
+# Supabase environments and Netlify fallback
+
+## Current hosting (2026-11-01)
+
+The active app is https://apeonawhale-film-workspace.seamap3d.chatgpt.site and
+uses development Supabase `lfvsimzmjhceyvjaoats`. Its current implementation is
+tracked in [sites/film-workspace](../sites/film-workspace); see [Sites setup and
+verification](sites.md). The original root application and Netlify configuration
+are preserved as a fallback. The Netlify instructions below describe that path;
+they do not publish the active Site. Neither hosting path automatically applies
+database migrations. Production promotion, its smoke check and provider cost
+review remain outstanding.
+
+## Original Netlify setup
 
 Implements the repository portion of ESNZ story
 `ee564b7d-873e-4303-8a44-7a3fe33d45ce`.

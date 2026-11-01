@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <title>ApeOnAWhale Storyboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --frame-aspect: calc(9/16); }
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
+    .frame { aspect-ratio: 16 / 9; background: repeating-linear-gradient(45deg, #0f172a, #0f172a 8px, #111827 8px, #111827 16px); }
+    .grain::after { content:""; position:absolute; inset:0; background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="table" tableValues="0 0.06"/></feComponentTransfer></filter><rect width="100%" height="100%" filter="url(%23n)"/></svg>'); mix-blend-mode:overlay; opacity:.6; pointer-events:none; }
+  .ellipsis { display:-webkit-box; -webkit-line-clamp:2; line-clamp: 2; -webkit-box-orient:vertical; overflow:hidden; }
+    .handle { cursor: grab; }
+    .handle:active { cursor: grabbing; }
+    .kbd {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.125rem 0.5rem;
+      border-radius: 0.375rem;
+      background: #1e293b;
+      color: #f1f5f9;
+      font-size: 0.75rem;
+      border: 1px solid #334155;
+      font-weight: 500;
+    }
+    .shot-title[contenteditable="true"] { padding: 0.125rem 0.25rem; border-radius: 0.25rem; min-width: 1ch; display: inline-block; }
+    .shot-title[contenteditable="true"]:focus { outline: 2px solid rgba(34,197,94,0.14); background: rgba(255,255,255,0.02); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100">
+<div style="padding:10px 18px;background:#152039;color:#dbeafe;font-size:13px">ApeOnAWhale film workspace · Sign in with your storyboard account. No ChatGPT account is needed to view or edit projects you have been invited to.</div>
+
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <header class="flex items-center justify-between gap-3 mb-4">
+  <h1 class="text-2xl md:text-3xl font-black tracking-tight">🎬 ApeOnAWhale Storyboard</h1>
+      <div class="flex items-center gap-2">
+        <button id="btnNew" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow">New Shot</button>
+        <button id="btnImport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Import JSON</button>
+        <button id="btnExport" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Export JSON</button>
+        <button id="btnPrint" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Print / PDF</button>
+        <button id="btnReset" class="px-3 py-2 rounded-xl bg-rose-700 hover:bg-rose-600 text-white font-semibold border border-rose-500/80">Reset Storyboard</button>
+      </div>
+    </header>
+
+  <section id="sharedPanel" aria-label="Projects and account">
+    <h2>Film projects &amp; storyboards</h2>
+    <p id="accountLabel">Browser draft — sign in for shared projects</p>
+    <form id="authForm" class="shared-row">
+      <label>Email <input id="accountEmail" type="email" autocomplete="username" required></label>
+      <label>Password <input id="accountPassword" type="password" autocomplete="current-password" minlength="8" required></label>
+      <button type="submit">Sign in</button><button type="button" id="signUp">Create account</button><button type="button" id="recover">Recover access</button><button type="button" id="showRecovery">Password reset help</button>
+    </form>
+    <details id="ownerTools" hidden style="padding:12px;border:1px solid #475569;border-radius:10px;margin:12px 0">
+      <summary>Provider: ChatGPT tools</summary>
+      <p>Optional and restricted to the app provider. Collaborators use the website without ChatGPT.</p>
+      <p id="ownerToolsStatus" role="status"></p><button id="retryOwnerTools" type="button">Check connection</button>
+      <a id="ownerChatGPTSignIn" href="/signin-with-chatgpt?return_to=/" target="_top" hidden>Sign into ChatGPT for provider tools</a>
+      <form id="ownerToolsForm" hidden><label>Confirm storyboard password <input id="ownerToolsPassword" type="password" autocomplete="current-password" required></label><button>Connect ChatGPT tools</button></form>
+      <button id="disconnectTools" type="button" hidden>Disconnect ChatGPT tools</button>
+    </details>
+    <section id="recoveryPanel" hidden aria-labelledby="recoveryHeading" style="padding:16px;border:1px solid #64748b;border-radius:10px;margin:12px 0;background:#152039">
+      <h2 id="recoveryHeading" style="font-size:18px;font-weight:bold">Reset your storyboard password</h2>
+      <p id="recoveryStatus" role="status" aria-live="polite"></p>
+      <form id="recoveryForm" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px">
+        <label>New password <input id="recoveryPassword" type="password" autocomplete="new-password" minlength="8" required disabled></label>
+        <label>Confirm new password <input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="8" required disabled></label>
+        <button type="submit" id="updatePassword" disabled>Save new password</button>
+      </form>
+    </section>
+    <div id="signedIn" hidden>
+      <div class="shared-row"><label>Film project <select id="projectSelect"><option value="">Browser draft</option></select></label><button id="newProject">New film project</button><button id="reloadShared">Refresh / reload shared version</button><button id="signOut">Sign out</button></div>
+      <div class="shared-row"><label>Storyboard <select id="boardSelect"><option value="">Choose a storyboard</option></select></label><button id="newBoard" disabled>New storyboard</button><button id="copyLocal" disabled>Copy browser draft to project</button></div>
+      <div class="shared-row"><label>Storyboard name <input id="boardName" maxlength="160" disabled></label><button id="cloudSave" disabled>Save storyboard</button></div>
+      <div id="incoming" aria-label="Incoming invitations"></div>
+      <details id="membersPanel" hidden><summary>Project members &amp; invitations</summary>
+        <div id="memberList"></div>
+        <form id="inviteForm" class="shared-row" hidden><label>Invite email <input id="inviteEmail" type="email" required></label><label>Role <select id="inviteRole"><option value="viewer">Viewer</option><option value="commenter">Commenter</option><option value="editor">Editor</option></select></label><button>Invite member</button><p>Share the app link yourself. Invitations expire after 7 days; recipients must verify their email and accept in the app.</p></form>
+        <div id="projectInvitations"></div>
+      </details>
+    </div>
+    <p id="cloudRole">This draft is saved only in this browser.</p>
+    <p id="sharedStatus" role="status" aria-live="polite">Shared storyboards save when you click Save storyboard. Browser drafts remain separate.</p>
+  </section>
+  <p id="draftStatus" role="status" aria-live="polite">Loading browser draft…</p>
+  <nav id="workspaceTabs" role="tablist" aria-label="Film planning views">
+    <button role="tab" id="tab-script" disabled aria-selected="false" tabindex="-1" title="Planned">Script · planned</button>
+    <button role="tab" id="tab-storyboard" data-tab="storyboard" aria-controls="storyboardEditor" aria-selected="true">Storyboard</button>
+    <button role="tab" id="tab-shot-list" data-tab="shot-list" aria-controls="shotListPanel" aria-selected="false" tabindex="-1">Shot list</button>
+    <button role="tab" id="tab-requirements" data-tab="requirements" aria-controls="requirementsPanel" aria-selected="false" tabindex="-1">Props &amp; equipment</button>
+    <button role="tab" id="tab-schedule" disabled aria-selected="false" tabindex="-1" title="Planned">Schedule · planned</button>
+    <button role="tab" id="tab-people" disabled aria-selected="false" tabindex="-1" title="Planned">People &amp; locations · planned</button>
+    <button role="tab" id="tab-call-sheets" disabled aria-selected="false" tabindex="-1" title="Planned">Call sheets · planned</button>
+  </nav>
+  <fieldset role="tabpanel" aria-labelledby="tab-storyboard" data-workspace-panel="storyboard" id="storyboardEditor" style="border:0;padding:0;margin:0;min-width:0">
+  <!-- Project Panel -->
+    <section class="mb-6">
+      <div class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow">
+        <h2 class="font-semibold mb-3">Project</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Title</span>
+            <input id="projTitle" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Project Title (working title)">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Director</span>
+            <input id="director" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Director name">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Production Company</span>
+            <input id="productionCompany" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Company or production house">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Director of Photography</span>
+            <input id="dop" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Cinematographer / DOP">
+          </label>
+          <label>
+            <span class="text-sm text-slate-300">Producer</span>
+            <input id="producer" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Producer or production lead">
+          </label>
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Shooting Schedule</span>
+            <input id="shootSchedule" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="e.g., May 12 – May 18, 2026">
+          </label>
+          <label class="col-span-2">
+            <span class="text-sm text-slate-300">Production Notes</span>
+            <textarea id="projNotes" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Logistics, key contacts, or other notes"></textarea>
+          </label>
+        </div>
+        <div class="mt-3 text-xs text-slate-400">Tip: Press <span class="kbd">N</span> for a new shot, <span class="kbd">E</span> to export, <span class="kbd">P</span> to print.</div>
+      </div>
+    </section>
+
+      <!-- Script Upload -->
+      <section class="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 shadow mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-semibold">Upload Script (.txt)</h2>
+        </div>
+        <input type="file" id="scriptInput" accept="text/plain" class="mb-2" />
+        <button id="btnUploadScript" class="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold">Upload & Auto‑Breakdown</button>
+        <p class="text-xs text-slate-400 mt-2">Upload a plain text script (INT./EXT. headings on separate lines). The auto-breakdown will run automatically.</p>
+      </section>
+    <!-- Shot list -->
+    <section>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-2">
+        <h2 class="font-semibold">Shots</h2>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-slate-400 mr-2">Drag the handle to reorder shots.</span>
+          <label class="flex items-center gap-2 text-sm"><input id="selectAllShots" type="checkbox" class="w-5 h-5 accent-emerald-500" disabled> Select all</label>
+          <button id="btnFoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Fold Selected</button>
+          <button id="btnUnfoldSelected" class="px-2 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200">Unfold Selected</button>
+          <button id="btnClearSelection" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">Clear Selection</button>
+        </div>
+      </div>
+  <ol id="shotList" class="space-y-4"></ol>
+    </section>
+  </fieldset>
+  <section id="shotListPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-shot-list" data-workspace-panel="shot-list" hidden>
+    <h2>Shot list</h2><p>Current storyboard. Edits update the same shot cards. Use Save storyboard to share changes.</p>
+    <div class="planning-tools">
+      <label>Search <input id="shotSearch" data-filter="search" type="search" placeholder="Scene, cast, props…"></label>
+      <label>Scene <select id="shotScene" data-filter="scene"><option value="">All scenes</option></select></label>
+      <label>Location <select id="shotLocation" data-filter="location"><option value="">All locations</option></select></label>
+      <label>Shoot date <select id="shotDay" data-filter="day"><option value="">All shoot dates</option></select></label>
+      <label>Status <select id="shotStatus" data-filter="status"><option value="">All statuses</option><option value="planned">Planned</option><option value="ready">Ready</option><option value="filmed">Filmed</option></select></label>
+      <label>Sort <select id="shotSort" data-filter="sort"><option value="">Storyboard order</option><option value="scene">Scene</option><option value="day">Shoot date</option></select></label>
+      <button id="exportShotCsv">Export filtered CSV</button>
+    </div>
+    <p id="shotSummary" role="status"></p><p id="shotEmpty">No matching shots. Import a storyboard, add shots, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Shot list table"><table id="shotTable"></table></div>
+  </section>
+  <section id="requirementsPanel" class="planning-panel" role="tabpanel" aria-labelledby="tab-requirements" data-workspace-panel="requirements" hidden>
+    <h2>Props &amp; equipment</h2><p>Current storyboard. Items are consolidated from shot fields; separate names with commas, semicolons or new lines. Quantities are entered manually.</p>
+    <div class="planning-tools"><label>Search <input id="requirementSearch" type="search"></label><label>Category <select id="requirementKind"><option value="">All categories</option><option value="prop">Props</option><option value="equipment">Equipment</option></select></label><button id="exportRequirementCsv">Export filtered CSV</button></div>
+    <form id="addRequirement" class="planning-tools"><label>Category <select id="newRequirementKind"><option value="prop">Prop</option><option value="equipment">Equipment</option></select></label><label>Item <input id="newRequirementName" required maxlength="160" placeholder="Additional requirement"></label><button>Add item</button></form>
+    <p id="requirementsSummary" role="status"></p><p id="requirementsEmpty">No matching requirements. Add props/equipment to a shot, add an item here, or clear the filters.</p>
+    <div class="planning-scroll" tabindex="0" aria-label="Props and equipment table"><table id="requirementsTable"></table></div>
+  </section>
+  </div>
+
+  <template id="shotTmpl">
+  <li class="shot group p-4 bg-slate-900/60 border border-slate-800 rounded-2xl shadow transition-colors ring-1 ring-transparent">
+      <div class="flex items-start gap-4">
+        <div class="flex flex-col items-center gap-3 pt-1">
+          <input type="checkbox" class="select-shot w-5 h-5 accent-emerald-500 focus:ring-emerald-500/40 rounded">
+          <div class="handle shrink-0 select-none text-slate-400 hover:text-slate-100 cursor-grab active:cursor-grabbing">≡</div>
+        </div>
+        <div class="w-full space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="shot-title text-sm font-semibold uppercase tracking-wide text-slate-200" contenteditable="true" spellcheck="false" aria-label="Edit shot title">Shot</div>
+            <button class="btnToggleFold px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-200 hover:bg-slate-800">Fold</button>
+          </div>
+          <div class="shot-body space-y-3">
+            <div class="grid md:grid-cols-12 gap-3">
+              <div class="md:col-span-5 relative">
+                <div class="frame grain rounded-xl ring-1 ring-slate-800 overflow-hidden flex items-center justify-center text-slate-400 relative group">
+                  <img class="frame-image absolute inset-0 w-full h-full object-cover rounded-xl hidden" alt="Shot reference">
+                  <div class="text-center px-4 frame-placeholder">
+                    <div class="font-semibold">Frame Preview</div>
+                    <div class="text-xs mb-3">16:9 placeholder with film grain</div>
+                    <label class="inline-block px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg cursor-pointer text-sm font-medium">
+                      Upload Image
+                      <input type="file" accept="image/*" class="image-upload hidden">
+                    </label>
+                  </div>
+                  <button class="remove-image absolute top-2 right-2 w-8 h-8 bg-rose-600 hover:bg-rose-500 text-white rounded-full items-center justify-center text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity hidden">×</button>
+                </div>
+              </div>
+              <div class="md:col-span-7 space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Scene</span>
+                    <input class="inp scene mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="EXT. LOCATION – TIME">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Shot #</span>
+                    <input class="inp shotnum mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="1">
+                  </label>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Shot Type</span>
+                    <select class="inp type mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>Wide</option>
+                      <option>Establishing</option>
+                      <option>Medium</option>
+                      <option>Close‑Up</option>
+                      <option>Extreme CU</option>
+                      <option>Over‑the‑Shoulder</option>
+                      <option>POV</option>
+                      <option>Drone</option>
+                      <option>Insert</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Lens</span>
+                    <select class="inp lens mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>24mm</option>
+                      <option selected>35mm</option>
+                      <option>50mm</option>
+                      <option>85mm</option>
+                      <option>105mm</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Move</span>
+                    <select class="inp move mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                      <option>Locked</option>
+                      <option>Pan</option>
+                      <option>Tilt</option>
+                      <option>Dolly</option>
+                      <option>Handheld</option>
+                      <option>Crane</option>
+                      <option>Drone</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  <span class="text-sm text-slate-300">Action / Composition</span>
+                  <textarea class="inp desc mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="3" placeholder="Describe the shot composition, action, and visual elements."></textarea>
+                </label>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Cast / Characters</span>
+                    <input class="inp chars mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Character A, Character B">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Location</span>
+                    <input class="inp location mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" placeholder="Set or shooting location">
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Shooting Date</span>
+                    <input type="date" class="inp shootdate mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700">
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Equipment</span>
+                    <textarea class="inp equipment mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Cameras, lenses, rigs, audio"></textarea>
+                  </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <label>
+                    <span class="text-sm text-slate-300">Props</span>
+                    <textarea class="inp props mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Key props, wardrobe, set dressing"></textarea>
+                  </label>
+                  <label>
+                    <span class="text-sm text-slate-300">Production Notes</span>
+                    <textarea class="inp notes mt-1 w-full px-3 py-2 rounded-lg bg-slate-900 border border-slate-700" rows="2" placeholder="Call times, contacts, special considerations"></textarea>
+                  </label>
+                </div>
+                <div class="flex items-center gap-2 mt-2">
+                  <button class="btnDup px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700">Duplicate</button>
+                  <button class="btnDelete px-3 py-2 rounded-xl bg-rose-600/90 hover:bg-rose-600 text-white">Delete</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </template>
+
+  <input type="file" id="fileInput" accept="application/json" class="hidden" />
+
+  <script>
+    async function readTextFromFile(file) {
+      return await file.text();
+    }
+
+    function extractScenes(rawText) {
+      const lines = rawText.split(/\r?\n/);
+      const scenes = [];
+      let current = null;
+      for (const sourceLine of lines) {
+        const line = sourceLine.trim();
+        if (!line) continue;
+        if (/^(INT\.|EXT\.)/i.test(line)) {
+          if (current) scenes.push(current);
+          current = { heading: line, body: [] };
+        } else if (current) {
+          current.body.push(line);
+        }
+      }
+      if (current) scenes.push(current);
+      return scenes;
+    }
+
+  function guessChars(block) {
+    const names = [];
+    if (/CHARACTER\s*A/i.test(block)) names.push('Character A');
+    if (/CHARACTER\s*B/i.test(block)) names.push('Character B');
+    if (/(PERSON|PROTAGONIST|HERO)/i.test(block)) names.push('Main Character');
+    if (/(DETECTIVE|OFFICER)/i.test(block)) names.push('Detective');
+    if (/(PARTNER|SIDEKICK)/i.test(block)) names.push('Partner');
+    return names.length ? names.join(', ') : 'Characters TBD';
+  }
+
+  function deriveLocationFromHeading(heading) {
+    const withoutPrefix = heading.replace(/^(INT\.|EXT\.)\s*/i, '');
+    const locationPart = withoutPrefix.split(/[\-–—]/)[0] || '';
+    return locationPart.trim();
+  }
+
+  function buildShotPreset(scene) {
+    const bodyText = scene.body.join('\n').trim();
+    const summary = bodyText ? bodyText.slice(0, 600) : '';
+    return {
+      scene: scene.heading,
+      type: /ESTABLISH|EXT\./i.test(scene.heading) ? 'Establishing' : 'Medium',
+      desc: summary,
+      chars: guessChars(bodyText),
+      location: deriveLocationFromHeading(scene.heading),
+      shootDate: '',
+      equipment: '',
+      props: '',
+      notes: '',
+      folded: false,
+    };
+  }
+
+    function applyBreakdown(text) {
+      const scenes = extractScenes(text);
+      if (!scenes.length) {
+    alert('No scene headings (INT. / EXT.) were detected in the uploaded script.');
+        return;
+      }
+      resetShots();
+      scenes.forEach(scene => addShotFromData(buildShotPreset(scene)));
+      renumber();
+      saveLocal();
+    }
+  // --- State ---
+  const STORAGE_KEY = 'apeOnAWhaleStoryboard';
+  const LEGACY_STORAGE_KEY = 'grittyStoryboard';
+  let isHydrating = false;
+
+  let documentExtras = {};
+  let metadataExtras = {};
+  const state = {
+    shots: [],
+  };
+
+  // --- Elements ---
+  const shotList = document.getElementById('shotList');
+  const tmpl = document.getElementById('shotTmpl');
+  const btnNew = document.getElementById('btnNew');
+  const btnExport = document.getElementById('btnExport');
+  const btnImport = document.getElementById('btnImport');
+  const btnPrint = document.getElementById('btnPrint');
+  const btnReset = document.getElementById('btnReset');
+  const btnFoldSelected = document.getElementById('btnFoldSelected');
+  const btnUnfoldSelected = document.getElementById('btnUnfoldSelected');
+  const btnClearSelection = document.getElementById('btnClearSelection');
+  const selectAllShots = document.getElementById('selectAllShots');
+  const scriptInput = document.getElementById('scriptInput');
+  const btnUploadScript = document.getElementById('btnUploadScript');
+  const fileInput = document.getElementById('fileInput');
+  const projTitle = document.getElementById('projTitle');
+  const director = document.getElementById('director');
+  const productionCompany = document.getElementById('productionCompany');
+  const dop = document.getElementById('dop');
+  const producer = document.getElementById('producer');
+  const shootSchedule = document.getElementById('shootSchedule');
+  const projNotes = document.getElementById('projNotes');
+  btnUploadScript.addEventListener('click', async () => {
+    const scope = window.storyboard?.scope;
+    const file = scriptInput.files && scriptInput.files[0];
+    if (!file) {
+      alert('Please select a text file.');
+      return;
+    }
+    if (file.type && file.type !== 'text/plain') {
+      const proceed = confirm('This file is not marked as plain text. Try to import it anyway?');
+      if (!proceed) return;
+    }
+    try {
+      const text = await readTextFromFile(file);
+      if (scope !== window.storyboard?.scope) return;
+      applyBreakdown(text);
+      scriptInput.value = '';
+    } catch (error) {
+      console.error('Text parsing failed', error);
+      alert('We couldn’t read that text file. Please try another file.');
+    }
+  });
+
+  // --- Helpers ---
+  const uid = () => crypto.randomUUID();
+
+  function updateShotTitle(li) {
+    const titleEl = li.querySelector('.shot-title');
+    if (!titleEl) return;
+    const sceneVal = li.querySelector('.scene')?.value.trim() || '';
+    const shotNumVal = li.querySelector('.shotnum')?.value.trim() || '';
+    let label = li.dataset.customTitle || sceneVal;
+    if (!label) {
+      const index = Array.from(shotList.children).indexOf(li);
+      const fallbackNumber = index > -1 ? index + 1 : shotNumVal || '';
+      label = fallbackNumber ? `Shot ${fallbackNumber}` : 'Shot';
+    }
+    titleEl.textContent = label;
+  }
+
+  function setShotFolded(li, folded) {
+    const isFolded = Boolean(folded);
+    const body = li.querySelector('.shot-body');
+    const toggle = li.querySelector('.btnToggleFold');
+    li.dataset.folded = isFolded ? 'true' : 'false';
+    if (body) body.classList.toggle('hidden', isFolded);
+    if (toggle) {
+      toggle.textContent = isFolded ? 'Unfold' : 'Fold';
+      toggle.setAttribute('aria-expanded', (!isFolded).toString());
+      toggle.setAttribute('aria-label', isFolded ? 'Unfold shot details' : 'Fold shot details');
+    }
+    li.classList.toggle('opacity-60', isFolded);
+  }
+
+  function updateShotSelectionVisual(li, selected) {
+    if (!li) return;
+    li.classList.toggle('ring-2', selected);
+    li.classList.toggle('ring-emerald-400', selected);
+    li.classList.toggle('ring-opacity-60', selected);
+  }
+
+  function getSelectedShotLis() {
+    return Array.from(shotList.querySelectorAll('.select-shot:checked')).map(cb => cb.closest('li')).filter(Boolean);
+  }
+
+  function updateSelectAll() {
+    const checkboxes = Array.from(shotList.querySelectorAll('.select-shot'));
+    const selected = checkboxes.filter(cb => cb.checked).length;
+    selectAllShots.checked = checkboxes.length > 0 && selected === checkboxes.length;
+    selectAllShots.indeterminate = selected > 0 && selected < checkboxes.length;
+    selectAllShots.disabled = checkboxes.length === 0;
+  }
+
+  selectAllShots.addEventListener('change', () => {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = selectAllShots.checked;
+      updateShotSelectionVisual(cb.closest('li'), cb.checked);
+    });
+    updateSelectAll();
+  });
+
+  function clearShotSelection() {
+    shotList.querySelectorAll('.select-shot').forEach(cb => {
+      cb.checked = false;
+      updateShotSelectionVisual(cb.closest('li'), false);
+    });
+    updateSelectAll();
+  }
+
+  let draftStore;
+  let draftData = {meta:{},shots:[]};
+  let draftSave = Promise.resolve();
+  let draftRevision = 0;
+  let draftUnsaved = false;
+  const draftStatus = document.getElementById('draftStatus');
+  function persistDraft() {
+    const revision = ++draftRevision;
+    const snapshot = structuredClone(draftData);
+    draftUnsaved = true;
+    draftStatus.textContent = 'Saving browser draft…';
+    draftSave = draftSave.catch(() => {}).then(() => {
+      if (!draftStore) throw new Error('Draft storage unavailable.');
+      return draftStore.writeDraft(snapshot);
+    }).then(() => {
+      if (revision !== draftRevision) return;
+      draftUnsaved = false;
+      draftStatus.textContent = 'Browser draft saved on this device.';
+    }).catch(() => {
+      if (revision !== draftRevision) return;
+      draftStatus.textContent = 'Browser draft could not be saved on this device. Your changes remain open; export JSON or copy the draft to a shared project before closing.';
+    });
+  }
+  function saveLocal() {
+    if (isHydrating) return;
+    document.dispatchEvent(new Event('storyboardchange'));
+    if (window.storyboard?.mode === 'shared') { window.storyboard.onChange?.(); return; }
+    draftData = collectData();
+    persistDraft();
+  }
+  async function loadLocal() {
+    let readable = false;
+    try {
+      draftStore = await import('./local-draft.mjs');
+      const saved = await draftStore.readDraft();
+      readable = true;
+      if (saved) {
+        draftData = saved;
+        hydrate(draftData);
+        draftStatus.textContent = 'Browser draft saved on this device.';
+        return;
+      }
+    } catch {
+      draftStatus.textContent = 'Browser draft storage is unavailable. Export changes before closing.';
+    }
+    // Keep legacy data unchanged until the new draft is safely stored, and retain
+    // it as a fallback backup. The in-memory snapshot always tracks current edits.
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+      if (raw) {
+        draftData = JSON.parse(raw);
+        hydrate(draftData);
+        persistDraft();
+      } else if (readable) draftStatus.textContent = 'Browser draft ready. Changes save on this device.';
+    } catch {
+      draftStatus.textContent = 'Previous browser draft could not be read. Your exported JSON files can still be imported.';
+    }
+  }
+
+  function collectData() {
+    return {
+      ...documentExtras,
+      meta: {
+        ...metadataExtras,
+  title: projTitle.value.trim(),
+  director: director.value.trim(),
+  productionCompany: productionCompany.value.trim(),
+  dop: dop.value.trim(),
+  producer: producer.value.trim(),
+  shootSchedule: shootSchedule.value.trim(),
+  notes: projNotes.value.trim(),
+      },
+      shots: state.shots.map(s => ({...s}))
+    };
+  }
+
+  function hydrate(data) {
+    isHydrating = true;
+    const {meta,shots,...extra} = data || {};
+    documentExtras = structuredClone(extra);
+    metadataExtras = structuredClone(meta || {});
+  projTitle.value = data?.meta?.title || '';
+  director.value = data?.meta?.director || '';
+  productionCompany.value = data?.meta?.productionCompany || '';
+  dop.value = data?.meta?.dop || '';
+  producer.value = data?.meta?.producer || '';
+  shootSchedule.value = data?.meta?.shootSchedule || '';
+  projNotes.value = data?.meta?.notes || '';
+    resetShots();
+    (data?.shots || []).forEach(addShotFromData);
+    isHydrating = false;
+  }
+
+  function resetShots() {
+    clearShotSelection();
+    state.shots = [];
+    shotList.innerHTML = '';
+  }
+
+  function addShotFromData(s) {
+    const li = tmpl.content.firstElementChild.cloneNode(true);
+    li.dataset.id = s.id || (s.id = uid());
+    li.dataset.customTitle = s.customTitle || '';
+    if(s.imagePath)li.dataset.imagePath=s.imagePath;
+    li.querySelector('.shot-title').addEventListener('input', event => {
+      li.dataset.customTitle=event.target.textContent.trim();
+      persistFromDOM();
+    });
+    const sceneInput = li.querySelector('.scene');
+    const shotNumInput = li.querySelector('.shotnum');
+    const typeInput = li.querySelector('.type');
+    const lensInput = li.querySelector('.lens');
+    const moveInput = li.querySelector('.move');
+    const descInput = li.querySelector('.desc');
+    const charsInput = li.querySelector('.chars');
+    const locationInput = li.querySelector('.location');
+    const shootDateInput = li.querySelector('.shootdate');
+    const equipmentInput = li.querySelector('.equipment');
+    const propsInput = li.querySelector('.props');
+    const notesInput = li.querySelector('.notes');
+    const selectShot = li.querySelector('.select-shot');
+    const toggleFoldBtn = li.querySelector('.btnToggleFold');
+
+    sceneInput.value = s.scene || '';
+    shotNumInput.value = s.number || state.shots.length + 1;
+    for (const [input,value] of [[typeInput,s.type],[lensInput,s.lens],[moveInput,s.move]]) {
+      if(value && !Array.from(input.options).some(option=>option.value===value)) input.add(new Option(value,value));
+    }
+    typeInput.value = s.type || 'Wide';
+    lensInput.value = s.lens || '35mm';
+    moveInput.value = s.move || 'Locked';
+    descInput.value = s.desc || '';
+    charsInput.value = s.chars || '';
+    locationInput.value = s.location || '';
+    shootDateInput.value = s.shootDate || s.shootingDate || '';
+    equipmentInput.value = s.equipment || '';
+    propsInput.value = s.props || '';
+    notesInput.value = s.notes || '';
+
+    updateShotTitle(li);
+
+    if (selectShot) {
+      selectShot.checked = false;
+      updateShotSelectionVisual(li, false);
+      selectShot.addEventListener('change', () => {
+        updateShotSelectionVisual(li, selectShot.checked);
+        updateSelectAll();
+      });
+    }
+
+    setShotFolded(li, s.folded);
+
+    if (toggleFoldBtn) {
+      toggleFoldBtn.addEventListener('click', () => {
+        const next = li.dataset.folded !== 'true';
+        setShotFolded(li, next);
+        persistFromDOM();
+      });
+    }
+
+    // Handle image display
+    const frameImg = li.querySelector('.frame-image');
+    const framePlaceholder = li.querySelector('.frame-placeholder');
+    const removeBtn = li.querySelector('.remove-image');
+
+    if (/^data:image\/(png|jpeg|jpg|webp|gif);base64,/i.test(s.imageData || '')) {
+      frameImg.src = s.imageData;
+      frameImg.classList.remove('hidden');
+      framePlaceholder.classList.add('hidden');
+      removeBtn.classList.remove('hidden');
+      removeBtn.classList.add('flex');
+    }
+
+    // Image upload handler
+    li.querySelector('.image-upload').addEventListener('change', (e) => {
+      const scope = window.storyboard?.scope;
+      const file = e.target.files[0];
+      if (file && file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          if (scope !== window.storyboard?.scope) return;
+          delete li.dataset.imagePath;
+          frameImg.src = event.target.result;
+          frameImg.classList.remove('hidden');
+          framePlaceholder.classList.add('hidden');
+          removeBtn.classList.remove('hidden');
+          removeBtn.classList.add('flex');
+
+          // Update state
+          const shotId = li.dataset.id;
+          const shotIndex = indexOfShot(shotId);
+          if (shotIndex > -1) {
+            state.shots[shotIndex].imageData = event.target.result;
+            delete state.shots[shotIndex].imagePath;
+            saveLocal();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Remove image handler
+    removeBtn.addEventListener('click', () => {
+      delete li.dataset.imagePath;
+      frameImg.src = '';
+      frameImg.classList.add('hidden');
+      framePlaceholder.classList.remove('hidden');
+      removeBtn.classList.add('hidden');
+      removeBtn.classList.remove('flex');
+
+      // Update state
+      const shotId = li.dataset.id;
+      const shotIndex = indexOfShot(shotId);
+      if (shotIndex > -1) {
+        delete state.shots[shotIndex].imageData;
+        delete state.shots[shotIndex].imagePath;
+        saveLocal();
+      }
+    });
+
+    // Bind buttons
+    li.querySelector('.btnDup').addEventListener('click', () => {
+      const current = readShotFromLI(li);
+      const clone = { ...state.shots[indexOfShot(s.id)], ...current, id: uid() };
+      state.shots.splice(indexOfShot(s.id) + 1, 0, clone);
+      renderAll();
+      saveLocal();
+    });
+
+    li.querySelector('.btnDelete').addEventListener('click', () => {
+      state.shots = state.shots.filter(x => x.id !== s.id);
+      li.remove();
+      renumber();
+      saveLocal();
+    });
+
+    // Track changes
+    li.querySelectorAll('.inp').forEach(el => {
+      el.addEventListener('input', () => {
+        if (el.classList.contains('scene') || el.classList.contains('shotnum')) {
+          updateShotTitle(li);
+        }
+        persistFromDOM();
+      });
+    });
+
+    shotList.appendChild(li);
+    updateShotTitle(li);
+    state.shots.push({ ...s, id: s.id, ...readShotFromLI(li) });
+  }
+
+  function readShotFromLI(li) {
+    const frameImg = li.querySelector('.frame-image');
+    const original = state.shots.find(shot=>shot.id===li.dataset.id) || {};
+    const {imageData,imagePath,...preserved} = original;
+    const data = {
+      ...preserved,
+      customTitle: li.dataset.customTitle || '',
+      scene: li.querySelector('.scene').value,
+      number: li.querySelector('.shotnum').value,
+      type: li.querySelector('.type').value,
+      lens: li.querySelector('.lens').value,
+      move: li.querySelector('.move').value,
+      desc: li.querySelector('.desc').value,
+      chars: li.querySelector('.chars').value,
+      location: li.querySelector('.location').value,
+      shootDate: li.querySelector('.shootdate').value,
+      equipment: li.querySelector('.equipment').value,
+      props: li.querySelector('.props').value,
+      notes: li.querySelector('.notes').value,
+      folded: li.dataset.folded === 'true',
+    };
+
+    if(li.dataset.imagePath)data.imagePath=li.dataset.imagePath;
+    if (frameImg.src && !frameImg.classList.contains('hidden')) {
+      data.imageData = frameImg.src;
+    }
+
+    return data;
+  }
+
+  function persistFromDOM() {
+    if (isHydrating) return;
+    // Walk DOM list order to persist state
+    state.shots = Array.from(shotList.children).map(li => ({ id: li.dataset.id, ...readShotFromLI(li) }));
+    renumber();
+    saveLocal();
+  }
+
+  function renumber() {
+    Array.from(shotList.children).forEach((li, i) => {
+      li.querySelector('.shotnum').value = i + 1;
+      updateShotTitle(li);
+      const idx = indexOfShot(li.dataset.id);
+      if (idx > -1) state.shots[idx].number = i + 1;
+    });
+  }
+
+  function indexOfShot(id) { return state.shots.findIndex(s => s.id === id); }
+
+  function renderAll() {
+    shotList.innerHTML = '';
+    const existing = [...state.shots];
+    state.shots = [];
+    existing.forEach(addShotFromData);
+  }
+
+  function newShot(preset={}) {
+    addShotFromData({
+      id: uid(),
+      scene: preset.scene || '',
+      type: preset.type || 'Wide',
+      lens: preset.lens || '35mm',
+      move: preset.move || 'Locked',
+      desc: preset.desc || '',
+      chars: preset.chars || '',
+      location: preset.location || '',
+      shootDate: preset.shootDate || '',
+      equipment: preset.equipment || '',
+      props: preset.props || '',
+      notes: preset.notes || '',
+      folded: preset.folded || false,
+    });
+    saveLocal();
+  }
+
+  // --- Drag to reorder ---
+  let dragSrcEl = null;
+  let ghost;
+
+  function addDragHandlers(li) {
+    if (li.dataset.dragBound) return;
+    li.dataset.dragBound = 'true';
+    const h = li.querySelector('.handle');
+    h.addEventListener('pointerdown', (e) => {
+      if (window.storyboard && !window.storyboard.canEdit) return;
+      dragSrcEl = li;
+      ghost = li.cloneNode(true);
+      ghost.classList.add('opacity-50');
+      ghost.style.pointerEvents = 'none';
+      li.parentNode.insertBefore(ghost, li.nextSibling);
+      li.classList.add('ring-2','ring-emerald-500');
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp, { once: true });
+    });
+  }
+
+  function onMove(e) {
+    const y = e.clientY;
+    const items = Array.from(shotList.children).filter(el => el !== dragSrcEl);
+    for (const item of items) {
+      const rect = item.getBoundingClientRect();
+      const before = y < rect.top + rect.height / 2;
+      if (before) { shotList.insertBefore(ghost, item); break; }
+      if (item === items[items.length-1]) { shotList.appendChild(ghost); }
+    }
+  }
+
+  function onUp() {
+    const moved = dragSrcEl;
+    if (moved) {
+      moved.classList.remove('ring-2','ring-emerald-500');
+      shotList.insertBefore(moved, ghost);
+    }
+    if (ghost) ghost.remove();
+    ghost = null;
+    dragSrcEl = null;
+    persistFromDOM();
+    if (moved) {
+      const cb = moved.querySelector('.select-shot');
+      if (cb) updateShotSelectionVisual(moved, cb.checked);
+    }
+    document.removeEventListener('pointermove', onMove);
+  }
+
+  // Observe list for new items to wire drag
+  const mo = new MutationObserver(() => {
+    Array.from(shotList.children).forEach(addDragHandlers);
+    updateSelectAll();
+  });
+  mo.observe(shotList, { childList: true });
+
+  // --- Import/Export ---
+  btnExport.addEventListener('click', async () => {
+    let data;
+    try { const media=await import('./storyboard-media.mjs'); data=media.portableDocument(collectData()); }
+    catch(error){alert(error.message);return;}
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = (data.meta.title || 'storyboard') + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  btnImport.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const scope = window.storyboard?.scope;
+    const reader = new FileReader();
+    reader.onerror = () => alert('The JSON file could not be read. Your current storyboard is unchanged.');
+    reader.onload = async () => {
+      if (scope !== window.storyboard?.scope) return;
+      try {
+        const media = await import('./storyboard-media.mjs');
+        const data = media.validateStoryboard(JSON.parse(reader.result));
+        if (scope !== window.storyboard?.scope) return;
+        hydrate(data); saveLocal();
+        window.storyboard.onImport?.(data.shots.length);
+      } catch (error) { alert(error instanceof SyntaxError ? 'Invalid JSON. Your current storyboard is unchanged.' : error.message); }
+    };
+    reader.readAsText(f);
+    fileInput.value = '';
+  });
+
+  btnPrint.addEventListener('click', () => {
+    window.print();
+  });
+
+  btnReset.addEventListener('click', () => {
+    const confirmed = confirm('This will delete all shots and production data for this storyboard. Continue?');
+    if (!confirmed) return;
+
+    // Clear meta fields
+    projTitle.value = '';
+    director.value = '';
+    productionCompany.value = '';
+    dop.value = '';
+    producer.value = '';
+    shootSchedule.value = '';
+    projNotes.value = '';
+
+    // Clear shots and state
+    documentExtras={}; metadataExtras={};
+    resetShots();
+    clearShotSelection();
+    saveLocal();
+  });
+
+  if (btnFoldSelected) {
+    btnFoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to fold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, true));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnUnfoldSelected) {
+    btnUnfoldSelected.addEventListener('click', () => {
+      const items = getSelectedShotLis();
+      if (!items.length) {
+        alert('Select at least one shot to unfold.');
+        return;
+      }
+      items.forEach(li => setShotFolded(li, false));
+      clearShotSelection();
+      persistFromDOM();
+    });
+  }
+
+  if (btnClearSelection) {
+    btnClearSelection.addEventListener('click', () => {
+      clearShotSelection();
+    });
+  }
+
+  // --- New shot ---
+  btnNew.addEventListener('click', () => newShot());
+
+  // --- Keyboard shortcuts ---
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT' || e.target.isContentEditable) return;
+    if (window.storyboard && !window.storyboard.canEdit && e.key.toLowerCase() === 'n') return;
+    if (e.key.toLowerCase() === 'n') { e.preventDefault(); newShot(); }
+    if (e.key.toLowerCase() === 'e') { e.preventDefault(); btnExport.click(); }
+    if (e.key.toLowerCase() === 'p') { e.preventDefault(); btnPrint.click(); }
+  });
+
+  window.storyboard = {
+    mode: 'local', canEdit: true, scope: 0,
+    collectData,
+    hydrate(data) { this.scope++; hydrate(data); document.dispatchEvent(new Event('storyboardchange')); },
+    updateShot(id,patch) {
+      if (!this.canEdit) return;
+      const shot = state.shots.find(s=>s.id===id); if (!shot) return;
+      const fields = ['scene','desc','type','lens','move','location','chars','shootDate','estimatedMinutes','status','props','equipment','notes'];
+      for (const field of fields) if (Object.hasOwn(patch,field)) shot[field]=patch[field];
+      renderAll(); saveLocal();
+    },
+    updateRequirements(requirements) {
+      if (!this.canEdit) return;
+      documentExtras.planning={...documentExtras.planning,requirements}; saveLocal();
+    },
+    localData() { return structuredClone(draftData); },
+    get localUnsaved() { return draftUnsaved; },
+    setEditable(value) {
+      this.canEdit = value;
+      document.querySelectorAll('#storyboardEditor input, #storyboardEditor textarea, #storyboardEditor select').forEach(el => {
+        el.disabled = !value && !el.classList.contains('select-shot') && el.id !== 'selectAllShots';
+      });
+      document.querySelectorAll('#storyboardEditor button').forEach(el => {
+        const viewOnly = el.classList.contains('btnToggleFold') || ['btnFoldSelected','btnUnfoldSelected','btnClearSelection'].includes(el.id);
+        el.disabled = !value && !viewOnly;
+      });
+      [btnNew,btnImport,btnReset].forEach(button=>button.disabled=!value);
+      shotList.querySelectorAll('[contenteditable]').forEach(el=>el.contentEditable=String(value));
+      updateSelectAll();
+      document.dispatchEvent(new Event('storyboardpermissions'));
+    }
+  };
+  // --- Init ---
+  window.storyboard.setEditable(false);
+  window.storyboard.ready = loadLocal().finally(() => {
+    if (!projTitle.value) projTitle.value = 'Project Title (working title)';
+    window.storyboard.setEditable(true);
+  });
+  window.addEventListener('beforeunload', event => {
+    if (draftUnsaved) { event.preventDefault(); event.returnValue = ''; }
+  });
+
+  // Persist meta edits
+  [projTitle, director, productionCompany, dop, producer, shootSchedule, projNotes].forEach(el => el.addEventListener('input', saveLocal));
+  </script>
+
+  <script type="module" src="shared-ui.mjs"></script>
+  <script type="module" src="workspace-ui.mjs"></script>
+  <footer class="max-w-7xl mx-auto p-6 text-center text-slate-500 text-xs">
+    Built as a single HTML file – host on GitHub Pages or Netlify. © You.
+  </footer>
+</body>
+</html>

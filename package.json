@@ -7,11 +7,14 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test",
+    "test": "node --test tests/*.test.mjs",
     "dev": "python3 -m http.server 8000 --bind 0.0.0.0 --directory dist",
     "test:db": "bash scripts/test-db.sh",
     "test:browser": "node scripts/check-browser.mjs",
-    "test:import": "node scripts/check-real-import.mjs"
+    "test:import": "node scripts/check-real-import.mjs",
+    "build:sites": "npm --prefix sites/film-workspace run build",
+    "test:sites": "npm run build:sites && npm --prefix sites/film-workspace test",
+    "test:sites:browser": "npm run build:sites && npm --prefix sites/film-workspace run test:browser"
   },
   "devDependencies": {
     "playwright": "^1.64.1"

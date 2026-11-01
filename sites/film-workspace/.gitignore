@@ -1,0 +1,8 @@
+node_modules/
+dist/
+outputs/
+.env*
+.dev.vars*
+.sites-runtime/
+
+worker/assets.generated.mjs
