@@ -18,10 +18,10 @@ Implements the repository portion of ESNZ story
 
 ## Registered provider projects
 
-| Environment | Supabase project reference | Supabase URL |
-| --- | --- | --- |
-| Development | `lfvsimzmjhceyvjaoats` | https://lfvsimzmjhceyvjaoats.supabase.co |
-| Production | `yvtixpzlsnhgsyksmypm` | https://yvtixpzlsnhgsyksmypm.supabase.co |
+| Environment | Supabase project reference | Supabase URL                             |
+| ----------- | -------------------------- | ---------------------------------------- |
+| Development | `lfvsimzmjhceyvjaoats`     | https://lfvsimzmjhceyvjaoats.supabase.co |
+| Production  | `yvtixpzlsnhgsyksmypm`     | https://yvtixpzlsnhgsyksmypm.supabase.co |
 
 Existing Netlify site: https://storyboardafterlive.netlify.app (intended production;
 confirm its linked repository and production branch in Netlify). Use this site's
@@ -235,7 +235,6 @@ health endpoint has been confirmed by the owner, but health probes only Auth
 connectivity, not these workflows. Production migration, pricing/limits review,
 and production smoke checks remain outstanding.
 
-
 ## Development migration deployment — 23 October 2026 (Auckland)
 
 Authenticated Supabase MCP access is working for `storyboard-dev`, reference
@@ -243,10 +242,10 @@ Authenticated Supabase MCP access is working for `storyboard-dev`, reference
 tables or recorded migrations. The two repository migrations were applied using
 Supabase MCP and verified in its migration history:
 
-| Recorded version | Migration |
-| --- | --- |
+| Recorded version | Migration                |
+| ---------------- | ------------------------ |
 | `20261022214509` | `environment_foundation` |
-| `20261022215928` | `shared_storyboards` |
+| `20261022215928` | `shared_storyboards`     |
 
 MCP assigns application-time migration versions. Repository filenames were renamed
 to these exact versions without changing SQL contents. Use the updated collaboration
@@ -265,6 +264,7 @@ warnings for intentionally authenticated `SECURITY DEFINER` RPCs. These RPCs hav
 explicit identity/membership/role checks, fixed empty search paths, and revoked
 anonymous/PUBLIC execution. Preserve these checks; review this API design before
 production. References:
+
 - https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy
 - https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable
 
@@ -317,7 +317,6 @@ otherwise its Site URL fallback can take the user elsewhere.
    Report outcomes or error messages without credentials. Recovery and real
    multi-account membership testing remain separate pending checks.
 
-
 ## JSON import storage fix — 23 October 2026 (Auckland)
 
 The owner confirmed development sign-up and email confirmation returned to the
@@ -339,7 +338,6 @@ export availability and subsequent storage recovery. Shared copy/save additional
 reports the existing 5 MiB document limit before sending oversized requests. This
 does not increase the Supabase document limit or implement object storage. Large
 image libraries still require the dedicated private-image storage story.
-
 
 ## Full-size storyboard import and private images — 23 October 2026
 
@@ -516,7 +514,6 @@ Implementation references: Supabase MCP authentication guide
 Local tests mock the HTTP APIs; OAuth provider configuration, actual ChatGPT
 connection and a real generated-image attachment remain live acceptance checks.
 Production is not enabled by this work.
-
 
 OAuth discovery troubleshooting (2026-10-23): runtime readiness must not depend on
 APP_ENV or DEPLOY_PRIME_URL defined only for builds. Regression coverage verifies

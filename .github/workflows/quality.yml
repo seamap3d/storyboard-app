@@ -1,0 +1,51 @@
+name: Code quality
+
+on:
+  push:
+    branches: [main, 'feat/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            sites/film-workspace/package-lock.json
+      - run: npm ci
+      - run: npm ci --prefix sites/film-workspace
+      - run: npm run quality
+      - run: npx playwright install --with-deps chromium
+        working-directory: sites/film-workspace
+      - run: npm run quality:browser
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: quality-reports-node-${{ matrix.node }}
+          path: sites/film-workspace/coverage/
+          if-no-files-found: ignore
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm run test:db

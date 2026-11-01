@@ -2,12 +2,11 @@
 
 Live Site: https://apeonawhale-film-workspace.seamap3d.chatgpt.site
 
-This directory mirrors the deployed Sites source at commit
-`6e345b3198f55848f669185a25ef0b85ac64b5a7`, with portable browser-test tooling, blank-line whitespace cleanup and
-updated documentation. The Site-managed repository remains the deployment source;
-a GitHub push alone does not publish this app. See [source and hosting setup](../../docs/sites.md)
-for synchronization and the preserved Netlify fallback. Database migrations remain
-in [supabase/migrations](../../supabase/migrations).
+This directory is the canonical application source in GitHub. The Site-managed
+repository is a publication mirror synchronized by the root `npm run sync:sites`
+command. GitHub pushes alone do not publish the Site. Read `AGENTS.md` for the
+required development checks. The earlier Netlify implementation is frozen.
+Database migrations remain in the repository's `supabase/migrations/` directory.
 
 ## Access model
 
@@ -84,9 +83,11 @@ https://supabase.com/docs/guides/auth/testing-auth-flows
 
 ## Build, publish and verify
 
+```sh
 npm ci
-npm run build
-npm test
+npm run quality
+npm run quality:browser
+```
 
 For browser fixtures, install Chromium once with `npx playwright install chromium`,
 then run `npm run test:browser` after building. Alternatively set `CHROMIUM_PATH`
@@ -97,12 +98,12 @@ The pinned esbuild build embeds an explicit allowlist of public assets into a
 Worker ESM bundle at dist/server/index.js, with dist/.openai/hosting.json. The
 published artifact contains root .openai/hosting.json AND dist/, not dist contents
 alone. No environment file, private source JSON/image archive or vault content
-is included. The Site's managed source repository is the authoritative deployment
-source. The installed Sites helper/Vinext source was unavailable in this image;
+is included. The Site's managed source repository records each published source state;
+GitHub is the canonical review/development source. The installed Sites helper/Vinext source was unavailable in this image;
 the Worker adapter retains the existing browser app. Temporary source credentials
 are accepted only through hidden stdin by scripts/push-source.mjs.
 
-29 unit tests cover save reconciliation and image reuse, text editing, vault identity isolation, mixed-account rejection, public
+52 unit tests cover save reconciliation and image reuse, text editing, vault identity isolation, mixed-account rejection, public
 assets/config, authenticated APIs, provider enrollment and old-link MCP denial,
 route allowlists/user-token forwarding, and independent recovery. Browser fixtures
 exercise anonymous-site editor sign-in, image upload/edit/save/reload, viewer
@@ -165,7 +166,6 @@ viewer/commenter writes, stable/ambiguous IDs, stale/racing versions, empty/no-o
 updates, protected-field rejection, date/length validation and all field mappings.
 The mock browser exercises MCP text edit then website reload with the same image.
 
-
 ## Saving after image preparation
 
 Loaded/uploaded immutable image paths are tracked in the current authenticated
@@ -191,3 +191,25 @@ An explicit retry can recognize an identical late commit; genuine conflicts stil
 fail. No failed/unconfirmed save is labelled saved just because image preparation
 finished. Regressions include a lost response after commit, failure before commit,
 19-image reuse, safe retry, permission/conflict errors and browser draft retention.
+
+## Quality gates and future changes
+
+Prettier, ESLint, per-function complexity limits, unit tests and coverage run via
+`npm run quality`. Browser changes also require `npm run quality:browser`.
+The pinned Playwright Chromium must be installed first, or CHROMIUM_PATH supplied.
+The browser checks use synthetic accounts and mocked HTTP; no real password,
+project or image is changed. Reports are ignored under `coverage/`.
+
+The runtime unit coverage floor is 40%, including unloaded UI modules. Combined
+unit/browser line coverage must reach 80%, with 95% floors for the account vault
+and planning model. Branch numbers from V8 are diagnostic rather than a complete
+syntactic branch guarantee. New functions default to complexity at most 10;
+measured legacy exceptions (all at most 20) may not grow. The previous largest
+router function scored 56; it now scores 12 after extraction. Runtime editor code
+is in modules, not inline HTML. Shared test cases run against the deployed app
+modules and the frozen fallback.
+
+JSDoc documents the card-renderer action boundary. Full JavaScript type checking
+has not been introduced. In the GitHub repository, CI runs the checks on Node 22
+and 24 plus disposable PostgreSQL migration/access tests. Required status checks
+must be enabled in repository protection to make passing CI a merge condition.

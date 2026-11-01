@@ -13,17 +13,17 @@ provider can connect the MCP tools.
 
 ## Source layout
 
-| Path | Purpose |
-| --- | --- |
-| `sites/film-workspace/` | Current ChatGPT Sites app, Worker, provider MCP, build and tests |
-| `supabase/migrations/` | Ordered shared database, membership and private image migrations |
-| Root HTML/modules, `netlify/`, `netlify.toml` | Preserved earlier Netlify implementation |
-| `docs/sites.md` | Current hosting, source synchronization, setup and outstanding checks |
-| `docs/environments.md` | Supabase migration runbook and historical Netlify verification |
+| Path                                          | Purpose                                                               |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `sites/film-workspace/`                       | Current ChatGPT Sites app, Worker, provider MCP, build and tests      |
+| `supabase/migrations/`                        | Ordered shared database, membership and private image migrations      |
+| Root HTML/modules, `netlify/`, `netlify.toml` | Frozen Netlify fallback (hash-checked)                                |
+| `docs/sites.md`                               | Current hosting, source synchronization, setup and outstanding checks |
+| `docs/environments.md`                        | Supabase migration runbook and historical Netlify verification        |
 
 The Site currently uses **development Supabase**. Production promotion and smoke
-checks remain outstanding. GitHub preserves the source; the Site-managed Git
-repository and a Sites deployment publish the running app. A GitHub push does
+checks remain outstanding. GitHub holds the canonical development source; its tracked app is synchronized
+to the Site-managed publication repository before a Sites deployment. A GitHub push does
 not deploy the active Site.
 
 ## Current functionality
@@ -45,13 +45,13 @@ cleanup and broader collaborator acceptance also remain open.
 
 ## Development checks
 
-Use Node 22 or later. From the repository root:
+Use Node 22.13+ (22.x), or Node 24+. From the repository root:
 
 ```sh
 npm ci
 npm ci --prefix sites/film-workspace
-npm test
-npm run test:sites
+npm run quality
+npm run quality:browser
 ```
 
 Install the browser once, then run the Sites browser fixtures:
@@ -60,7 +60,7 @@ Install the browser once, then run the Sites browser fixtures:
 cd sites/film-workspace
 npx playwright install chromium
 cd ../..
-npm run test:sites:browser
+npm run quality:browser
 ```
 
 Set `CHROMIUM_PATH` to use an existing Chromium executable instead. These browser
@@ -79,3 +79,8 @@ committed. Source uploads and generated storyboard frames stay outside the
 published asset allowlist. Public hosting does not make Supabase data or private
 image buckets public. The real ESNZ Backlog is the planning source; do not create
 or update `backlog.json`.
+
+Read [AGENTS.md](AGENTS.md) and [quality requirements](docs/quality.md) before
+changing code. These instructions persist for future coding sessions. GitHub CI
+checks formatting, lint, complexity, coverage, unit/browser behavior and disposable
+SQL tests. Branch protection must require those jobs to enforce merge blocking.

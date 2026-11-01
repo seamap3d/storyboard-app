@@ -1,6 +1,6 @@
 # ChatGPT Sites setup and source handoff
 
-## Current deployment
+## Last published save fix (before quality refactor)
 
 - URL: https://apeonawhale-film-workspace.seamap3d.chatgpt.site
 - Site project: `appgprj_6ae647f088b48191b14473736fa55625`
@@ -10,17 +10,17 @@
 - Saved version: `appgprj_6ae647f088b48191b14473736fa55625~appgver_aaa71f75280c8191a6813ff1e1f9fe24`.
 - Successful deployment: `appgdep_6ae6da2ad77c81918c26e69e34f98817`.
 
-This GitHub import contains the tracked source from that commit, with portable
-browser-test dependency resolution, blank-line whitespace cleanup and updated documentation. It excludes the
-Site Git metadata, installed dependencies, generated build files, credentials,
-private storyboard exports and uploaded images. The earlier Netlify app remains
-at the repository root with its existing build configuration. Database migrations
-and SQL regression checks remain in their original locations.
+The current canonical source is `sites/film-workspace/` in GitHub. Its source
+instructions, checks and code travel together to the Site publication mirror.
+The root Netlify app is frozen and hash-checked. Database migrations and SQL
+checks remain in their original directories. See [quality requirements](quality.md).
 
 The active Site and Netlify have different hosting systems and source repositories.
 Changes pushed to GitHub are reviewable source, not an automatic Sites release.
-To publish a later reviewed change, synchronize the intended files into the
-Site-managed checkout, inspect its diff, build/test there, commit/push that source
+To publish a reviewed change, run `npm run sync:sites -- --target <checkout>`
+from a clean GitHub checkout. The target must be clean, dedicated to the same
+Site and outside this repository. Inspect its diff, run quality checks there,
+then commit/push that source
 using the Sites source credentials, save its version and deploy through Sites.
 Use the resulting Site commit as deployment provenance. Do not replace either
 repository's remote or force-push one repository's unrelated history over the other.
@@ -33,8 +33,8 @@ From `sites/film-workspace/`:
 
 ```sh
 npm ci
-npm run build
-npm test
+npm run quality
+npm run quality:browser
 ```
 
 The build emits a Worker ESM bundle in `dist/server/index.js`. The publishing
@@ -46,12 +46,12 @@ allowlist of public app assets, not the source directory or private input files.
 Configure these values securely in the Site runtime, not committed environment
 files or the manifest:
 
-| Value | Purpose |
-| --- | --- |
-| `SUPABASE_URL` | Development project endpoint |
-| `SUPABASE_PUBLISHABLE_KEY` | Public client configuration; never substitute an admin key |
-| `SESSION_VAULT_KEY` | Existing 32-byte base64 AES-GCM account-link key |
-| `MCP_OWNER_SUPABASE_USER_ID` | Designated provider's verified Supabase user UUID |
+| Value                        | Purpose                                                    |
+| ---------------------------- | ---------------------------------------------------------- |
+| `SUPABASE_URL`               | Development project endpoint                               |
+| `SUPABASE_PUBLISHABLE_KEY`   | Public client configuration; never substitute an admin key |
+| `SESSION_VAULT_KEY`          | Existing 32-byte base64 AES-GCM account-link key           |
+| `MCP_OWNER_SUPABASE_USER_ID` | Designated provider's verified Supabase user UUID          |
 
 Keep the existing vault key when changing unrelated settings. Rotating or losing
 it invalidates the encrypted provider connection and requires reconnection.
@@ -98,7 +98,7 @@ the owner shares the app URL. Do not disable email verification to bypass limits
 
 ## Verification and remaining checks (2026-11-01)
 
-The deployed source has 29 unit regressions plus mocked Chromium workflows for
+The refactored source has 52 unit regressions plus mocked Chromium workflows for
 roles, recovery, provider linking, text/image editing, existing-image reuse and
 uncertain saves. A lost response is reconciled through one read and accepted only
 when ID, next revision, name and document match; uncertain writes are never

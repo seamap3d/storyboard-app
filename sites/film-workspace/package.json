@@ -2,11 +2,34 @@
   "name": "apeonawhale-sites",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": "^22.13.0 || >=24"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node scripts/check-browser.mjs"
+    "test:browser": "node scripts/check-browser.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint . --max-warnings 0",
+    "complexity": "node scripts/check-complexity.mjs",
+    "coverage": "node scripts/coverage.mjs unit",
+    "coverage:browser": "node scripts/coverage.mjs browser",
+    "quality": "npm run format:check && npm run lint && npm run complexity && npm run build && npm run coverage",
+    "quality:browser": "npm run build && npm run coverage && npm run coverage:browser"
   },
-  "devDependencies": { "esbuild": "0.25.12", "playwright": "1.64.1" }
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "acorn": "8.19.0",
+    "c8": "12.0.0",
+    "esbuild": "0.25.12",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "istanbul-lib-coverage": "3.2.2",
+    "istanbul-lib-report": "3.0.1",
+    "istanbul-reports": "3.2.0",
+    "playwright": "1.64.1",
+    "prettier": "3.9.10",
+    "v8-to-istanbul": "9.3.0"
+  }
 }

@@ -6,3 +6,5 @@ outputs/
 .sites-runtime/
 
 worker/assets.generated.mjs
+
+coverage/

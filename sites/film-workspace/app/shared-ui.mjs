@@ -1,106 +1,238 @@
-import {SitesClient} from './sites-client.mjs';
-import {consumeAuthCallback} from './recovery.mjs';
-const authCallback=consumeAuthCallback(window.location,window.history);
-window.addEventListener('hashchange',()=>{
-  const callback=new URLSearchParams(location.hash.slice(1));
-  if(callback.has('access_token') || callback.has('error') || callback.has('error_code'))location.reload();
+import './storyboard-editor.mjs';
+import { SitesClient } from './sites-client.mjs';
+import { consumeAuthCallback } from './recovery.mjs';
+const authCallback = consumeAuthCallback(window.location, window.history);
+window.addEventListener('hashchange', () => {
+  const callback = new URLSearchParams(location.hash.slice(1));
+  if (callback.has('access_token') || callback.has('error') || callback.has('error_code'))
+    location.reload();
 });
-import {prepareSharedDocument,loadSharedImages,validateStoryboard} from './storyboard-media.mjs';
-const $ = id => document.getElementById(id);
+import {
+  prepareSharedDocument,
+  loadSharedImages,
+  validateStoryboard,
+} from './storyboard-media.mjs';
+const $ = (id) => document.getElementById(id);
 const bridge = window.storyboard;
 await bridge.ready;
-let client, user, projects=[], boards=[], project=null, board=null, dirty=false, loading=false, busy=false, recoveryLimited=false;
-const status = message => { $('sharedStatus').textContent=message; };
-function editable() { return !project || project.owner_id===user?.id || project.role==='editor'; }
-function controls() {
-  $('draftStatus').hidden=bridge.mode!=='local';
-  $('recover').disabled=busy || recoveryLimited;
-  bridge.setEditable(!loading && (bridge.mode==='local' || (!!user && !!board && editable())));
-  $('cloudSave').disabled=!user || !board || !editable() || busy;
-  $('newBoard').disabled=!project || !editable() || busy;
-  $('copyLocal').disabled=!project || !editable() || busy;
-  $('boardName').disabled=!board || !editable() || busy;
-  $('membersPanel').hidden=!project;
-  $('inviteForm').hidden=project?.owner_id!==user?.id;
-  $('accountLabel').textContent=user ? user.email : 'Browser draft — sign in for shared projects';
-  $('authForm').hidden=!!user;
-  $('signedIn').hidden=!user;
-  if(!user)$('ownerTools').hidden=true;
-  $('cloudRole').textContent=project ? `Your role: ${project.owner_id===user?.id?'owner':project.role}. ${editable()?'Save changes to share them.':'Read only; comments are planned separately.'}` : 'This draft is saved only in this browser.';
+let client,
+  user,
+  projects = [],
+  boards = [],
+  project = null,
+  board = null,
+  dirty = false,
+  loading = false,
+  busy = false,
+  recoveryLimited = false;
+const status = (message) => {
+  $('sharedStatus').textContent = message;
+};
+function editable() {
+  return !project || project.owner_id === user?.id || project.role === 'editor';
 }
-function discard() { return !dirty || confirm('Discard unsaved shared changes? Export JSON first to keep a copy.'); }
-function options(select,rows,placeholder,selected) {
-  select.replaceChildren(new Option(placeholder,''),...rows.map(row=>new Option(row.name,row.id)));
-  select.value=selected||'';
+function controls() {
+  $('draftStatus').hidden = bridge.mode !== 'local';
+  $('recover').disabled = busy || recoveryLimited;
+  bridge.setEditable(!loading && (bridge.mode === 'local' || (!!user && !!board && editable())));
+  $('cloudSave').disabled = !user || !board || !editable() || busy;
+  $('newBoard').disabled = !project || !editable() || busy;
+  $('copyLocal').disabled = !project || !editable() || busy;
+  $('boardName').disabled = !board || !editable() || busy;
+  $('membersPanel').hidden = !project;
+  $('inviteForm').hidden = project?.owner_id !== user?.id;
+  $('accountLabel').textContent = user ? user.email : 'Browser draft — sign in for shared projects';
+  $('authForm').hidden = !!user;
+  $('signedIn').hidden = !user;
+  if (!user) $('ownerTools').hidden = true;
+  $('cloudRole').textContent = project
+    ? `Your role: ${project.owner_id === user?.id ? 'owner' : project.role}. ${editable() ? 'Save changes to share them.' : 'Read only; comments are planned separately.'}`
+    : 'This draft is saved only in this browser.';
+}
+function discard() {
+  return !dirty || confirm('Discard unsaved shared changes? Export JSON first to keep a copy.');
+}
+function options(select, rows, placeholder, selected) {
+  select.replaceChildren(
+    new Option(placeholder, ''),
+    ...rows.map((row) => new Option(row.name, row.id)),
+  );
+  select.value = selected || '';
 }
 function useLocal() {
-  project=null; board=null; boards=[]; dirty=false;
-  bridge.mode='local'; bridge.hydrate(bridge.localData());
-  options($('boardSelect'),[],'Choose a storyboard'); $('boardName').value='';
-  controls(); status('Browser draft loaded. Shared projects are saved separately.');
+  project = null;
+  board = null;
+  boards = [];
+  dirty = false;
+  bridge.mode = 'local';
+  bridge.hydrate(bridge.localData());
+  options($('boardSelect'), [], 'Choose a storyboard');
+  $('boardName').value = '';
+  controls();
+  status('Browser draft loaded. Shared projects are saved separately.');
 }
 function clearShared() {
-  bridge.hydrate({meta:{},shots:[]}); board=null; dirty=false; $('boardName').value='';
+  bridge.hydrate({ meta: {}, shots: [] });
+  board = null;
+  dirty = false;
+  $('boardName').value = '';
 }
 async function loadProjects(selected) {
-  projects=await client.list('film_projects','select=*&order=created_at.asc');
-  const memberships=await client.list('project_members','select=*&user_id=eq.'+user.id);
-  projects.forEach(p=>p.role=memberships.find(m=>m.project_id===p.id)?.role);
-  options($('projectSelect'),projects,'Browser draft',selected);
+  projects = await client.list('film_projects', 'select=*&order=created_at.asc');
+  const memberships = await client.list('project_members', 'select=*&user_id=eq.' + user.id);
+  projects.forEach((p) => (p.role = memberships.find((m) => m.project_id === p.id)?.role));
+  options($('projectSelect'), projects, 'Browser draft', selected);
 }
 async function loadBoard(id) {
-  if (!id) { clearShared(); controls(); return; }
-  clearShared(); controls();
-  const rows=await client.list('storyboards','select=*&id=eq.'+encodeURIComponent(id));
-  if (!rows.length) { clearShared(); controls(); throw new Error('Storyboard is unavailable. Your project access may have changed.'); }
-  const loaded=rows[0];
-  const document=await loadSharedImages(client,loaded.document,loaded.project_id,loaded.id,status);
-  board=loaded; bridge.hydrate(document); $('boardName').value=board.name; dirty=false;
-  controls(); status(`Loaded ${board.name}, version ${board.version}: ${document.shots.length} shots.${document.shots.length?'':' Import your JSON here, then Save storyboard.'}`);
+  if (!id) {
+    clearShared();
+    controls();
+    return;
+  }
+  clearShared();
+  controls();
+  const rows = await client.list('storyboards', 'select=*&id=eq.' + encodeURIComponent(id));
+  if (!rows.length) {
+    clearShared();
+    controls();
+    throw new Error('Storyboard is unavailable. Your project access may have changed.');
+  }
+  const loaded = rows[0];
+  const document = await loadSharedImages(
+    client,
+    loaded.document,
+    loaded.project_id,
+    loaded.id,
+    status,
+  );
+  board = loaded;
+  bridge.hydrate(document);
+  $('boardName').value = board.name;
+  dirty = false;
+  controls();
+  status(
+    `Loaded ${board.name}, version ${board.version}: ${document.shots.length} shots.${document.shots.length ? '' : ' Import your JSON here, then Save storyboard.'}`,
+  );
 }
 async function selectProject(id) {
-  if (!id) { useLocal(); return; }
-  bridge.mode='shared'; clearShared(); project=null; loading=true; controls();
+  if (!id) {
+    useLocal();
+    return;
+  }
+  bridge.mode = 'shared';
+  clearShared();
+  project = null;
+  loading = true;
+  controls();
   try {
     await loadProjects(id);
-    project=projects.find(p=>p.id===id);
+    project = projects.find((p) => p.id === id);
     if (!project) throw new Error('Project access is no longer available.');
-    boards=await client.list('storyboards','select=id,name&project_id=eq.'+id+'&order=updated_at.desc');
-    options($('boardSelect'),boards,'Choose a storyboard');
+    boards = await client.list(
+      'storyboards',
+      'select=id,name&project_id=eq.' + id + '&order=updated_at.desc',
+    );
+    options($('boardSelect'), boards, 'Choose a storyboard');
     await renderMembers();
-    if (boards.length) { $('boardSelect').value=boards[0].id; await loadBoard(boards[0].id); }
-    else status('No storyboards yet. Create one or copy your browser draft.');
-  } finally { loading=false; controls(); }
+    if (boards.length) {
+      $('boardSelect').value = boards[0].id;
+      await loadBoard(boards[0].id);
+    } else status('No storyboards yet. Create one or copy your browser draft.');
+  } finally {
+    loading = false;
+    controls();
+  }
 }
 async function renderMembers() {
-  $('memberList').replaceChildren(); $('projectInvitations').replaceChildren();
+  $('memberList').replaceChildren();
+  $('projectInvitations').replaceChildren();
   if (!project) return;
-  const owner=project.owner_id===user.id;
-  const members=await client.list('project_members','select=*&project_id=eq.'+project.id);
-  const ownerLine=document.createElement('p'); ownerLine.textContent=`Owner: ${project.owner_id===user.id?'you':project.owner_id}`; $('memberList').append(ownerLine);
+  const owner = project.owner_id === user.id;
+  const members = await client.list('project_members', 'select=*&project_id=eq.' + project.id);
+  const ownerLine = document.createElement('p');
+  ownerLine.textContent = `Owner: ${project.owner_id === user.id ? 'you' : project.owner_id}`;
+  $('memberList').append(ownerLine);
   for (const member of members) {
-    const row=document.createElement('div'); row.className='member-row';
-    const label=document.createElement('span'); label.textContent=member.user_id===user.id?'You':member.email;
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    const label = document.createElement('span');
+    label.textContent = member.user_id === user.id ? 'You' : member.email;
     row.append(label);
-    const select=document.createElement('select');
-    for (const role of ['editor','commenter','viewer']) select.add(new Option(role,role));
-    select.value=member.role; select.disabled=!owner;
-    select.addEventListener('change',()=>run(async()=>{ await client.rpc('set_project_member',{p_project:project.id,p_user:member.user_id,p_role:select.value}); await renderMembers(); status('Member role updated.'); })); row.append(select);
+    const select = document.createElement('select');
+    for (const role of ['editor', 'commenter', 'viewer']) select.add(new Option(role, role));
+    select.value = member.role;
+    select.disabled = !owner;
+    select.addEventListener('change', () =>
+      run(async () => {
+        await client.rpc('set_project_member', {
+          p_project: project.id,
+          p_user: member.user_id,
+          p_role: select.value,
+        });
+        await renderMembers();
+        status('Member role updated.');
+      }),
+    );
+    row.append(select);
     if (owner) {
-      for (const [text,action] of [['Remove',async()=>{if(confirm('Remove this member from the project?')) await client.rpc('set_project_member',{p_project:project.id,p_user:member.user_id,p_role:null});}],['Transfer ownership',async()=>{if(confirm('Transfer ownership to this member? You will become an editor.')) await client.rpc('transfer_project_ownership',{p_project:project.id,p_user:member.user_id});}]]) {
-        const button=document.createElement('button'); button.textContent=text;
-        button.onclick=()=>run(async()=>{await action(); await loadProjects(project.id); project=projects.find(p=>p.id===project.id); await renderMembers(); controls();}); row.append(button);
+      for (const [text, action] of [
+        [
+          'Remove',
+          async () => {
+            if (confirm('Remove this member from the project?'))
+              await client.rpc('set_project_member', {
+                p_project: project.id,
+                p_user: member.user_id,
+                p_role: null,
+              });
+          },
+        ],
+        [
+          'Transfer ownership',
+          async () => {
+            if (confirm('Transfer ownership to this member? You will become an editor.'))
+              await client.rpc('transfer_project_ownership', {
+                p_project: project.id,
+                p_user: member.user_id,
+              });
+          },
+        ],
+      ]) {
+        const button = document.createElement('button');
+        button.textContent = text;
+        button.onclick = () =>
+          run(async () => {
+            await action();
+            await loadProjects(project.id);
+            project = projects.find((p) => p.id === project.id);
+            await renderMembers();
+            controls();
+          });
+        row.append(button);
       }
     }
     $('memberList').append(row);
   }
   if (owner) {
-    const invitations=await client.list('project_invitations','select=*&project_id=eq.'+project.id+'&order=created_at.desc');
+    const invitations = await client.list(
+      'project_invitations',
+      'select=*&project_id=eq.' + project.id + '&order=created_at.desc',
+    );
     for (const invite of invitations) {
-      const row=document.createElement('div'); row.className='member-row';
-      const label=document.createElement('span'); label.textContent=`${invite.email} · ${invite.role} · ${invite.accepted_at?'accepted':invite.revoked_at?'revoked':Date.parse(invite.expires_at)<Date.now()?'expired':'pending'}`; row.append(label);
+      const row = document.createElement('div');
+      row.className = 'member-row';
+      const label = document.createElement('span');
+      label.textContent = `${invite.email} · ${invite.role} · ${invite.accepted_at ? 'accepted' : invite.revoked_at ? 'revoked' : Date.parse(invite.expires_at) < Date.now() ? 'expired' : 'pending'}`;
+      row.append(label);
       if (!invite.accepted_at && !invite.revoked_at) {
-        const button=document.createElement('button'); button.textContent='Revoke'; button.onclick=()=>run(async()=>{await client.rpc('revoke_project_invitation',{p_id:invite.id});await renderMembers();}); row.append(button);
+        const button = document.createElement('button');
+        button.textContent = 'Revoke';
+        button.onclick = () =>
+          run(async () => {
+            await client.rpc('revoke_project_invitation', { p_id: invite.id });
+            await renderMembers();
+          });
+        row.append(button);
       }
       $('projectInvitations').append(row);
     }
@@ -108,121 +240,382 @@ async function renderMembers() {
 }
 async function incoming() {
   $('incoming').replaceChildren();
-  const invitations=await client.list('project_invitations','select=*&email=eq.'+encodeURIComponent(user.email.toLowerCase())+'&accepted_at=is.null&revoked_at=is.null&expires_at=gt.'+encodeURIComponent(new Date().toISOString()));
+  const invitations = await client.list(
+    'project_invitations',
+    'select=*&email=eq.' +
+      encodeURIComponent(user.email.toLowerCase()) +
+      '&accepted_at=is.null&revoked_at=is.null&expires_at=gt.' +
+      encodeURIComponent(new Date().toISOString()),
+  );
   for (const invitation of invitations) {
-    const row=document.createElement('div'); row.className='member-row';
-    const label=document.createElement('span'); label.textContent=`Invitation to project ${invitation.project_id} as ${invitation.role}`;
-    const accept=document.createElement('button'); accept.textContent='Accept'; accept.onclick=()=>run(async()=>{const id=await client.rpc('accept_project_invitation',{p_id:invitation.id}); await selectProject(id); await incoming();});
-    row.append(label,accept); $('incoming').append(row);
+    const row = document.createElement('div');
+    row.className = 'member-row';
+    const label = document.createElement('span');
+    label.textContent = `Invitation to project ${invitation.project_id} as ${invitation.role}`;
+    const accept = document.createElement('button');
+    accept.textContent = 'Accept';
+    accept.onclick = () =>
+      run(async () => {
+        const id = await client.rpc('accept_project_invitation', { p_id: invitation.id });
+        await selectProject(id);
+        await incoming();
+      });
+    row.append(label, accept);
+    $('incoming').append(row);
   }
 }
-async function refreshOwnerTools(){
-  $('ownerTools').hidden=true;
-  try{
-    const state=await client.ownerToolsStatus();if(!state?.owner)return;
-    $('ownerTools').hidden=false;
-    $('ownerChatGPTSignIn').hidden=state.chatgpt_signed_in;
-    $('ownerToolsForm').hidden=!state.chatgpt_signed_in || state.linked;
-    $('disconnectTools').hidden=!state.linked;
-    $('ownerToolsStatus').textContent=state.linked?'ChatGPT tools are connected to your provider account.':state.chatgpt_signed_in?'Confirm your storyboard password to connect the provider tools.':'Website sign-in is complete. ChatGPT sign-in is needed only if you want the provider tools.';
-  }catch(error){$('ownerTools').hidden=false;$('ownerToolsStatus').textContent=error.message;$('ownerChatGPTSignIn').hidden=true;$('ownerToolsForm').hidden=true;$('disconnectTools').hidden=true;}
+async function refreshOwnerTools() {
+  $('ownerTools').hidden = true;
+  try {
+    const state = await client.ownerToolsStatus();
+    if (!state?.owner) return;
+    $('ownerTools').hidden = false;
+    $('ownerChatGPTSignIn').hidden = state.chatgpt_signed_in;
+    $('ownerToolsForm').hidden = !state.chatgpt_signed_in || state.linked;
+    $('disconnectTools').hidden = !state.linked;
+    $('ownerToolsStatus').textContent = state.linked
+      ? 'ChatGPT tools are connected to your provider account.'
+      : state.chatgpt_signed_in
+        ? 'Confirm your storyboard password to connect the provider tools.'
+        : 'Website sign-in is complete. ChatGPT sign-in is needed only if you want the provider tools.';
+  } catch (error) {
+    $('ownerTools').hidden = false;
+    $('ownerToolsStatus').textContent = error.message;
+    $('ownerChatGPTSignIn').hidden = true;
+    $('ownerToolsForm').hidden = true;
+    $('disconnectTools').hidden = true;
+  }
 }
-async function signedIn() { user=await client.user(); controls(); await loadProjects(); await incoming(); status('Signed in. Choose or create a film project.'); await refreshOwnerTools(); }
-$('retryOwnerTools').onclick=()=>run(refreshOwnerTools);
-$('ownerToolsForm').onsubmit=event=>{event.preventDefault();run(async()=>{try{await client.connectOwnerTools($('ownerToolsPassword').value);await refreshOwnerTools();}finally{$('ownerToolsPassword').value='';}});};
-$('disconnectTools').onclick=()=>run(async()=>{await client.disconnectOwnerTools();await refreshOwnerTools();});
+async function signedIn() {
+  user = await client.user();
+  controls();
+  await loadProjects();
+  await incoming();
+  status('Signed in. Choose or create a film project.');
+  await refreshOwnerTools();
+}
+$('retryOwnerTools').onclick = () => run(refreshOwnerTools);
+$('ownerToolsForm').onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    try {
+      await client.connectOwnerTools($('ownerToolsPassword').value);
+      await refreshOwnerTools();
+    } finally {
+      $('ownerToolsPassword').value = '';
+    }
+  });
+};
+$('disconnectTools').onclick = () =>
+  run(async () => {
+    await client.disconnectOwnerTools();
+    await refreshOwnerTools();
+  });
 async function run(action) {
   if (busy) return;
-  busy=true; controls();
-  document.querySelectorAll('#sharedPanel button, #sharedPanel select').forEach(el=>{el.dataset.wasDisabled=String(el.disabled);el.disabled=true;});
-  try { await action(); }
-  catch(error) { status(error.message); if (!client?.session) { user=null; $('authForm').hidden=false; $('signedIn').hidden=true; bridge.setEditable(false); } }
-  finally {
-    busy=false;
-    document.querySelectorAll('#sharedPanel button, #sharedPanel select').forEach(el=>{el.disabled=el.dataset.wasDisabled==='true';});
+  busy = true;
+  controls();
+  document.querySelectorAll('#sharedPanel button, #sharedPanel select').forEach((el) => {
+    el.dataset.wasDisabled = String(el.disabled);
+    el.disabled = true;
+  });
+  try {
+    await action();
+  } catch (error) {
+    status(error.message);
+    if (!client?.session) {
+      user = null;
+      $('authForm').hidden = false;
+      $('signedIn').hidden = true;
+      bridge.setEditable(false);
+    }
+  } finally {
+    busy = false;
+    document.querySelectorAll('#sharedPanel button, #sharedPanel select').forEach((el) => {
+      el.disabled = el.dataset.wasDisabled === 'true';
+    });
     controls();
   }
 }
-bridge.onImport=count=>status(`${count} shots imported. ${bridge.mode==='shared'?'Click Save storyboard to upload images privately and save.':'Saved as a browser draft; choose a film project and Copy browser draft to project for shared saving.'}`);
-bridge.onChange=()=>{ if (bridge.mode==='shared' && board && editable()) { dirty=true; status('Unsaved shared changes — click Save storyboard.'); } };
-window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
-$('boardName').oninput=()=>bridge.onChange();
-$('authForm').onsubmit=event=>{event.preventDefault();run(async()=>{await client.signIn($('accountEmail').value.trim(),$('accountPassword').value);$('accountPassword').value='';await signedIn();});};
-$('signUp').onclick=()=>run(async()=>{if(!$('authForm').reportValidity())return; await client.signUp($('accountEmail').value.trim(),$('accountPassword').value,location.origin+location.pathname);$('accountPassword').value=''; if(client.session)await signedIn();else status('Check your email to confirm your account, then sign in.');});
-$('recover').onclick=()=>run(async()=>{const email=$('accountEmail').value.trim();if(!email)throw new Error('Enter your email first.');try{await client.request('/auth/v1/recover?redirect_to='+encodeURIComponent(location.origin+location.pathname),{auth:false,body:{email}});status('If the account exists, a recovery email will arrive. Open its newest link in this browser.');}catch(error){if(error.status===429){recoveryLimited=true;status('Recovery emails are temporarily rate limited. Pause requests and wait for the provider limit to clear before reloading and trying again. An unused recent link may still work.');return;}throw error;}});
-$('recoveryForm').onsubmit=event=>{event.preventDefault();run(async()=>{
-  const password=$('recoveryPassword').value;
-  if(password!==$('recoveryConfirm').value){$('recoveryStatus').textContent='The passwords do not match.';return;}
-  try{
-    await client.updateRecoveredPassword(password);
-    $('recoveryForm').reset();$('recoveryForm').hidden=true;
-    $('recoveryStatus').textContent='Password updated. Use the sign-in form with your new password to open your storyboard account.';
-    $('authForm').hidden=false;status('Password updated. Sign in with your new password.');
-    const query=new URL(location.href);query.searchParams.delete('flow');history.replaceState(null,'',query.pathname+query.search);
-  }catch(error){$('recoveryStatus').textContent=error.message;}
-});};
-$('showRecovery').onclick=()=>{
-  $('recoveryPanel').hidden=false;
-  $('recoveryStatus').textContent='Use Recover access to request an email, then open its newest link in this browser.';
-  $('recoveryPassword').disabled=true;$('recoveryConfirm').disabled=true;$('updatePassword').disabled=true;
-};
-$('signOut').onclick=()=>{if(!discard())return;run(async()=>{try{await client.signOut();}finally{user=null;projects=[];$('projectSelect').replaceChildren();$('incoming').replaceChildren();$('memberList').replaceChildren();$('projectInvitations').replaceChildren();useLocal();}});};
-$('newProject').onclick=()=>run(async()=>{if(!discard())return;const name=prompt('Film project name');if(!name?.trim())return;const id=await client.rpc('create_film_project',{p_name:name.trim()});await selectProject(id);});
-$('projectSelect').onchange=()=>{const id=$('projectSelect').value;if(!discard()){$('projectSelect').value=project?.id||'';return;}run(()=>selectProject(id));};
-$('boardSelect').onchange=()=>{const id=$('boardSelect').value;if(!discard()){$('boardSelect').value=board?.id||'';return;}run(()=>loadBoard(id));};
-for(const [id,copy] of [['newBoard',false],['copyLocal',true]]) $(id).onclick=()=>run(async()=>{
-  if(!discard())return;const name=prompt(copy?'Name for a shared copy of your browser draft':'Storyboard name');if(!name?.trim())return;
-  const document=copy?bridge.localData():{meta:{},shots:[]};
-  validateStoryboard(document);
-  const hasImages=document.shots.some(s=>s.imageData || s.imagePath);
-  // A board must exist before Storage policies can authorize its image paths.
-  let result=await client.rpc('create_storyboard',{p_project:project.id,p_name:name.trim(),p_document:hasImages?{meta:{},shots:[]}:document});
-  if(hasImages) {
-    try {
-      const prepared=await prepareSharedDocument(client,document,project.id,result.id,status);
-      status('Saving storyboard details…');
-      result=await client.rpc('save_storyboard',{p_id:result.id,p_version:result.version,p_name:name.trim(),p_document:prepared});
-    } catch(error) {throw new Error(`The new storyboard was created, but its import is not saved: ${error.message} Your browser draft is still preserved. Select that storyboard and import again to retry.`);}
+bridge.onImport = (count) =>
+  status(
+    `${count} shots imported. ${bridge.mode === 'shared' ? 'Click Save storyboard to upload images privately and save.' : 'Saved as a browser draft; choose a film project and Copy browser draft to project for shared saving.'}`,
+  );
+bridge.onChange = () => {
+  if (bridge.mode === 'shared' && board && editable()) {
+    dirty = true;
+    status('Unsaved shared changes — click Save storyboard.');
   }
-  const selectedProject=project.id;await selectProject(selectedProject);$('boardSelect').value=result.id;await loadBoard(result.id);
+};
+window.addEventListener('beforeunload', (event) => {
+  if (dirty) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
 });
-$('cloudSave').onclick=()=>run(async()=>{
-  const snapshot=JSON.stringify(bridge.collectData()), name=$('boardName').value;
-  const prepared=await prepareSharedDocument(client,JSON.parse(snapshot),project.id,board.id,status);
-  status('Saving storyboard details and confirming…');
-  const result=await client.rpc('save_storyboard',{p_id:board.id,p_version:board.version,p_name:name,p_document:prepared});
-  board=result;
-  dirty=JSON.stringify(bridge.collectData())!==snapshot || $('boardName').value!==name;
-  const option=[...$('boardSelect').options].find(o=>o.value===board.id);if(option)option.textContent=result.name;
-  status(dirty?'Saved earlier changes; newer edits still need saving.':`Saved to shared storage, version ${board.version}.`);
-});
-$('reloadShared').onclick=()=>run(async()=>{if(!discard())return;if(project){const id=board?.id;await selectProject(project.id);if(id && boards.some(b=>b.id===id)){$('boardSelect').value=id;await loadBoard(id);}}else{await loadProjects();await incoming();} });
-$('inviteForm').onsubmit=event=>{event.preventDefault();run(async()=>{await client.rpc('invite_project_member',{p_project:project.id,p_email:$('inviteEmail').value.trim(),p_role:$('inviteRole').value});$('inviteEmail').value='';await renderMembers();status('Invitation created. Share this app’s link with the recipient; they must sign in with that verified email and accept. No invitation email is sent.');});};
+$('boardName').oninput = () => bridge.onChange();
+$('authForm').onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    await client.signIn($('accountEmail').value.trim(), $('accountPassword').value);
+    $('accountPassword').value = '';
+    await signedIn();
+  });
+};
+$('signUp').onclick = () =>
+  run(async () => {
+    if (!$('authForm').reportValidity()) return;
+    await client.signUp(
+      $('accountEmail').value.trim(),
+      $('accountPassword').value,
+      location.origin + location.pathname,
+    );
+    $('accountPassword').value = '';
+    if (client.session) await signedIn();
+    else status('Check your email to confirm your account, then sign in.');
+  });
+$('recover').onclick = () =>
+  run(async () => {
+    const email = $('accountEmail').value.trim();
+    if (!email) throw new Error('Enter your email first.');
+    try {
+      await client.request(
+        '/auth/v1/recover?redirect_to=' + encodeURIComponent(location.origin + location.pathname),
+        { auth: false, body: { email } },
+      );
+      status(
+        'If the account exists, a recovery email will arrive. Open its newest link in this browser.',
+      );
+    } catch (error) {
+      if (error.status === 429) {
+        recoveryLimited = true;
+        status(
+          'Recovery emails are temporarily rate limited. Pause requests and wait for the provider limit to clear before reloading and trying again. An unused recent link may still work.',
+        );
+        return;
+      }
+      throw error;
+    }
+  });
+$('recoveryForm').onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    const password = $('recoveryPassword').value;
+    if (password !== $('recoveryConfirm').value) {
+      $('recoveryStatus').textContent = 'The passwords do not match.';
+      return;
+    }
+    try {
+      await client.updateRecoveredPassword(password);
+      $('recoveryForm').reset();
+      $('recoveryForm').hidden = true;
+      $('recoveryStatus').textContent =
+        'Password updated. Use the sign-in form with your new password to open your storyboard account.';
+      $('authForm').hidden = false;
+      status('Password updated. Sign in with your new password.');
+      const query = new URL(location.href);
+      query.searchParams.delete('flow');
+      history.replaceState(null, '', query.pathname + query.search);
+    } catch (error) {
+      $('recoveryStatus').textContent = error.message;
+    }
+  });
+};
+$('showRecovery').onclick = () => {
+  $('recoveryPanel').hidden = false;
+  $('recoveryStatus').textContent =
+    'Use Recover access to request an email, then open its newest link in this browser.';
+  $('recoveryPassword').disabled = true;
+  $('recoveryConfirm').disabled = true;
+  $('updatePassword').disabled = true;
+};
+$('signOut').onclick = () => {
+  if (!discard()) return;
+  run(async () => {
+    try {
+      await client.signOut();
+    } finally {
+      user = null;
+      projects = [];
+      $('projectSelect').replaceChildren();
+      $('incoming').replaceChildren();
+      $('memberList').replaceChildren();
+      $('projectInvitations').replaceChildren();
+      useLocal();
+    }
+  });
+};
+$('newProject').onclick = () =>
+  run(async () => {
+    if (!discard()) return;
+    const name = prompt('Film project name');
+    if (!name?.trim()) return;
+    const id = await client.rpc('create_film_project', { p_name: name.trim() });
+    await selectProject(id);
+  });
+$('projectSelect').onchange = () => {
+  const id = $('projectSelect').value;
+  if (!discard()) {
+    $('projectSelect').value = project?.id || '';
+    return;
+  }
+  run(() => selectProject(id));
+};
+$('boardSelect').onchange = () => {
+  const id = $('boardSelect').value;
+  if (!discard()) {
+    $('boardSelect').value = board?.id || '';
+    return;
+  }
+  run(() => loadBoard(id));
+};
+for (const [id, copy] of [
+  ['newBoard', false],
+  ['copyLocal', true],
+])
+  $(id).onclick = () =>
+    run(async () => {
+      if (!discard()) return;
+      const name = prompt(
+        copy ? 'Name for a shared copy of your browser draft' : 'Storyboard name',
+      );
+      if (!name?.trim()) return;
+      const document = copy ? bridge.localData() : { meta: {}, shots: [] };
+      validateStoryboard(document);
+      const hasImages = document.shots.some((s) => s.imageData || s.imagePath);
+      // A board must exist before Storage policies can authorize its image paths.
+      let result = await client.rpc('create_storyboard', {
+        p_project: project.id,
+        p_name: name.trim(),
+        p_document: hasImages ? { meta: {}, shots: [] } : document,
+      });
+      if (hasImages) {
+        try {
+          const prepared = await prepareSharedDocument(
+            client,
+            document,
+            project.id,
+            result.id,
+            status,
+          );
+          status('Saving storyboard details…');
+          result = await client.rpc('save_storyboard', {
+            p_id: result.id,
+            p_version: result.version,
+            p_name: name.trim(),
+            p_document: prepared,
+          });
+        } catch (error) {
+          throw new Error(
+            `The new storyboard was created, but its import is not saved: ${error.message} Your browser draft is still preserved. Select that storyboard and import again to retry.`,
+            { cause: error },
+          );
+        }
+      }
+      const selectedProject = project.id;
+      await selectProject(selectedProject);
+      $('boardSelect').value = result.id;
+      await loadBoard(result.id);
+    });
+$('cloudSave').onclick = () =>
+  run(async () => {
+    const snapshot = JSON.stringify(bridge.collectData()),
+      name = $('boardName').value;
+    const prepared = await prepareSharedDocument(
+      client,
+      JSON.parse(snapshot),
+      project.id,
+      board.id,
+      status,
+    );
+    status('Saving storyboard details and confirming…');
+    const result = await client.rpc('save_storyboard', {
+      p_id: board.id,
+      p_version: board.version,
+      p_name: name,
+      p_document: prepared,
+    });
+    board = result;
+    dirty = JSON.stringify(bridge.collectData()) !== snapshot || $('boardName').value !== name;
+    const option = [...$('boardSelect').options].find((o) => o.value === board.id);
+    if (option) option.textContent = result.name;
+    status(
+      dirty
+        ? 'Saved earlier changes; newer edits still need saving.'
+        : `Saved to shared storage, version ${board.version}.`,
+    );
+  });
+$('reloadShared').onclick = () =>
+  run(async () => {
+    if (!discard()) return;
+    if (project) {
+      const id = board?.id;
+      await selectProject(project.id);
+      if (id && boards.some((b) => b.id === id)) {
+        $('boardSelect').value = id;
+        await loadBoard(id);
+      }
+    } else {
+      await loadProjects();
+      await incoming();
+    }
+  });
+$('inviteForm').onsubmit = (event) => {
+  event.preventDefault();
+  run(async () => {
+    await client.rpc('invite_project_member', {
+      p_project: project.id,
+      p_email: $('inviteEmail').value.trim(),
+      p_role: $('inviteRole').value,
+    });
+    $('inviteEmail').value = '';
+    await renderMembers();
+    status(
+      'Invitation created. Share this app’s link with the recipient; they must sign in with that verified email and accept. No invitation email is sent.',
+    );
+  });
+};
 try {
-  const response=await fetch('./runtime-config.json',{cache:'no-store'});if(!response.ok)throw new Error('Public configuration is unavailable.');
-  client=new SitesClient(await response.json());
-  if(authCallback.recovery || authCallback.error){
-    $('recoveryPanel').hidden=false;
-    $('recoveryPassword').disabled=true;$('recoveryConfirm').disabled=true;$('updatePassword').disabled=true;
-    if(authCallback.error || !authCallback.session){
-      $('recoveryStatus').textContent='This reset link is expired or incomplete. Use Recover access to request a new email and open its newest link in this browser.';
-    }else{
-      $('recoveryStatus').textContent='Checking your reset link…';
-      try{
-        const recovered=await client.beginRecovery(authCallback.session);
-        $('accountEmail').value=recovered.email||'';
-        $('recoveryPassword').disabled=false;$('recoveryConfirm').disabled=false;$('updatePassword').disabled=false;
-        $('recoveryStatus').textContent='Enter and confirm your new storyboard password.';
+  const response = await fetch('./runtime-config.json', { cache: 'no-store' });
+  if (!response.ok) throw new Error('Public configuration is unavailable.');
+  client = new SitesClient(await response.json());
+  if (authCallback.recovery || authCallback.error) {
+    $('recoveryPanel').hidden = false;
+    $('recoveryPassword').disabled = true;
+    $('recoveryConfirm').disabled = true;
+    $('updatePassword').disabled = true;
+    if (authCallback.error || !authCallback.session) {
+      $('recoveryStatus').textContent =
+        'This reset link is expired or incomplete. Use Recover access to request a new email and open its newest link in this browser.';
+    } else {
+      $('recoveryStatus').textContent = 'Checking your reset link…';
+      try {
+        const recovered = await client.beginRecovery(authCallback.session);
+        $('accountEmail').value = recovered.email || '';
+        $('recoveryPassword').disabled = false;
+        $('recoveryConfirm').disabled = false;
+        $('updatePassword').disabled = false;
+        $('recoveryStatus').textContent = 'Enter and confirm your new storyboard password.';
         $('recoveryPassword').focus();
-      }catch(error){$('recoveryStatus').textContent=error.message;}
+      } catch (error) {
+        $('recoveryStatus').textContent = error.message;
+      }
     }
     // Recovery does not bootstrap, refresh or link an existing account first.
     // A failure in private account storage must not prevent password recovery.
     controls();
-  }else{
-    if(authCallback.session)await client.connect(authCallback.session);else await client.bootstrap();
-    if(client.session)await signedIn();else controls();
+  } else {
+    if (authCallback.session) await client.connect(authCallback.session);
+    else await client.bootstrap();
+    if (client.session) await signedIn();
+    else controls();
   }
-} catch(error) {status('Shared projects unavailable: '+error.message);if(!client) $('authForm').querySelectorAll('button').forEach(b=>b.disabled=true);}
+} catch (error) {
+  status('Shared projects unavailable: ' + error.message);
+  if (!client)
+    $('authForm')
+      .querySelectorAll('button')
+      .forEach((b) => (b.disabled = true));
+}
 
-authCallback.session=null;
+authCallback.session = null;
