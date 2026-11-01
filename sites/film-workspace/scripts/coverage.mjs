@@ -14,8 +14,11 @@ const directory = mode === 'unit' ? 'unit' : 'browser-server';
 const tests = (await readdir('tests'))
   .filter((name) => name.endsWith('.test.mjs'))
   .map((name) => 'tests/' + name);
+const isolation = process.allowedNodeEnvironmentFlags.has('--test-isolation')
+  ? '--test-isolation=none'
+  : '--experimental-test-isolation=none';
 const command =
-  mode === 'unit' ? ['--test', '--test-isolation=none', ...tests] : ['scripts/check-browser.mjs'];
+  mode === 'unit' ? ['--test', isolation, ...tests] : ['scripts/check-browser.mjs'];
 const result = spawnSync(
   process.execPath,
   [
