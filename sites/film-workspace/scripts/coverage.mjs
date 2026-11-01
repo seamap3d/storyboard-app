@@ -17,8 +17,7 @@ const tests = (await readdir('tests'))
 const isolation = process.allowedNodeEnvironmentFlags.has('--test-isolation')
   ? '--test-isolation=none'
   : '--experimental-test-isolation=none';
-const command =
-  mode === 'unit' ? ['--test', isolation, ...tests] : ['scripts/check-browser.mjs'];
+const command = mode === 'unit' ? ['--test', isolation, ...tests] : ['scripts/check-browser.mjs'];
 const result = spawnSync(
   process.execPath,
   [
