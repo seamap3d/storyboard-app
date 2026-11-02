@@ -1,14 +1,14 @@
 # ChatGPT Sites setup and source handoff
 
-## Current deployment (quality refactor, 2026-11-01)
+## Current deployment (Film Planner, 2026-11-02)
 
 - URL: https://apeonawhale-film-workspace.seamap3d.chatgpt.site
 - Site project: `appgprj_6ae647f088b48191b14473736fa55625`
 - Database/Auth/private images: development Supabase `lfvsimzmjhceyvjaoats`.
 - Source directory here: `sites/film-workspace/`.
-- Deployed Site source commit: `719042c18f8e45184d3a4f3350b37a86ff586618`.
-- Saved version: `appgprj_6ae647f088b48191b14473736fa55625~appgver_66da9928e2408191baa07a5efe1f0de9`.
-- Successful deployment: `appgdep_6ae7830338ec8191b850693c44b79115`.
+- Deployed Site source commit: `6133e6aa342aab1355897357ed02874ae05d30e5`.
+- Saved version: `appgprj_6ae647f088b48191b14473736fa55625~appgver_6382dfa896708191a60b64e8ca55a98e`.
+- Successful deployment: `appgdep_6ae8f5aef60c81918a4b82f80c23ad47`.
 
 The current canonical source is `sites/film-workspace/` in GitHub. Its source
 instructions, checks and code travel together to the Site publication mirror.
@@ -151,3 +151,28 @@ version-checked save. The current client may need an existing-plugin refresh or
 fresh chat before newly published edit tools appear. Do not claim a real planning
 write succeeded until a tool call returns its revision and a fresh read verifies
 it. The initial AfterLife draft is private local work, not repository source.
+
+## 2026-11-02 Film Planner release evidence
+
+The owner confirmed the name ApeOnAWhale Film Planner. GitHub implementation
+commits `0b15ed3` and `cce020f7bd3c37848ad4726f148da9cfccd4367f` add atomic
+`update_shots`, matching MCP/website requirements consolidation and active UI
+branding. CI passed Node 22, Node 24 and disposable PostgreSQL at
+https://github.com/seamap3d/storyboard-app/actions/runs/41521050649 . All 58 active
+unit cases and the expanded mock browser workflow pass; combined runtime line
+coverage is 82.06%. All 55 application files match the Site publication checkout.
+The deployment above succeeded with MCP and runtime revision 2.
+
+The existing branded private plugin was updated to version 1.1.0, release
+`pluginrel_6ae8f5d65e208191aa244dc4032392ad`. Read-back verified its display name,
+unchanged App connection, private scope and retained icon. Its film-planning skill
+now describes evidence-based extraction and atomic text/planning edits. No App,
+Site, project, auth account, storage or plugin was recreated.
+
+The current chat still exposes the older read/image tool catalog. A private draft
+of 87 blank/TBD fields for 31 AfterLife shots was prepared from revision 6, but
+has NOT been saved. Do not claim the app contains that breakdown. Refresh the
+existing plugin or start a fresh chat to load `update_shots`, then reread the
+current revision before applying the requested changes and verifying them. No
+management SQL or hidden writes through read/image tools are an acceptable
+substitute. Actual crew/performer contacts and real venue bookings remain unknown.
