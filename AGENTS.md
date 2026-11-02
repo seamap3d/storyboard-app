@@ -1,4 +1,4 @@
-# Working on ApeOnAWhale Storyboard
+# Working on ApeOnAWhale Film Planner
 
 These instructions apply to every coding task in this repository, including bug
 fixes, features and maintenance. Read `docs/quality.md` and the active app's

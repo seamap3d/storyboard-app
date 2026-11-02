@@ -1,4 +1,4 @@
-# ApeOnAWhale Storyboard
+# ApeOnAWhale Film Planner
 
 Private film projects with shared storyboards, shot lists, props and equipment,
 and provider-only ChatGPT tools.

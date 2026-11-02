@@ -1,3 +1,4 @@
+import { validateBatch, prepareBatch, findShot } from './shot-batch.mjs';
 import { SharedClient } from '../app/shared-client.mjs';
 import { decodeImage, imageDataUrl, prepareSharedDocument } from '../app/storyboard-media.mjs';
 
@@ -35,6 +36,45 @@ function shotSummary(s) {
   };
 }
 export const toolDefinitions = [
+  {
+    name: 'update_shots',
+    description:
+      'Apply a user-requested batch of shot text/planning edits atomically. Read the current storyboard first. At most 100 unique stable shot IDs; specify only intended text fields. All entries are validated before a single revision-checked save; invalid IDs/fields, denied access or stale revisions cannot partially apply a batch. Images and omitted fields are preserved. This edits script locations/characters/props, not real-world bookings or crew contacts.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        storyboard_id: uuid,
+        expected_revision: { type: 'integer', minimum: 1 },
+        updates: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 100,
+          items: {
+            type: 'object',
+            properties: {
+              shot_id: { type: 'string', minLength: 1, maxLength: 200 },
+              changes: {
+                type: 'object',
+                properties: textSchema,
+                minProperties: 1,
+                additionalProperties: false,
+              },
+            },
+            required: ['shot_id', 'changes'],
+            additionalProperties: false,
+          },
+        },
+      },
+      required: ['storyboard_id', 'expected_revision', 'updates'],
+      additionalProperties: false,
+    },
+    annotations: {
+      readOnlyHint: false,
+      destructiveHint: true,
+      idempotentHint: false,
+      openWorldHint: false,
+    },
+  },
   {
     name: 'update_shot',
     description:
@@ -192,6 +232,7 @@ function validate(name, args) {
   if (['attach_shot_image', 'update_shot'].includes(name)) validateShotTarget(args);
   const specialized = {
     update_shot: validateTextChanges,
+    update_shots: (input) => validateBatch(input, validateShotTarget, validateTextChanges),
     attach_shot_image: validateImageArguments,
   }[name];
   if (specialized) specialized(args);
@@ -272,7 +313,7 @@ function planningGaps(board) {
   };
 }
 
-async function editableShot(client, user, board, args) {
+async function editableDocument(client, user, board, args) {
   if (board.version !== args.expected_revision)
     throw new Error('Storyboard changed. Read it again before making changes.');
   const project = (
@@ -288,20 +329,59 @@ async function editableShot(client, user, board, args) {
           )
         )[0]?.role;
   if (!['owner', 'editor'].includes(membership)) throw new Error('Editing access required.');
-  const document = structuredClone(board.document);
-  const matches = document.shots.filter((s) => s.id === args.shot_id);
-  if (matches.length !== 1) throw new Error('Shot not found or ambiguous ID.');
-  const shot = matches[0];
-  return { document, shot };
+  return structuredClone(board.document);
+}
+async function editableShot(client, user, board, args) {
+  const document = await editableDocument(client, user, board, args);
+  return { document, shot: findShot(document, args.shot_id) };
+}
+function patchText(shot, changes) {
+  const fields = [];
+  for (const [field, value] of Object.entries(changes)) {
+    if (shot[textFields[field].key] === value) continue;
+    shot[textFields[field].key] = value;
+    fields.push(field);
+  }
+  return fields;
+}
+async function saveTextDocument(client, board, args, document) {
+  if (new TextEncoder().encode(JSON.stringify(document)).byteLength > 5 * 1024 * 1024) {
+    throw new Error('Text update would exceed the storyboard document limit.');
+  }
+  return client.rpc('save_storyboard', {
+    p_id: board.id,
+    p_version: args.expected_revision,
+    p_name: board.name,
+    p_document: document,
+  });
+}
+async function updateShotBatch(client, user, board, args) {
+  const document = await editableDocument(client, user, board, args);
+  const prepared = prepareBatch(document, args.updates, patchText);
+  const updated = prepared.filter((item) => item.updated_fields.length);
+  const unchanged = prepared
+    .filter((item) => !item.updated_fields.length)
+    .map((item) => item.shot_id);
+  if (!updated.length)
+    return {
+      storyboard_id: board.id,
+      revision: board.version,
+      changed: false,
+      updated_shots: [],
+      unchanged_shots: unchanged,
+    };
+  const saved = await saveTextDocument(client, board, args, document);
+  return {
+    storyboard_id: board.id,
+    revision: saved.version,
+    changed: true,
+    updated_shots: updated,
+    unchanged_shots: unchanged,
+  };
 }
 
 async function updateShotText(client, board, args, document, shot) {
-  const updatedFields = [];
-  for (const [field, value] of Object.entries(args.changes))
-    if (shot[textFields[field].key] !== value) {
-      shot[textFields[field].key] = value;
-      updatedFields.push(field);
-    }
+  const updatedFields = patchText(shot, args.changes);
   if (!updatedFields.length)
     return {
       storyboard_id: board.id,
@@ -311,14 +391,7 @@ async function updateShotText(client, board, args, document, shot) {
       updated_fields: [],
       shot: shotSummary(shot),
     };
-  if (new TextEncoder().encode(JSON.stringify(document)).byteLength > 5 * 1024 * 1024)
-    throw new Error('Text update would exceed the storyboard document limit.');
-  const saved = await client.rpc('save_storyboard', {
-    p_id: board.id,
-    p_version: args.expected_revision,
-    p_name: board.name,
-    p_document: document,
-  });
+  const saved = await saveTextDocument(client, board, args, document);
   return {
     storyboard_id: saved.id,
     shot_id: shot.id,
@@ -326,6 +399,16 @@ async function updateShotText(client, board, args, document, shot) {
     changed: true,
     updated_fields: updatedFields,
     shot: shotSummary(shot),
+  };
+}
+
+function boardSummary(board) {
+  return {
+    storyboard_id: board.id,
+    project_id: board.project_id,
+    name: board.name,
+    revision: board.version,
+    shots: board.document.shots.map(shotSummary),
   };
 }
 
@@ -347,15 +430,9 @@ export async function runTool(
   const rows = await client.list('storyboards', 'select=*&id=eq.' + args.storyboard_id);
   if (rows.length !== 1) throw new Error('Storyboard not found or access denied.');
   const board = rows[0];
-  if (name === 'get_planning_gaps') return planningGaps(board);
-  if (name === 'get_storyboard')
-    return {
-      storyboard_id: board.id,
-      project_id: board.project_id,
-      name: board.name,
-      revision: board.version,
-      shots: board.document.shots.map(shotSummary),
-    };
+  const read = { get_planning_gaps: planningGaps, get_storyboard: boardSummary }[name];
+  if (read) return read(board);
+  if (name === 'update_shots') return updateShotBatch(client, user, board, args);
   const { document, shot } = await editableShot(client, user, board, args);
   if (name === 'update_shot') return updateShotText(client, board, args, document, shot);
   if ((shot.imagePath || shot.imageData) && args.replace_existing !== true)

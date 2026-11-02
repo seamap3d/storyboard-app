@@ -141,3 +141,13 @@ The real MCP read after publication succeeded and matched the pre-publication
 storyboard summary. No user film/account/image was changed by the regression
 fixtures. Required-check branch protection remains a one-time owner setting;
 the CLI API returned Forbidden for its settings endpoint. See quality.md.
+
+## Film Planner naming and planning connector
+
+The active display name is ApeOnAWhale Film Planner. Storyboard document labels,
+API names, Site URL, project/App/plugin identities and storage remain compatible.
+The new `update_shots` MCP tool applies up to 100 text/planning patches in one
+version-checked save. The current client may need an existing-plugin refresh or
+fresh chat before newly published edit tools appear. Do not claim a real planning
+write succeeded until a tool call returns its revision and a fresh read verifies
+it. The initial AfterLife draft is private local work, not repository source.

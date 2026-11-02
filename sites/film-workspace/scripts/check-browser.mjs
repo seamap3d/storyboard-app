@@ -184,6 +184,7 @@ try {
       });
     });
     await page.goto(origin);
+    assert.equal(await page.title(), 'ApeOnAWhale Film Planner');
     assert.equal(page.url(), origin + '/');
     await page.locator('#accountEmail').fill(users[role].email);
     await page.locator('#accountPassword').fill('fixture-password');
@@ -328,6 +329,39 @@ try {
   });
   assert.equal(rpc.result.structuredContent.total_shots, 1);
   const beforeImage = board.document.shots[0].imagePath;
+  const populated = await owner.page.evaluate(async (revision) => {
+    const response = await fetch('/mcp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jsonrpc: '2.0',
+        id: 10,
+        method: 'tools/call',
+        params: {
+          name: 'update_shots',
+          arguments: {
+            storyboard_id: '33333333-3333-4333-8333-333333333333',
+            expected_revision: revision,
+            updates: [
+              {
+                shot_id: 'shot-1',
+                changes: {
+                  location: 'Rural road',
+                  cast: 'Casey',
+                  props: 'Technical case',
+                },
+              },
+            ],
+          },
+        },
+      }),
+    });
+    return response.json();
+  }, board.version);
+  assert.equal(populated.result.structuredContent.changed, true);
+  assert.equal(board.document.shots[0].location, 'Rural road');
+  assert.equal(board.document.shots[0].props, 'Technical case');
+
   const edited = await owner.page.evaluate(async (revision) => {
     const r = await fetch('/mcp', {
       method: 'POST',
@@ -364,6 +398,8 @@ try {
     'The pickup drives into the sunrise.',
   );
 
+  assert.equal(await owner.page.locator('.location').inputValue(), 'Rural road');
+  assert.equal(await owner.page.locator('.props').inputValue(), 'Technical case');
   await owner.page.locator('#disconnectTools').click();
   await owner.page.waitForFunction(() =>
     document
