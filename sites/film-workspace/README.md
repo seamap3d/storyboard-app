@@ -103,7 +103,7 @@ GitHub is the canonical review/development source. The installed Sites helper/Vi
 the Worker adapter retains the existing browser app. Temporary source credentials
 are accepted only through hidden stdin by scripts/push-source.mjs.
 
-57 unit tests cover save reconciliation and image reuse, text editing, vault identity isolation, mixed-account rejection, public
+58 unit tests cover save reconciliation and image reuse, text editing, vault identity isolation, mixed-account rejection, public
 assets/config, authenticated APIs, provider enrollment and old-link MCP denial,
 route allowlists/user-token forwarding, and independent recovery. Browser fixtures
 exercise anonymous-site editor sign-in, image upload/edit/save/reload, viewer
@@ -238,3 +238,8 @@ still exposes only read/image tools, it cannot save a text breakdown. Refresh th
 existing plugin or use a fresh chat after publication; never substitute management
 SQL or hide a write in a read/image tool. A prepared private draft is not saved
 app data. Full project-wide location, crew and performer registers remain planned.
+
+The MCP planning-gaps requirements list uses the same consolidation as the website,
+including shot mentions even without manual inventory records. Existing quantities,
+suppliers and readiness are retained; new mentions have blank quantities and the
+planning status needed, which is not a confirmed booking or available inventory.

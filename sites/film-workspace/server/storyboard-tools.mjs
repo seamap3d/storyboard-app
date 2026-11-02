@@ -1,6 +1,7 @@
 import { validateBatch, prepareBatch, findShot } from './shot-batch.mjs';
 import { SharedClient } from '../app/shared-client.mjs';
 import { decodeImage, imageDataUrl, prepareSharedDocument } from '../app/storyboard-media.mjs';
+import { collectRequirements } from '../app/workspace-model.mjs';
 
 const uuid = { type: 'string', format: 'uuid' };
 const textFields = {
@@ -307,9 +308,9 @@ function planningGaps(board) {
     mentioned_locations: [
       ...new Set(shots.map((s) => String(s.location || '').trim()).filter(Boolean)),
     ],
-    requirements: board.document.planning?.requirements || [],
+    requirements: collectRequirements(board.document),
     limitation:
-      'Locations are shot text only; address/access/availability/permission readiness is not yet tracked. Requirements retain their existing readiness fields; no readiness is inferred.',
+      'Locations are shot text only; address/access/availability/permission readiness is not yet tracked. Requirements combine shot mentions with recorded planning details; newly mentioned items default to needed, which does not confirm inventory or availability.',
   };
 }
 
