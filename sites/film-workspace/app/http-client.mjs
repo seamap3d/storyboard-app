@@ -18,10 +18,10 @@ export function requestOptions(key, session, { body, method, auth, binary }, sig
   };
 }
 
-function responseError(response, data) {
+function responseError(response, data, path) {
   const error = new Error(
     data?.code === '40001'
-      ? 'Another member saved this storyboard. Export your changes, then reload the shared version.'
+      ? conflictMessage(data, path)
       : data?.message ||
           data?.msg ||
           data?.error_description ||
@@ -48,7 +48,7 @@ export async function responseData(response, path, responseType, signal) {
   ) {
     throw Object.assign(new Error('Save response was incomplete.'), { code: 'SAVE_UNCONFIRMED' });
   }
-  if (!response.ok) throw responseError(response, data);
+  if (!response.ok) throw responseError(response, data, path);
   return data;
 }
 
@@ -62,4 +62,10 @@ export function requestError(error, signal, rpc) {
   );
   timed.code = rpc ? 'SAVE_UNCONFIRMED' : 'REQUEST_TIMEOUT';
   return timed;
+}
+
+function conflictMessage(_data, path) {
+  if (path.endsWith('/save_project_production'))
+    return 'Production register changed. Keep your edits for comparison, then refresh production records.';
+  return 'Another member saved this storyboard. Export your changes, then reload the shared version.';
 }

@@ -1,4 +1,5 @@
 import './storyboard-editor.mjs';
+import { createProductionUI } from './production-ui.mjs';
 import { SitesClient } from './sites-client.mjs';
 import { consumeAuthCallback } from './recovery.mjs';
 const authCallback = consumeAuthCallback(window.location, window.history);
@@ -15,6 +16,7 @@ import {
 const $ = (id) => document.getElementById(id);
 const bridge = window.storyboard;
 await bridge.ready;
+const production = createProductionUI($('productionPanel'));
 let client,
   user,
   projects = [],
@@ -31,7 +33,11 @@ const status = (message) => {
 function editable() {
   return !project || project.owner_id === user?.id || project.role === 'editor';
 }
+function productionContext() {
+  return { client, user, project, board, busy: busy || loading };
+}
 function controls() {
+  production.context(productionContext());
   $('draftStatus').hidden = bridge.mode !== 'local';
   $('recover').disabled = busy || recoveryLimited;
   bridge.setEditable(!loading && (bridge.mode === 'local' || (!!user && !!board && editable())));
@@ -50,7 +56,10 @@ function controls() {
     : 'This draft is saved only in this browser.';
 }
 function discard() {
-  return !dirty || confirm('Discard unsaved shared changes? Export JSON first to keep a copy.');
+  return (
+    production.canLeave() &&
+    (!dirty || confirm('Discard unsaved shared changes? Export JSON first to keep a copy.'))
+  );
 }
 function options(select, rows, placeholder, selected) {
   select.replaceChildren(

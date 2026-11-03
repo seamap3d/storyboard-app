@@ -1,3 +1,5 @@
+import { productionBrowserFixture } from './production-browser-fixture.mjs';
+import { checkProductionBrowser } from './check-production-browser.mjs';
 import { checkPlanningBrowser } from './check-planning-browser.mjs';
 import { collectBrowserCoverage } from './browser-coverage.mjs';
 import { chromium } from 'playwright';
@@ -40,6 +42,7 @@ const board = {
     shots: [{ id: 'shot-1', scene: 'Beach', desc: 'Opening frame', location: 'Beach' }],
   },
 };
+const productionFixture = productionBrowserFixture(project, board);
 const png = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jfUQAAAAASUVORK5CYII=',
   'base64',
@@ -75,6 +78,8 @@ async function backend(input, options = {}) {
   if (url.pathname === '/auth/v1/logout') return Response.json({});
   if (!authenticated) return Response.json({ message: 'Sign-in required' }, { status: 401 });
   const invited = role !== 'stranger';
+  if (url.pathname.endsWith('_project_production'))
+    return productionFixture.handle(url.pathname.split('/').at(-1), await body(), role);
   if (url.pathname === '/rest/v1/film_projects') return Response.json(invited ? [project] : []);
   if (url.pathname === '/rest/v1/project_members')
     return Response.json(
@@ -201,6 +206,7 @@ try {
   await editor.page.waitForFunction(() =>
     document.getElementById('sharedStatus').textContent.includes('1 shots'),
   );
+  await checkProductionBrowser(editor.page, productionFixture, board);
   assert.equal(await editor.page.locator('#ownerTools').isHidden(), true);
   assert.equal(ownerLinks, 0);
   assert.equal(objects.size, 0);
@@ -285,6 +291,14 @@ try {
   await viewer.page.waitForFunction(() =>
     document.getElementById('sharedStatus').textContent.includes('1 shots'),
   );
+  await viewer.page.locator('#tab-people').click();
+  await viewer.page.waitForFunction(() =>
+    document.getElementById('productionStatus').textContent.includes('Project records loaded'),
+  );
+  await viewer.page.locator('#productionRecords button').first().click();
+  assert.equal(await viewer.page.locator('#productionSave').isDisabled(), true);
+  assert.equal(await viewer.page.locator('#production-name').isDisabled(), true);
+  await viewer.page.locator('#tab-storyboard').click();
   assert.equal(await viewer.page.locator('.desc').isDisabled(), true);
   assert.equal(await viewer.page.locator('.image-upload').isDisabled(), true);
   assert.equal(await viewer.page.locator('#cloudSave').isDisabled(), true);

@@ -9,6 +9,8 @@ export const json = (value, status = 200) =>
   });
 const tables = new Set(['film_projects', 'project_members', 'project_invitations', 'storyboards']);
 export const rpcs = new Set([
+  'get_project_production',
+  'save_project_production',
   'create_film_project',
   'create_storyboard',
   'save_storyboard',

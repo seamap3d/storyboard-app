@@ -142,7 +142,7 @@ test('native MCP discovers tools without leaking tokens and requires each caller
   const discovery = await handle(call('server/discover', {}, null), env);
   assert.deepEqual((await discovery.json()).result.supportedVersions, ['2026-07-28']);
   const tools = await handle(call('tools/list', {}, null), env);
-  assert.equal((await tools.json()).result.tools.length, 7);
+  assert.equal((await tools.json()).result.tools.length, 10);
   const denied = await handle(
     call('tools/call', { name: 'list_storyboards', arguments: {} }, 'site-b'),
     env,
@@ -196,7 +196,7 @@ test('planning gaps distinguish missing frames/location text from location readi
     ['b'],
   );
   assert.deepEqual(result.mentioned_locations, ['Beach']);
-  assert.match(result.limitation, /not yet tracked/);
+  assert.match(result.limitation, /get_project_production/);
 });
 
 test('public app and publishable config do not require ChatGPT; private account APIs do', async () => {
@@ -300,4 +300,56 @@ test('Worker requests use manual redirects and reject redirects without followin
     /Reconnect/,
   );
   assert.equal(redirects, 1);
+});
+
+test('MCP reports an uncertain production save without promising that nothing committed', async () => {
+  const env = environment();
+  await writeLink(env, 'site-a', session);
+  const projectId = '00000000-0000-4000-8000-000000000099';
+  const production = {
+    project_id: projectId,
+    version: 0,
+    document: {
+      people: [],
+      characters: [],
+      locations: [],
+      settings: [],
+      scenes: [],
+      shotLinks: [],
+    },
+    storyboards: [],
+  };
+  let writes = 0;
+  const api = async (url, options) => {
+    if (String(url).endsWith('/rpc/get_project_production')) return Response.json(production);
+    if (String(url).endsWith('/rpc/save_project_production')) {
+      writes++;
+      throw new DOMException('Lost confirmation', 'TimeoutError');
+    }
+    return backend(url, options);
+  };
+  const response = await handle(
+    request('/mcp', 'POST', {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'tools/call',
+      params: {
+        name: 'update_production_record',
+        arguments: {
+          project_id: projectId,
+          expected_revision: 0,
+          collection: 'people',
+          record_id: '00000000-0000-4000-8000-000000000098',
+          changes: { name: 'Fixture crew' },
+        },
+      },
+    }),
+    env,
+    {},
+    api,
+  );
+  const rpc = await response.json();
+  assert.equal(rpc.result.isError, true);
+  assert.match(rpc.result.content[0].text, /may already have committed/);
+  assert.equal(writes, 1);
 });

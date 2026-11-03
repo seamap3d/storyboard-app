@@ -1,3 +1,4 @@
+import { productionToolDefinitions, runProductionTool } from './production-tools.mjs';
 import { validateBatch, prepareBatch, findShot } from './shot-batch.mjs';
 import { SharedClient } from '../app/shared-client.mjs';
 import { decodeImage, imageDataUrl, prepareSharedDocument } from '../app/storyboard-media.mjs';
@@ -37,6 +38,7 @@ function shotSummary(s) {
   };
 }
 export const toolDefinitions = [
+  ...productionToolDefinitions,
   {
     name: 'update_shots',
     description:
@@ -113,7 +115,7 @@ export const toolDefinitions = [
   {
     name: 'get_planning_gaps',
     description:
-      'Find shots missing storyboard frames or location names, list mentioned locations and outstanding props/equipment. Location names are not a completed location register; report this limitation.',
+      'Find shots missing storyboard frames or location names, list mentioned locations and outstanding props/equipment. Shot labels are not confirmed venues. Use get_project_production to inspect the separate project register and its logistics gaps.',
     inputSchema: {
       type: 'object',
       properties: { storyboard_id: uuid },
@@ -310,7 +312,7 @@ function planningGaps(board) {
     ],
     requirements: collectRequirements(board.document),
     limitation:
-      'Locations are shot text only; address/access/availability/permission readiness is not yet tracked. Requirements combine shot mentions with recorded planning details; newly mentioned items default to needed, which does not confirm inventory or availability.',
+      'These are shot-level labels. Use get_project_production for actual venues, contacts, assignments and incomplete-logistics flags; a label alone does not confirm a venue booking. Requirements combine shot mentions with recorded planning details; newly mentioned items default to needed, which does not confirm inventory or availability.',
   };
 }
 
@@ -413,7 +415,7 @@ function boardSummary(board) {
   };
 }
 
-export async function runTool(
+async function runStoryboardTool(
   client,
   user,
   name,
@@ -434,6 +436,9 @@ export async function runTool(
   const read = { get_planning_gaps: planningGaps, get_storyboard: boardSummary }[name];
   if (read) return read(board);
   if (name === 'update_shots') return updateShotBatch(client, user, board, args);
+  return runSingleShot(client, user, board, name, args, fetcher);
+}
+async function runSingleShot(client, user, board, name, args, fetcher) {
   const { document, shot } = await editableShot(client, user, board, args);
   if (name === 'update_shot') return updateShotText(client, board, args, document, shot);
   if ((shot.imagePath || shot.imageData) && args.replace_existing !== true)
@@ -448,4 +453,16 @@ export async function runTool(
     p_document: await prepareSharedDocument(client, document, board.project_id, board.id),
   });
   return { storyboard_id: saved.id, shot_id: shot.id, revision: saved.version, attached: true };
+}
+
+export async function runTool(
+  client,
+  user,
+  name,
+  args = {},
+  fetcher = (...values) => fetch(...values),
+) {
+  if (productionToolDefinitions.some((tool) => tool.name === name))
+    return runProductionTool(client, name, args);
+  return runStoryboardTool(client, user, name, args, fetcher);
 }

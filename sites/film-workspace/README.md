@@ -33,6 +33,17 @@ the shared URL. Invitations expire after seven days and are single-use/revocable
 The app does not automatically email those invitations; the provider shares the
 URL themselves. Site editor/viewer grants are not part of collaborator onboarding.
 
+## Project production records
+
+People & locations now manages project-wide people, characters/performers,
+filming venues, script settings, scenes and shot assignments. These records save
+separately from each storyboard and use their own revision checks. Availability
+is recorded as notes; dated scheduling/conflict checks remain planned. Ordinary
+collaborators use the same owner/editor/read-only permissions as shared boards.
+Provider MCP adds `get_project_production`, `update_production_record` and
+`delete_production_record`. See [the production-records guide](../../docs/production-records.md)
+in the GitHub repository for the schema, workflow, migration and remaining scope.
+
 ## Provider-only MCP
 
 Only the designated provider's Supabase user ID can enroll or use the MCP data

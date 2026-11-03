@@ -18,3 +18,5 @@ for migration in supabase/migrations/*.sql; do
 done
 run_sql < tests/sql/collaboration.sql
 run_sql < tests/sql/private-images.sql
+
+run_sql < tests/sql/project-production.sql

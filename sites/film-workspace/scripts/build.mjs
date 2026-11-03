@@ -14,6 +14,9 @@ const files = [
   'workspace-model.mjs',
   'workspace-ui.mjs',
   'local-draft.mjs',
+  'production-model.mjs',
+  'production-client.mjs',
+  'production-ui.mjs',
 ];
 const assets = {};
 for (const file of files)

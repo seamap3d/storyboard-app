@@ -11,6 +11,15 @@ they do not publish the active Site. Neither hosting path automatically applies
 database migrations. Production promotion, its smoke check and provider cost
 review remain outstanding.
 
+## Production-register migration
+
+The active People & locations feature adds a project-wide register and two
+user-token RPCs. Follow [production records](production-records.md) for the schema,
+role/revision checks, development validation and limits. The additive migration
+is named `project_production_records`; it does not rewrite storyboard documents
+or image objects. Inspect migration history before applying, include the new
+`project_production` table in backups, and keep production promotion separate.
+
 ## Original Netlify setup
 
 Implements the repository portion of ESNZ story

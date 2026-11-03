@@ -323,12 +323,12 @@
         <button
           role="tab"
           id="tab-people"
-          disabled
+          data-tab="people"
+          aria-controls="productionPanel"
           aria-selected="false"
           tabindex="-1"
-          title="Planned"
         >
-          People &amp; locations · planned
+          People &amp; locations
         </button>
         <button
           role="tab"
@@ -341,6 +341,43 @@
           Call sheets · planned
         </button>
       </nav>
+      <section
+        id="productionPanel"
+        role="tabpanel"
+        aria-labelledby="tab-people"
+        data-workspace-panel="people"
+        hidden
+      >
+        <h2>People &amp; locations</h2>
+        <p>
+          Shared across this film project's storyboards. Keep characters separate from performers,
+          and script settings separate from real filming venues. Saving a record does not change
+          your storyboard.
+        </p>
+        <p>
+          Availability is recorded as notes. Dated bookings and conflict checks will arrive with
+          scheduling.
+        </p>
+        <p id="productionStatus" role="status" aria-live="polite">Choose a shared film project.</p>
+        <p id="productionSummary"></p>
+        <div class="production-toolbar">
+          <label
+            >Register
+            <select id="productionKind"></select
+          ></label>
+          <button type="button" id="productionReload">Refresh production records</button>
+          <button type="button" id="productionNew">New record</button>
+        </div>
+        <div class="production-layout">
+          <div id="productionRecords" aria-label="Production records"></div>
+          <form id="productionForm">
+            <h3 id="productionEditorTitle">New record</h3>
+            <div id="productionFields"></div>
+            <button type="submit" id="productionSave">Save record</button>
+            <button type="button" id="productionDelete">Remove record</button>
+          </form>
+        </div>
+      </section>
       <fieldset
         role="tabpanel"
         aria-labelledby="tab-storyboard"
