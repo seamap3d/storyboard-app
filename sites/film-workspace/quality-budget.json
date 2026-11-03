@@ -1,0 +1,77 @@
+{
+  "complexity": {
+    "maximum": 10,
+    "exceptions": {
+      "app/shared-ui.mjs::controls#1": {
+        "maximum": 20,
+        "reason": "Existing UI permission/state projection; keep each control state explicit."
+      },
+      "worker/mcp.mjs::handleMcp#1": {
+        "maximum": 20,
+        "reason": "Existing protocol dispatch and safe error handling, retained at its prior complexity."
+      },
+      "app/storyboard-media.mjs::validateStoryboard#1": {
+        "maximum": 19,
+        "reason": "Existing document/import guard; keep validation failures explicit."
+      },
+      "server/storyboard-tools.mjs::readImage#1": {
+        "maximum": 18,
+        "reason": "Existing bounded image source/type validation with security checks."
+      },
+      "app/shared-client.mjs::SharedClient.rpc#1": {
+        "maximum": 15,
+        "reason": "Existing uncertain-save reconciliation and conflict propagation."
+      },
+      "app/shared-ui.mjs::renderMembers#1": {
+        "maximum": 15,
+        "reason": "Existing owner/member/invitation controls; reduce in a future focused UI change."
+      },
+      "app/storyboard-editor.mjs::newShot#1": {
+        "maximum": 14,
+        "reason": "Existing shot defaults and legacy field preservation."
+      },
+      "app/recovery.mjs::consumeAuthCallback#1": {
+        "maximum": 13,
+        "reason": "Existing recovery callback variants and credential scrubbing."
+      },
+      "app/workspace-model.mjs::collectRequirements#1": {
+        "maximum": 13,
+        "reason": "Existing manual requirement and shot-reference reconciliation."
+      },
+      "server/storyboard-tools.mjs::runTool#1": {
+        "maximum": 12,
+        "reason": "Reduced from 21 to 12 in this refactor; remaining read/write dispatch guards."
+      },
+      "worker/index.mjs::handle#1": {
+        "maximum": 12,
+        "reason": "Reduced from 56 to 12 in this refactor; route orchestration and origin guards."
+      },
+      "app/storyboard-editor.mjs::hydrate#1": {
+        "maximum": 11,
+        "reason": "Existing metadata and imported-field fallbacks."
+      },
+      "app/storyboard-editor.mjs::<callback>#34": {
+        "maximum": 11,
+        "reason": "Existing filtering or permission projection retained from the prior app."
+      },
+      "app/workspace-model.mjs::<callback>#5": {
+        "maximum": 11,
+        "reason": "Existing filtering or permission projection retained from the prior app."
+      },
+      "app/workspace-ui.mjs::control#1": {
+        "maximum": 11,
+        "reason": "Existing input variants and read-only/validity guards."
+      }
+    }
+  },
+  "unit": {
+    "lines": 40
+  },
+  "browser": {
+    "lines": 80,
+    "files": {
+      "app/workspace-model.mjs": 95,
+      "server/account-vault.mjs": 95
+    }
+  }
+}

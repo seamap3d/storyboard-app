@@ -1,105 +1,86 @@
-# ApeOnAWhale Storyboard (alpha01)
+# ApeOnAWhale Film Planner
 
-A single-file HTML storyboard application for filmmakers and visual storytellers. Create, organize, and visualize your shots with image uploads, character consistency tracking, and automated PDF script breakdowns.
+Private film projects with shared storyboards, shot lists, props and equipment,
+and provider-only ChatGPT tools.
 
-## ✨ Features
+**Active app:** https://apeonawhale-film-workspace.seamap3d.chatgpt.site
 
-- **Visual Storyboarding**: Upload images for each shot with 16:9 aspect ratio frames
-- **Character Bible**: Maintain character consistency across shots
-- **PDF Script Breakdown**: Upload screenplays as PDFs and generate shot cards automatically
-- **Drag & Drop Reordering**: Easily reorganize your shots
-- **Image Management**: Upload, display, and remove reference images for each shot
-- **Production Metadata**: Track location, shoot dates, equipment, and props per shot for call sheets and catalogues
-- **Export/Import**: Save and load projects as JSON files (including images)
-- **Print/PDF Ready**: Print your storyboard for production use
-- **Password Protection**: Basic authentication for deployed sites
-- **Keyboard Shortcuts**: `N` for new shot, `E` to export, `P` to print
+Collaborators open the website and sign in with a storyboard account; they do
+not need ChatGPT. Project membership controls access. Owners manage members and
+invitations, editors can edit and upload images, and viewers/commenters have
+read-only access in the current app. Commenting is planned. Only the designated
+provider can connect the MCP tools.
 
-## 🚀 Deployment to Netlify
+## Source layout
 
-### Method 1: Drag & Drop
-1. Zip the entire project folder
-2. Go to [Netlify](https://www.netlify.com) and drag the zip file to deploy
-3. Your app will be live instantly with a random URL
+| Path                                          | Purpose                                                               |
+| --------------------------------------------- | --------------------------------------------------------------------- |
+| `sites/film-workspace/`                       | Current ChatGPT Sites app, Worker, provider MCP, build and tests      |
+| `supabase/migrations/`                        | Ordered shared database, membership and private image migrations      |
+| Root HTML/modules, `netlify/`, `netlify.toml` | Frozen Netlify fallback (hash-checked)                                |
+| `docs/sites.md`                               | Current hosting, source synchronization, setup and outstanding checks |
+| `docs/environments.md`                        | Supabase migration runbook and historical Netlify verification        |
 
-### Method 2: GitHub Integration
-1. Push this repository to GitHub
-2. Connect your GitHub repo to Netlify
-3. Netlify will auto-deploy on every push
+The Site currently uses **development Supabase**. Production promotion and smoke
+checks remain outstanding. GitHub holds the canonical development source; its tracked app is synchronized
+to the Site-managed publication repository before a Sites deployment. A GitHub push does
+not deploy the active Site.
 
-### Password Protection
-The app includes a `_headers` file with basic authentication:
-- Default credentials: `username:password`
-- Update the `_headers` file to change credentials
-- Format: `Basic-Auth: yourusername:yourpassword`
+## Current functionality
 
-## 📁 Image Storage
+- Multiple named storyboards in private film projects, invitations and roles.
+- Storyboard cards, editable shot list and shared props/equipment planning.
+- JSON import/export, IndexedDB browser drafts and explicit shared saves.
+- Private, immutable image storage with portable exports embedding image bytes.
+- Save progress, reuse of existing images and read-back confirmation after an
+  uncertain save, without automatically replaying a write.
+- Password recovery and independent provider account linking for ChatGPT tools.
+- MCP reads, planning gaps, approved frame attachment and revision-checked shot
+  text edits. The new text-edit tool still needs a live native connector check.
 
-### Static Images
-- Place images in the `/images` folder
-- They'll be deployed as static assets
-- Access via: `https://yoursite.netlify.app/images/filename.jpg`
+Script editing/tagging, scheduling, people/location records and call sheets are
+planned. Four corresponding tabs are disabled. Locations are currently shot
+text, not a location-readiness database. Project-wide resource catalogs, image
+cleanup and broader collaborator acceptance also remain open.
 
-### Uploaded Images
-- Images uploaded via the app are stored as base64 data
-- Saved in browser localStorage and JSON exports
-- No server required - works entirely client-side
+## Development checks
 
-## 🎬 Usage
+Use Node 22.13+ (22.x), or Node 24+. From the repository root:
 
-### Creating Shots
-1. Click "New Shot" or press `N`
-2. Fill in scene details, shot type, lens, camera movement
-3. Add action/composition description
-4. Upload a reference image using "Upload Image" button
-5. Generate AI-ready prompts with the "Generate Prompt" button
-
-### Character Consistency
-- Define characters in the "Character Bible" section
-- Characters are auto-referenced in generated prompts
-- Helps maintain visual consistency across shots
-
-### Script Breakdown
-1. Select a PDF in the "Upload PDF Script" panel
-2. Click "Upload & Auto-Breakdown" to parse scene headings (`INT.` / `EXT.`)
-3. Shot cards are created automatically with editable fields populated from the script
-4. Refine each shot with specific details
-
-### Project Management
-- Export your storyboard as JSON (includes images)
-- Import previously saved projects
-- Print or save as PDF for production use
-
-## 🔧 Technical Details
-
-- **Single File App**: Core logic in `index.html` with a companion `styles.css`
-- **CDN-Powered**: Tailwind CSS, Google Fonts, and PDF.js loaded via CDN
-- **Client-Side**: No server or database required
-- **Responsive**: Works on desktop and mobile devices
-- **Browser Storage**: Auto-saves to localStorage
-
-## 📝 File Structure
-
-```
-storyboard-app/
-├── index.html          # Main application
-├── styles.css         # Custom global styles
-├── _headers           # Netlify authentication
-├── images/            # Static image assets
-└── README.md         # This file
+```sh
+npm ci
+npm ci --prefix sites/film-workspace
+npm run quality
+npm run quality:browser
 ```
 
-## 🛡️ Security Note
+Install the browser once, then run the Sites browser fixtures:
 
-The basic authentication in `_headers` provides minimal security. For sensitive projects, consider:
-- Using Netlify Identity for proper user management
-- Implementing client-side encryption for stored data
-- Using environment variables for credentials
+```sh
+cd sites/film-workspace
+npx playwright install chromium
+cd ../..
+npm run quality:browser
+```
 
----
+Set `CHROMIUM_PATH` to use an existing Chromium executable instead. These browser
+fixtures simulate Supabase; they do not modify real accounts or images. The
+existing `npm run test:db` checks migrations and access policies in a disposable
+local PostgreSQL container. See [Sites setup](docs/sites.md) for runtime settings
+and [the environment runbook](docs/environments.md) for migration procedures.
 
-Built as a single HTML file for easy hosting on GitHub Pages, Netlify, or any static hosting service.
+The root `npm run build` still builds the Netlify fallback with configured public
+Supabase values. `npm run build:sites` builds the current Worker separately.
 
-## 🧭 Release Notes
+## Privacy and planning
 
-- **alpha01** (current): Adds PDF screenplay upload and automated shot card generation, refreshed ApeOnAWhale branding, persistent storage migration, and production metadata fields for downstream catalogues.
+Passwords, session tokens, vault keys and private film exports must not be
+committed. Source uploads and generated storyboard frames stay outside the
+published asset allowlist. Public hosting does not make Supabase data or private
+image buckets public. The real ESNZ Backlog is the planning source; do not create
+or update `backlog.json`.
+
+Read [AGENTS.md](AGENTS.md) and [quality requirements](docs/quality.md) before
+changing code. These instructions persist for future coding sessions. GitHub CI
+checks formatting, lint, complexity, coverage, unit/browser behavior and disposable
+SQL tests. Branch protection must require those jobs to enforce merge blocking.
