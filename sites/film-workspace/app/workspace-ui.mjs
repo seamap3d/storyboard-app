@@ -1,10 +1,14 @@
+import { projectShotRows, linkedResourceNames } from './resource-model.mjs';
 import './storyboard-editor.mjs';
 import { collectRequirements, requirementKey, filterShots, csv } from './workspace-model.mjs';
 const $ = (id) => document.getElementById(id),
   bridge = window.storyboard;
 await bridge.ready;
 const filters = { search: '', scene: '', location: '', day: '', status: '', sort: '' };
-let selected = 'storyboard';
+let selected = 'storyboard',
+  projectState = null,
+  selectedBoardId = null,
+  selectedProjectId = null;
 const tabs = [...document.querySelectorAll('#workspaceTabs [role=tab]')];
 function selectTab(name, focus = false) {
   selected = name;
@@ -98,63 +102,97 @@ const shotFields = [
   ['equipment', 'Equipment'],
   ['notes', 'Notes'],
 ];
-function renderShots(document) {
+function projectScope() {
+  return $('shotListScope').value === 'project';
+}
+function sourceShots(data, filtered = true) {
+  if (projectScope())
+    return projectState ? projectShotRows(projectState, filtered ? filters : {}) : [];
+  return filtered ? filterShots(data.shots, filters) : data.shots;
+}
+function focusShot(shot) {
+  if (shot.boardId) {
+    document.dispatchEvent(
+      new CustomEvent('openprojectshot', { detail: { boardId: shot.boardId, shotId: shot.id } }),
+    );
+    return;
+  }
+  selectTab('storyboard');
+  const card = [...document.querySelectorAll('#shotList > li')].find(
+    (li) => li.dataset.id === shot.id,
+  );
+  if (card?.dataset.folded === 'true') card.querySelector('.btnToggleFold').click();
+  card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function shotFieldCell(shot, field, label) {
+  const cell = element('td');
+  if (projectScope()) {
+    cell.textContent = shot[field] ?? '';
+    return cell;
+  }
+  const config = { field };
+  if (field === 'status') config.choices = ['planned', 'ready', 'filmed'];
+  if (field === 'shootDate') config.type = 'date';
+  if (field === 'estimatedMinutes') config.type = 'number';
+  cell.append(
+    control(
+      shot[field] ?? (field === 'status' ? 'planned' : ''),
+      `Shot ${shot.displayNumber}: ${label}`,
+      (value) => bridge.updateShot(shot.id, { [field]: value }),
+      config,
+    ),
+  );
+  return cell;
+}
+function resourceNames(shot) {
+  if (!projectState) return '';
+  return linkedResourceNames(projectState, shot.boardId || selectedBoardId, shot.id).join('; ');
+}
+function renderShots(data) {
+  const all = sourceShots(data, false),
+    table = $('shotTable');
   options(
     'shotScene',
-    document.shots.map((s) => s.scene),
+    all.map((shot) => shot.scene),
     'All scenes',
   );
   options(
     'shotLocation',
-    document.shots.map((s) => s.location),
+    all.map((shot) => shot.location),
     'All locations',
   );
   options(
     'shotDay',
-    document.shots.map((s) => s.shootDate),
+    all.map((shot) => shot.shootDate),
     'All shoot dates',
   );
-  const rows = filterShots(document.shots, filters),
-    table = $('shotTable');
+  const rows = sourceShots(data);
+  $('projectShotHelp').hidden = !projectScope();
   table.replaceChildren();
-  const body = tableHeader(table, ['Shot', ...shotFields.map((x) => x[1])]);
+  const body = tableHeader(table, [
+    'Shot',
+    ...shotFields.map((field) => field[1]),
+    'Project resource links',
+  ]);
   for (const shot of rows) {
     const row = element('tr');
     row.dataset.shotId = shot.id;
-    const title = element('td');
-    const button = element('button', `${shot.displayNumber}. ${shot.customTitle || 'Shot'}`);
-    button.type = 'button';
-    button.onclick = () => {
-      selectTab('storyboard');
-      const card = [...document.querySelectorAll('#shotList > li')].find(
-        (li) => li.dataset.id === shot.id,
+    const title = element('td'),
+      button = element(
+        'button',
+        `${shot.boardName || ''} ${shot.displayNumber}. ${shot.customTitle || 'Shot'}`,
       );
-      if (card?.dataset.folded === 'true') card.querySelector('.btnToggleFold').click();
-      card?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    };
+    button.type = 'button';
+    button.onclick = () => focusShot(shot);
     title.append(button);
     row.append(title);
-    for (const [field, label] of shotFields) {
-      const cell = element('td');
-      const config = { field };
-      if (field === 'status') config.choices = ['planned', 'ready', 'filmed'];
-      if (field === 'shootDate') config.type = 'date';
-      if (field === 'estimatedMinutes') config.type = 'number';
-      cell.append(
-        control(
-          shot[field] ?? (field === 'status' ? 'planned' : ''),
-          `Shot ${shot.displayNumber}: ${label}`,
-          (value) => bridge.updateShot(shot.id, { [field]: value }),
-          config,
-        ),
-      );
-      row.append(cell);
-    }
+    for (const [field, label] of shotFields) row.append(shotFieldCell(shot, field, label));
+    row.append(element('td', resourceNames(shot)));
     body.append(row);
   }
   table.append(body);
   $('shotSummary').textContent =
-    `${rows.length} of ${document.shots.length} shots · ${rows.reduce((sum, s) => sum + (Number(s.estimatedMinutes) || 0), 0)} estimated shooting minutes`;
+    `${rows.length} of ${all.length} shots · ${rows.reduce((sum, shot) => sum + (Number(shot.estimatedMinutes) || 0), 0)} estimated shooting minutes`;
   $('shotEmpty').hidden = rows.length > 0;
 }
 function saveRequirement(item, patch) {
@@ -290,11 +328,13 @@ function downloadCsv(rows, name) {
 $('exportShotCsv').onclick = () =>
   downloadCsv(
     [
-      ['Shot', 'Title', ...shotFields.map((x) => x[1])],
-      ...filterShots(bridge.collectData().shots, filters).map((s) => [
+      ['Storyboard', 'Shot', 'Title', ...shotFields.map((x) => x[1]), 'Project resource links'],
+      ...sourceShots(bridge.collectData()).map((s) => [
+        s.boardName || '',
         s.displayNumber,
         s.customTitle || '',
         ...shotFields.map(([field]) => s[field] ?? (field === 'status' ? 'planned' : '')),
+        resourceNames(s),
       ]),
     ],
     'shot-list.csv',
@@ -319,3 +359,17 @@ $('exportRequirementCsv').onclick = () =>
 document.addEventListener('storyboardchange', render);
 document.addEventListener('storyboardpermissions', render);
 selectTab('storyboard');
+
+$('shotListScope').addEventListener('change', render);
+document.addEventListener('projectproductionstate', (event) => {
+  if (event.detail.state.project_id !== selectedProjectId) return;
+  projectState = event.detail.state;
+  render();
+});
+document.addEventListener('projectselection', (event) => {
+  selectedProjectId = event.detail.projectId;
+  selectedBoardId = event.detail.boardId;
+  if (projectState?.project_id !== selectedProjectId) projectState = null;
+  render();
+});
+document.addEventListener('focusstoryboardshot', (event) => focusShot({ id: event.detail.shotId }));

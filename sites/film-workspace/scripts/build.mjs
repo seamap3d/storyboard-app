@@ -15,6 +15,9 @@ const files = [
   'workspace-ui.mjs',
   'local-draft.mjs',
   'production-model.mjs',
+  'resource-fields.mjs',
+  'resource-model.mjs',
+  'resources-ui.mjs',
   'production-client.mjs',
   'production-ui.mjs',
 ];

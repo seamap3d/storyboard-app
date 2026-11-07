@@ -1,12 +1,22 @@
-import { validateProduction, patchProduction, productionGaps } from './production-model.mjs';
+import {
+  validateProduction,
+  patchProduction,
+  productionGaps,
+  normalizeProduction,
+} from './production-model.mjs';
 
 export async function readProduction(client, projectId) {
   const value = await client.rpc('get_project_production', { p_project: projectId });
+  value.document = normalizeProduction(value.document);
   validateProduction(value.document);
   return { ...value, gaps: registerGaps(value) };
 }
 export async function writeProduction(client, state, kind, id, changes, remove = false) {
   const document = patchProduction(state.document, kind, id, changes, remove);
+  return saveProductionDocument(client, state, document);
+}
+export async function saveProductionDocument(client, state, document) {
+  validateProduction(document);
   const response = await saveRequest(client, {
     p_project: state.project_id,
     p_version: state.version,

@@ -13,7 +13,15 @@ const changes = Object.fromEntries(
           key,
           definition.multiple
             ? { type: 'array', items: uuid, maxItems: 100, uniqueItems: true }
-            : { type: 'string', maxLength: key === 'name' ? 160 : 4000 },
+            : definition.number
+              ? {
+                  type: ['number', 'string'],
+                  minimum: 0,
+                  maximum: 1000000,
+                  description:
+                    'Nonnegative number, or empty string for unknown. Numeric strings are rejected.',
+                }
+              : { type: 'string', maxLength: key === 'name' ? 160 : 4000 },
         ]),
       ),
       additionalProperties: false,
@@ -24,7 +32,7 @@ export const productionToolDefinitions = [
   {
     name: 'get_project_production',
     description:
-      'Read project-wide people, characters/performers, real filming venues, script settings, scenes and shot assignments, with stable IDs and revision. Includes minimal storyboard/shot IDs for linking and incomplete-logistics flags. Script labels and availability notes do not confirm bookings. Contact data is private project data; do not disclose outside the authorized workflow.',
+      'Read project-wide people, characters/performers, real filming venues, script settings, scenes, props/equipment resources and shot/resource assignments, with stable IDs and revision. Includes minimal storyboard/shot IDs for linking and incomplete-logistics flags. Script labels and availability notes do not confirm bookings. Contact data is private project data; do not disclose outside the authorized workflow.',
     inputSchema: {
       type: 'object',
       properties: { project_id: uuid },
@@ -36,7 +44,7 @@ export const productionToolDefinitions = [
   {
     name: 'update_production_record',
     description:
-      'Create or patch one project production record using the current register revision. Use a new stable UUID to create; reuse existing IDs to edit. Supply only approved factual changes. Separate characters from performers and script settings from filming venues. Never invent real contacts, availability or bookings. Omitted fields and storyboard images/text are preserved. Read back after uncertain saves before retrying.',
+      'Create or patch one project production record using the current register revision. Use a new stable UUID to create; reuse existing IDs to edit. Supply only approved factual changes. Separate characters from performers and script settings from filming venues. Use collections resources/resourceLinks for project props/equipment. Never invent real contacts, quantities, availability or bookings. Omitted fields and storyboard images/text are preserved. Read back after uncertain saves before retrying.',
     inputSchema: {
       type: 'object',
       properties: {

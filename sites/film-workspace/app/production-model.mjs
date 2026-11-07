@@ -1,3 +1,4 @@
+import { resourceFields, validateResourceUniqueness } from './resource-fields.mjs';
 // Project-wide production records. These never rewrite storyboard documents.
 const field = (label, options = {}) => ({ label, ...options });
 export const productionFields = {
@@ -44,7 +45,10 @@ export const productionFields = {
     crewIds: field('Assigned crew', { reference: 'people', multiple: true }),
   },
 };
+Object.assign(productionFields, resourceFields);
 export const productionLabels = {
+  resources: 'Resources',
+  resourceLinks: 'Resource assignments',
   people: 'People',
   characters: 'Characters & performers',
   locations: 'Filming venues',
@@ -67,8 +71,16 @@ function validateMultiple(value) {
   )
     throw new Error('Production links must contain unique record IDs.');
 }
+function validateQuantity(value) {
+  if (value === '') return;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0 || value > 1000000)
+    throw new Error(
+      'Production quantities must be numbers from 0 to 1000000, or blank for unknown.',
+    );
+}
 function validateValue(value, definition) {
   if (definition.multiple) return validateMultiple(value);
+  if (definition.number) return validateQuantity(value);
   if (typeof value !== 'string' || value.length > 4000)
     throw new Error('Production fields must be text of at most 4000 characters.');
   if (definition.choices && !definition.choices.includes(value))
@@ -91,7 +103,7 @@ function validateRecord(kind, record) {
       throw new Error('Production assignment requires a storyboard and shot.');
   }
   if (
-    kind !== 'shotLinks' &&
+    Object.hasOwn(fields, 'name') &&
     (typeof record.name !== 'string' || !record.name.trim() || record.name.length > 160)
   )
     throw new Error('Production name must contain 1–160 characters.');
@@ -101,21 +113,27 @@ function validateReferences(document, kind, record) {
     if (!definition.reference || definition.reference === 'storyboards') continue;
     const values = definition.multiple ? record[key] || [] : [record[key]].filter(Boolean);
     for (const id of values) {
-      if (!document[definition.reference].some((item) => item.id === id))
+      if (!(document[definition.reference] || []).some((item) => item.id === id))
         throw new Error(
           'Production link is missing. Remove its assignments before deleting a record.',
         );
     }
   }
 }
+function collectionRecords(document, kind) {
+  const records =
+    document[kind] === undefined && Object.hasOwn(resourceFields, kind) ? [] : document[kind];
+  if (!Array.isArray(records) || records.length > 1000)
+    throw new Error('Production collections must be arrays with at most 1000 records.');
+  return records;
+}
 export function validateProduction(document) {
   if (!object(document) || new TextEncoder().encode(JSON.stringify(document)).length > 1048576)
     throw new Error('Production register must be an object under 1 MiB.');
   const ids = new Set();
   for (const kind of Object.keys(productionFields)) {
-    if (!Array.isArray(document[kind]) || document[kind].length > 1000)
-      throw new Error('Production collections must be arrays with at most 1000 records.');
-    for (const record of document[kind]) {
+    const records = collectionRecords(document, kind);
+    for (const record of records) {
       validateRecord(kind, record);
       if (ids.has(record.id)) throw new Error('Production record IDs must be unique.');
       ids.add(record.id);
@@ -127,7 +145,13 @@ export function validateProduction(document) {
     throw new Error(
       'A shot can have only one production assignment. Edit its existing assignment.',
     );
+  validateResourceUniqueness(document);
   return document;
+}
+export function normalizeProduction(document) {
+  const copy = structuredClone(document);
+  for (const kind of Object.keys(resourceFields)) if (copy[kind] === undefined) copy[kind] = [];
+  return copy;
 }
 /** Patch one record; preserve all unmentioned fields and forward-compatible data. */
 export function patchProduction(document, kind, id, changes, remove = false) {
@@ -138,7 +162,7 @@ export function patchProduction(document, kind, id, changes, remove = false) {
     Object.keys(changes).some((key) => !Object.hasOwn(productionFields[kind], key))
   )
     throw new Error('Production changes contain unsupported fields.');
-  const next = structuredClone(document),
+  const next = normalizeProduction(document),
     records = next[kind];
   const index = records.findIndex((record) => record.id === id);
   if (remove) {

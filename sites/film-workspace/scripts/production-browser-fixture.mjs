@@ -3,17 +3,39 @@ export function productionBrowserFixture(project, board) {
   const fixture = {
     state: { project_id: project.id, version: 0, document: emptyProduction() },
     failure: null,
+    extraBoards: [],
   };
   function snapshot() {
     return {
       ...structuredClone(fixture.state),
-      storyboards: [
-        {
-          id: board.id,
-          name: board.name,
-          shots: board.document.shots.map((shot) => ({ id: shot.id, name: shot.scene })),
-        },
-      ],
+      storyboards: [board, ...fixture.extraBoards].map((source) => ({
+        id: source.id,
+        name: source.name,
+        requirements: source.document.planning?.requirements || [],
+        shots: source.document.shots.map((shot) => ({
+          ...Object.fromEntries(
+            [
+              'id',
+              'scene',
+              'props',
+              'equipment',
+              'location',
+              'desc',
+              'type',
+              'lens',
+              'move',
+              'chars',
+              'notes',
+              'shootDate',
+              'estimatedMinutes',
+              'status',
+            ]
+              .filter((key) => shot[key] !== undefined)
+              .map((key) => [key, shot[key]]),
+          ),
+          name: shot.customTitle || shot.scene || 'Shot',
+        })),
+      })),
     };
   }
   fixture.handle = async (name, body, role) => {

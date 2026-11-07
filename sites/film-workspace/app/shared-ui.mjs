@@ -1,3 +1,4 @@
+import { createResourceWorkspace } from './resources-ui.mjs';
 import './storyboard-editor.mjs';
 import { createProductionUI } from './production-ui.mjs';
 import { SitesClient } from './sites-client.mjs';
@@ -17,6 +18,7 @@ const $ = (id) => document.getElementById(id);
 const bridge = window.storyboard;
 await bridge.ready;
 const production = createProductionUI($('productionPanel'));
+const resources = createResourceWorkspace($('resourceProject'));
 let client,
   user,
   projects = [],
@@ -38,6 +40,10 @@ function productionContext() {
 }
 function controls() {
   production.context(productionContext());
+  resources.context(productionContext());
+  document.dispatchEvent(
+    new CustomEvent('projectselection', { detail: { projectId: project?.id, boardId: board?.id } }),
+  );
   $('draftStatus').hidden = bridge.mode !== 'local';
   $('recover').disabled = busy || recoveryLimited;
   bridge.setEditable(!loading && (bridge.mode === 'local' || (!!user && !!board && editable())));
@@ -58,6 +64,7 @@ function controls() {
 function discard() {
   return (
     production.canLeave() &&
+    resources.canLeave() &&
     (!dirty || confirm('Discard unsaved shared changes? Export JSON first to keep a copy.'))
   );
 }
@@ -545,6 +552,7 @@ $('cloudSave').onclick = () =>
       p_document: prepared,
     });
     board = result;
+    document.dispatchEvent(new CustomEvent('projectproductionrefresh'));
     dirty = JSON.stringify(bridge.collectData()) !== snapshot || $('boardName').value !== name;
     const option = [...$('boardSelect').options].find((o) => o.value === board.id);
     if (option) option.textContent = result.name;
@@ -554,6 +562,15 @@ $('cloudSave').onclick = () =>
         : `Saved to shared storage, version ${board.version}.`,
     );
   });
+document.addEventListener('openprojectshot', (event) => {
+  const { boardId, shotId } = event.detail;
+  if (!project || !boards.some((item) => item.id === boardId) || !discard()) return;
+  run(async () => {
+    $('boardSelect').value = boardId;
+    await loadBoard(boardId);
+    document.dispatchEvent(new CustomEvent('focusstoryboardshot', { detail: { shotId } }));
+  });
+});
 $('reloadShared').onclick = () =>
   run(async () => {
     if (!discard()) return;

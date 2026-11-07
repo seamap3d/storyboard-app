@@ -4,6 +4,9 @@ The People & locations tab holds one shared production register per film project
 independent of each storyboard's JSON, revision and private images. All boards in
 the same project use the same register. A browser draft has no shared register.
 
+Project-wide resources and resource assignments extend this register; see
+[project resources](project-resources.md) for the later migration and workflow.
+
 ## Records and relationships
 
 - People: real cast/crew names, department/job, contact details, availability notes,

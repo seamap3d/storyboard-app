@@ -44,6 +44,18 @@ Provider MCP adds `get_project_production`, `update_production_record` and
 `delete_production_record`. See [the production-records guide](../../docs/production-records.md)
 in the GitHub repository for the schema, workflow, migration and remaining scope.
 
+## Project-wide props and equipment
+
+Props & equipment now includes shared project resources and shot assignments,
+reviewed promotion of saved storyboard mentions, manual quantities/suppliers/
+readiness/collection/return details and filtered CSV. The Shot list scope selector
+adds a read-only whole-project view with filters, resource links and navigation
+back to the selected shot's editable board. Per-board source notes are preserved.
+MCP adds `get_project_resources` and `promote_resource_mentions`; the existing
+production record tools also edit `resources` and `resourceLinks`. See
+[project resources](../../docs/project-resources.md) in the GitHub repository.
+Daily allocation/conflict checks and call-sheet outputs remain scheduling work.
+
 ## Provider-only MCP
 
 Only the designated provider's Supabase user ID can enroll or use the MCP data

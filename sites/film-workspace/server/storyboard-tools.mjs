@@ -1,3 +1,4 @@
+import { resourceToolDefinitions, runResourceTool } from './resource-tools.mjs';
 import { productionToolDefinitions, runProductionTool } from './production-tools.mjs';
 import { validateBatch, prepareBatch, findShot } from './shot-batch.mjs';
 import { SharedClient } from '../app/shared-client.mjs';
@@ -39,6 +40,7 @@ function shotSummary(s) {
 }
 export const toolDefinitions = [
   ...productionToolDefinitions,
+  ...resourceToolDefinitions,
   {
     name: 'update_shots',
     description:
@@ -115,7 +117,7 @@ export const toolDefinitions = [
   {
     name: 'get_planning_gaps',
     description:
-      'Find shots missing storyboard frames or location names, list mentioned locations and outstanding props/equipment. Shot labels are not confirmed venues. Use get_project_production to inspect the separate project register and its logistics gaps.',
+      'Find shots missing storyboard frames or location names, list mentioned locations and outstanding props/equipment. Shot labels are not confirmed venues. Use get_project_production for people/venues and get_project_resources for reviewed project inventory and logistics gaps.',
     inputSchema: {
       type: 'object',
       properties: { storyboard_id: uuid },
@@ -312,7 +314,7 @@ function planningGaps(board) {
     ],
     requirements: collectRequirements(board.document),
     limitation:
-      'These are shot-level labels. Use get_project_production for actual venues, contacts, assignments and incomplete-logistics flags; a label alone does not confirm a venue booking. Requirements combine shot mentions with recorded planning details; newly mentioned items default to needed, which does not confirm inventory or availability.',
+      'These are shot-level labels. Use get_project_production for actual venues/contacts and get_project_resources for canonical resources and their logistics gaps; a label alone does not confirm a venue booking. Requirements combine shot mentions with recorded planning details; newly mentioned items default to needed, which does not confirm inventory or availability.',
   };
 }
 
@@ -462,6 +464,8 @@ export async function runTool(
   args = {},
   fetcher = (...values) => fetch(...values),
 ) {
+  if (resourceToolDefinitions.some((tool) => tool.name === name))
+    return runResourceTool(client, name, args);
   if (productionToolDefinitions.some((tool) => tool.name === name))
     return runProductionTool(client, name, args);
   return runStoryboardTool(client, user, name, args, fetcher);

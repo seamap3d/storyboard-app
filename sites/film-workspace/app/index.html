@@ -519,6 +519,17 @@
         hidden
       >
         <h2>Shot list</h2>
+        <label
+          >Scope
+          <select id="shotListScope">
+            <option value="board">Current storyboard (editable)</option>
+            <option value="project">Whole film project (open a shot to edit)</option>
+          </select></label
+        >
+        <p id="projectShotHelp" hidden>
+          Project view uses saved storyboards. Select a shot to open its storyboard for editing;
+          unsaved changes require review before switching.
+        </p>
         <p>
           Current storyboard. Edits update the same shot cards. Use Save storyboard to share
           changes.
@@ -586,9 +597,65 @@
         hidden
       >
         <h2>Props &amp; equipment</h2>
+        <div id="resourceProject">
+          <h3>Shared project resources</h3>
+          <p>
+            Reuse props and production equipment across this film's storyboards. Record quantities,
+            suppliers, readiness and collection/return arrangements. Blank quantities mean unknown.
+          </p>
+          <p id="resourcesStatus" role="status" aria-live="polite">Choose a shared project.</p>
+          <p id="resourcesSummary"></p>
+          <div class="production-toolbar">
+            <label
+              >Register
+              <select id="resourcesKind"></select
+            ></label>
+            <button type="button" id="resourcesReload">Refresh project resources</button>
+            <button type="button" id="resourcesNew">New resource / assignment</button>
+          </div>
+          <div class="production-layout">
+            <div id="resourcesRecords" aria-label="Project resource records"></div>
+            <form id="resourcesForm">
+              <h3 id="resourcesEditorTitle">New record</h3>
+              <div id="resourcesFields"></div>
+              <div id="resourceLegacyNotes"></div>
+              <button type="submit" id="resourcesSave">Save resource record</button
+              ><button type="button" id="resourcesDelete">Remove resource record</button>
+            </form>
+          </div>
+          <div class="planning-tools">
+            <label>Search project resources <input type="search" id="resourceSearch" /></label>
+            <label
+              >Category
+              <select id="resourceCategory">
+                <option value="">All categories</option>
+                <option value="prop">Props</option>
+                <option value="equipment">Equipment</option>
+              </select></label
+            >
+            <button type="button" id="exportProjectResources">Export project resources CSV</button>
+          </div>
+          <div class="planning-scroll" tabindex="0" aria-label="Project resource usage">
+            <table id="projectResourcesTable"></table>
+          </div>
+          <details class="resource-review">
+            <summary>Review requirements from all saved storyboards</summary>
+            <p>
+              Review each item and its source notes before linking. Choose an existing item to merge
+              similar names deliberately. Earlier per-storyboard details remain available for
+              review; quantities and availability need confirmation.
+            </p>
+            <button type="button" id="promoteSelectedResources" data-resource-action="promote">
+              Link selected reviewed requirements
+            </button>
+            <div id="resourceSuggestions"></div>
+          </details>
+        </div>
+        <h3>Current storyboard source notes</h3>
         <p>
-          Current storyboard. Items are consolidated from shot fields; separate names with commas,
-          semicolons or new lines. Quantities are entered manually.
+          These notes are saved with Save storyboard. Review their mentions into the shared project
+          register above to manage production logistics across storyboards. Browser drafts retain
+          their own local list.
         </p>
         <div class="planning-tools">
           <label>Search <input id="requirementSearch" type="search" /></label

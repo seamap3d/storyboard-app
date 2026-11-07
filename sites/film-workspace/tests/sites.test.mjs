@@ -142,7 +142,7 @@ test('native MCP discovers tools without leaking tokens and requires each caller
   const discovery = await handle(call('server/discover', {}, null), env);
   assert.deepEqual((await discovery.json()).result.supportedVersions, ['2026-07-28']);
   const tools = await handle(call('tools/list', {}, null), env);
-  assert.equal((await tools.json()).result.tools.length, 10);
+  assert.equal((await tools.json()).result.tools.length, 12);
   const denied = await handle(
     call('tools/call', { name: 'list_storyboards', arguments: {} }, 'site-b'),
     env,

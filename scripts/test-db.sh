@@ -20,3 +20,5 @@ run_sql < tests/sql/collaboration.sql
 run_sql < tests/sql/private-images.sql
 
 run_sql < tests/sql/project-production.sql
+
+run_sql < tests/sql/project-resources.sql

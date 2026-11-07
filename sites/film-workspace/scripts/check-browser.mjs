@@ -1,3 +1,4 @@
+import { checkResourcesBrowser } from './check-resources-browser.mjs';
 import { productionBrowserFixture } from './production-browser-fixture.mjs';
 import { checkProductionBrowser } from './check-production-browser.mjs';
 import { checkPlanningBrowser } from './check-planning-browser.mjs';
@@ -88,7 +89,16 @@ async function backend(input, options = {}) {
         : [],
     );
   if (url.pathname === '/rest/v1/project_invitations') return Response.json([]);
-  if (url.pathname === '/rest/v1/storyboards') return Response.json(invited ? [board] : []);
+  if (url.pathname === '/rest/v1/storyboards') {
+    const requested = url.searchParams.get('id')?.slice(3);
+    return Response.json(
+      invited
+        ? [board, ...productionFixture.extraBoards].filter(
+            (item) => !requested || item.id === requested,
+          )
+        : [],
+    );
+  }
   if (url.pathname === '/rest/v1/rpc/save_storyboard') {
     saveAttempts++;
     if (failNextSave) {
@@ -207,6 +217,7 @@ try {
     document.getElementById('sharedStatus').textContent.includes('1 shots'),
   );
   await checkProductionBrowser(editor.page, productionFixture, board);
+  await checkResourcesBrowser(editor.page, productionFixture, board);
   assert.equal(await editor.page.locator('#ownerTools').isHidden(), true);
   assert.equal(ownerLinks, 0);
   assert.equal(objects.size, 0);
@@ -298,6 +309,9 @@ try {
   await viewer.page.locator('#productionRecords button').first().click();
   assert.equal(await viewer.page.locator('#productionSave').isDisabled(), true);
   assert.equal(await viewer.page.locator('#production-name').isDisabled(), true);
+  await viewer.page.locator('#tab-requirements').click();
+  assert.equal(await viewer.page.locator('#resourcesSave').isDisabled(), true);
+  assert.match(await viewer.page.locator('#projectResourcesTable').textContent(), /Radio/);
   await viewer.page.locator('#tab-storyboard').click();
   assert.equal(await viewer.page.locator('.desc').isDisabled(), true);
   assert.equal(await viewer.page.locator('.image-upload').isDisabled(), true);

@@ -20,6 +20,12 @@ is named `project_production_records`; it does not rewrite storyboard documents
 or image objects. Inspect migration history before applying, include the new
 `project_production` table in backups, and keep production promotion separate.
 
+The additive `project_resources` migration extends that register with resources
+and shot/resource links. Follow [project resources](project-resources.md) for
+compatibility, reference/quantity checks and verification. It preserves existing
+production rows and source storyboards; production Supabase promotion remains a
+separate workflow.
+
 ## Original Netlify setup
 
 Implements the repository portion of ESNZ story
