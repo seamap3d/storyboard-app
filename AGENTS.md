@@ -4,9 +4,9 @@ These instructions apply to every coding task in this repository, including bug
 fixes, features and maintenance. Read `docs/quality.md` and the active app's
 `sites/film-workspace/AGENTS.md` before changing code.
 
-- The canonical application source is `sites/film-workspace/`. The root Netlify
-  application is a frozen fallback, checked by `npm run check:fallback`. Make
-  app changes in the canonical source, not by editing two implementations.
+- The only application source is `sites/film-workspace/`, hosted on ChatGPT Sites.
+  The retired Netlify application has been removed. Do not recreate its deployment
+  configuration or a second application implementation.
 - Keep changes understandable to another developer: formatted code, descriptive
   names, small functions and explicit boundaries. Do not add inline application
   JavaScript to HTML. Follow existing dependency-injection seams.

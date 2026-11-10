@@ -6,14 +6,13 @@ data/permission preservation and truthful verification. CI checks enforce the
 measurable requirements on every pull request and push. Human review remains
 necessary; a passing coverage percentage does not establish correctness.
 
-## Canonical source and fallback
+## Canonical source
 
-Develop the app in `sites/film-workspace/`. Its standalone package contains the
-same checks used by GitHub CI and the Site-managed publication checkout. The root
-Netlify application is a frozen fallback, not a second development target.
-`npm run check:fallback` checks its recorded source hashes. An intentional fallback
-change requires an explicit reviewed decision and manifest update, not routine
-dual editing. Database migrations remain at `supabase/migrations/`.
+The only app is `sites/film-workspace/`. Its standalone package contains the
+checks used by GitHub CI and the Site publication checkout. The retired root
+Netlify application and its duplicate tests have been removed. The active app's
+tests and coverage budgets are unchanged. Database migrations and SQL fixtures
+remain in their original directories.
 
 Use `npm run sync:sites -- --target /absolute/dedicated/site-checkout` to mirror
 tracked application source to a clean checkout of the same Site project. It
@@ -30,8 +29,8 @@ npm run quality
 npm run quality:browser
 ```
 
-The first command runs frozen-fallback verification, fallback unit tests, active
-format/lint/complexity checks, build, unit tests and their coverage floor. The
+The first command runs root source checks, active format/lint/complexity checks,
+build, unit tests and their coverage floor. The
 browser command exercises the active UI with synthetic accounts and mocked HTTP,
 and checks combined server/browser coverage. Install the pinned Playwright
 Chromium with `npx playwright install chromium` from the active app first; an
@@ -74,8 +73,8 @@ a build succeeds. Run the required checks before commit/push and publication.
 - New-function complexity: at most 10. Fifteen retained legacy exceptions are
   recorded by name with individual ceilings of 11–20; none may grow.
 - The largest router score fell from 56 to 12. No function remains above 20.
-- The active suite contains 52 unit tests; 26 fallback tests share canonical
-  client/media/model test cases. Browser checks add import rejection/preservation,
+- The initial active suite contained 52 unit tests. Its shared client/media/model
+  cases remain in the active app. Browser checks add import rejection/preservation,
   folding, duplication/deletion, planning edits, filtered exports and saving.
 
 These are starting guardrails, not a claim of full coverage. The old 67.9% figure

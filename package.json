@@ -6,22 +6,19 @@
     "node": "^22.13.0 || >=24"
   },
   "scripts": {
-    "build": "node scripts/build.mjs",
-    "test": "node --test tests/*.test.mjs",
-    "dev": "python3 -m http.server 8000 --bind 0.0.0.0 --directory dist",
+    "build": "npm --prefix sites/film-workspace run build",
+    "test": "npm --prefix sites/film-workspace test",
     "test:db": "bash scripts/test-db.sh",
-    "test:browser": "node scripts/check-browser.mjs",
-    "test:import": "node scripts/check-real-import.mjs",
+    "test:browser": "npm --prefix sites/film-workspace run test:browser",
     "build:sites": "npm --prefix sites/film-workspace run build",
     "test:sites": "npm run build:sites && npm --prefix sites/film-workspace test",
     "test:sites:browser": "npm run build:sites && npm --prefix sites/film-workspace run test:browser",
-    "check:fallback": "node scripts/check-fallback.mjs",
     "sync:sites": "node scripts/sync-sites-source.mjs",
-    "quality": "npm run format:check && npm run lint && npm run check:fallback && npm test && npm --prefix sites/film-workspace run quality",
+    "quality": "npm run format:check && npm run lint && npm --prefix sites/film-workspace run quality",
     "quality:browser": "npm --prefix sites/film-workspace run quality:browser",
-    "format": "node sites/film-workspace/node_modules/prettier/bin/prettier.cjs --config sites/film-workspace/.prettierrc.json --write AGENTS.md README.md package.json .github/workflows/quality.yml docs/*.md docs/*.json scripts/check-fallback.mjs scripts/sync-sites-source.mjs tests/*.test.mjs",
-    "format:check": "node sites/film-workspace/node_modules/prettier/bin/prettier.cjs --config sites/film-workspace/.prettierrc.json --check AGENTS.md README.md package.json .github/workflows/quality.yml docs/*.md docs/*.json scripts/check-fallback.mjs scripts/sync-sites-source.mjs tests/*.test.mjs",
-    "lint": "node sites/film-workspace/node_modules/eslint/bin/eslint.js --config sites/film-workspace/eslint.config.mjs scripts/check-fallback.mjs scripts/sync-sites-source.mjs tests/*.test.mjs"
+    "format": "node sites/film-workspace/node_modules/prettier/bin/prettier.cjs --config sites/film-workspace/.prettierrc.json --write AGENTS.md README.md package.json .github/workflows/quality.yml docs/*.md scripts/sync-sites-source.mjs",
+    "format:check": "node sites/film-workspace/node_modules/prettier/bin/prettier.cjs --config sites/film-workspace/.prettierrc.json --check AGENTS.md README.md package.json .github/workflows/quality.yml docs/*.md scripts/sync-sites-source.mjs",
+    "lint": "node sites/film-workspace/node_modules/eslint/bin/eslint.js --config sites/film-workspace/eslint.config.mjs scripts/sync-sites-source.mjs"
   },
   "devDependencies": {
     "playwright": "^1.64.1"

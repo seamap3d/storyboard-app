@@ -13,13 +13,12 @@ provider can connect the MCP tools.
 
 ## Source layout
 
-| Path                                          | Purpose                                                               |
-| --------------------------------------------- | --------------------------------------------------------------------- |
-| `sites/film-workspace/`                       | Current ChatGPT Sites app, Worker, provider MCP, build and tests      |
-| `supabase/migrations/`                        | Ordered shared database, membership and private image migrations      |
-| Root HTML/modules, `netlify/`, `netlify.toml` | Frozen Netlify fallback (hash-checked)                                |
-| `docs/sites.md`                               | Current hosting, source synchronization, setup and outstanding checks |
-| `docs/environments.md`                        | Supabase migration runbook and historical Netlify verification        |
+| Path                    | Purpose                                                               |
+| ----------------------- | --------------------------------------------------------------------- |
+| `sites/film-workspace/` | Current ChatGPT Sites app, Worker, provider MCP, build and tests      |
+| `supabase/migrations/`  | Ordered shared database, membership and private image migrations      |
+| `docs/sites.md`         | Current hosting, source synchronization, setup and outstanding checks |
+| `docs/environments.md`  | Supabase environments and migration runbook                           |
 
 The Site currently uses **development Supabase**. Production promotion and smoke
 checks remain outstanding. GitHub holds the canonical development source; its tracked app is synchronized
@@ -69,8 +68,9 @@ existing `npm run test:db` checks migrations and access policies in a disposable
 local PostgreSQL container. See [Sites setup](docs/sites.md) for runtime settings
 and [the environment runbook](docs/environments.md) for migration procedures.
 
-The root `npm run build` still builds the Netlify fallback with configured public
-Supabase values. `npm run build:sites` builds the current Worker separately.
+The root `npm run build` builds the current Sites Worker. The retired Netlify
+application, functions, OAuth pages and build setup have been removed. Previous
+versions remain in Git history; they are not supported deployment targets.
 
 ## Privacy and planning
 
