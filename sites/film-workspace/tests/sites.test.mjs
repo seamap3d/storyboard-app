@@ -142,7 +142,7 @@ test('native MCP discovers tools without leaking tokens and requires each caller
   const discovery = await handle(call('server/discover', {}, null), env);
   assert.deepEqual((await discovery.json()).result.supportedVersions, ['2026-07-28']);
   const tools = await handle(call('tools/list', {}, null), env);
-  assert.equal((await tools.json()).result.tools.length, 12);
+  assert.equal((await tools.json()).result.tools.length, 16);
   const denied = await handle(
     call('tools/call', { name: 'list_storyboards', arguments: {} }, 'site-b'),
     env,
@@ -352,4 +352,38 @@ test('MCP reports an uncertain production save without promising that nothing co
   assert.equal(rpc.result.isError, true);
   assert.match(rpc.result.content[0].text, /may already have committed/);
   assert.equal(writes, 1);
+});
+
+test('provider MCP returns actual image blocks and denies an unlinked caller', async () => {
+  const env = environment();
+  await writeLink(env, 'site-a', session);
+  const id = '11111111-1111-4111-8111-111111111111';
+  const image =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jfUQAAAAASUVORK5CYII=';
+  const upstream = async (url, options) => {
+    if (String(url).includes('/rest/v1/storyboards'))
+      return Response.json([
+        { id, project_id: id, version: 2, document: { shots: [{ id: 'shot', imageData: image }] } },
+      ]);
+    return backend(url, options);
+  };
+  const call = (user) =>
+    request(
+      '/mcp',
+      'POST',
+      {
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/call',
+        params: { name: 'get_shot_image', arguments: { storyboard_id: id, shot_id: 'shot' } },
+      },
+      user,
+    );
+  const denied = await handle(call('site-b'), env, {}, upstream);
+  assert.equal((await denied.json()).result.isError, true);
+  const result = (await (await handle(call('site-a'), env, {}, upstream)).json()).result;
+  assert.equal(result.content[1].type, 'image');
+  assert.equal(result.content[1].data, image.split(',')[1]);
+  assert.equal(result.structuredContent.revision, 2);
+  assert.equal(JSON.stringify(result).includes('private-access'), false);
 });

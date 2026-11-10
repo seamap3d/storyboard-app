@@ -266,3 +266,29 @@ The MCP planning-gaps requirements list uses the same consolidation as the websi
 including shot mentions even without manual inventory records. Existing quantities,
 suppliers and readiness are retained; new mentions have blank quantities and the
 planning status needed, which is not a confirmed booking or available inventory.
+
+## Character Bible image tools (1.5)
+
+`get_character_bible(project_id)` reads stable character IDs, reference metadata,
+missing-reference flags and the production register revision. Create character
+records through `update_production_record` before adding references.
+`attach_character_reference` requires the current register revision, stable
+character/reference UUIDs and `approved:true` after the user approves the image.
+It accepts either a source shot ID or one PNG/JPEG/WebP data URL / supported
+OpenAI file URL. Replacing an existing reference requires `replace_existing:true`.
+Caption, appearance, costume and continuity notes are optional. Unknown character
+fields, other production records and original storyboard frames are preserved.
+
+`get_character_reference_image` returns actual approved private image bytes in an
+MCP image content block. `get_shot_image` retrieves an existing frame for visual
+inspection without declaring it canonical. Neither returns storage credentials
+or public image URLs. The provider-only gate and normal project permissions apply.
+Read back after saving, especially after timeouts; never replay an uncertain write.
+
+Reference metadata lives on project production characters as `visualReferences`,
+using the existing versioned register. Images reuse immutable content-hashed
+objects in an existing project storyboard's private storage namespace. Retain
+that source storyboard: storage access is tied to it. No database migration,
+service key, bucket policy change or second database is introduced. This increment
+adds MCP authoring/retrieval; a dedicated browser Bible gallery remains pending.
+No character likenesses or approval decisions are populated by the server update.
