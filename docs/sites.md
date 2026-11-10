@@ -12,10 +12,10 @@
 
 The current canonical source is `sites/film-workspace/` in GitHub. Its source
 instructions, checks and code travel together to the Site publication mirror.
-The root Netlify app is frozen and hash-checked. Database migrations and SQL
+The retired root Netlify app has been removed. Database migrations and SQL
 checks remain in their original directories. See [quality requirements](quality.md).
 
-The active Site and Netlify have different hosting systems and source repositories.
+The active Site has a dedicated publication repository.
 Changes pushed to GitHub are reviewable source, not an automatic Sites release.
 To publish a reviewed change, run `npm run sync:sites -- --target <checkout>`
 from a clean GitHub checkout. The target must be clean, dedicated to the same
@@ -80,8 +80,7 @@ Supabase session to the Site-authenticated ChatGPT identity. That session is
 encrypted in private R2. Only the configured provider may enroll/use MCP, and
 project role/version checks still apply. Normal collaborators do not use MCP.
 The Sites-native identity/account-link path supersedes the old Netlify OAuth
-discovery and consent setup; those fallback files are retained, not required by
-the current connection.
+discovery and consent setup; the obsolete files have been removed.
 
 Set development Supabase Auth Site URL and an allowed Redirect URL to:
 
@@ -134,8 +133,8 @@ GitHub Actions run https://github.com/seamap3d/storyboard-app/actions/runs/41335
 passed `quality (22)`, `quality (24)` and `database`. Standalone Site clean-install,
 quality and browser checks passed too: 52 active unit cases, 81.66% combined runtime
 line coverage, 100% vault coverage, 95.23% planning-model coverage and maximum
-function decision complexity 20. The router fell from 56 to 12. Root fallback
-unit tests (26) and disposable PostgreSQL migration/access/image-policy tests pass.
+function decision complexity 20. The router fell from 56 to 12. At that release, the root fallback unit tests (26)
+and disposable PostgreSQL checks passed. The fallback has since been removed.
 
 The real MCP read after publication succeeded and matched the pre-publication
 storyboard summary. No user film/account/image was changed by the regression
